@@ -4254,8 +4254,9 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
         // 카드 한 줄에 들어가게 짧게 · 마우스를 올리면 전체 문장
         vd.textContent = reGoal == null || v == null ? '' : v >= reGoal ? `✓ 달성${isCur ? ' 전망' : ''}` : `✗ ${fmt(reGoal - v, 1)}%p 부족${isCur ? ' (예측)' : ''}`;
         vd.dataset.full = reGoal == null || v == null ? '' : v >= reGoal ? `✓ 목표 달성${isCur ? ' 전망 (연말 예측)' : ''}` : `✗ 목표까지 ${fmt(reGoal - v, 1)}%p${isCur ? ' (연말 예측)' : ''}`;
-        reSub.textContent = reGoal == null ? `${reEq} · 목표는 ${yrShort(RE_FIRST)}부터` : reEq;
-        reSub.title = reSub.textContent; vd.title = vd.dataset.full;
+        // 계산식((자가 + 구매) ÷ 총 전력)은 카드를 누르면 뜨는 팝업에 있어 여기서는 뺌
+        reSub.textContent = [si ? '' : sitesLabel(TARGET_SITES.re), reGoal == null ? `목표는 ${yrShort(RE_FIRST)}(${RE_GOAL[RE_FIRST]}%)부터` : ''].filter(Boolean).join(' · ');
+        reSub.title = reEq; vd.title = vd.dataset.full;
         const reMiss = reGoal != null && v != null && v < reGoal;
         setOver('k-re-pct', reMiss, `RE100 이행 목표 ${isCur ? '미달 전망' : '미달'} · 목표 ${fmt(reGoal, 1)}% · ${isCur ? '연말 예측' : '실적'} ${fmt(v || 0, 1)}%`, { noBadge: true });
         calc('k-re-pct', { title: 'RE100 이행률', sub: '재생에너지로 쓴 전기의 비율', site: si || sitesLabel(TARGET_SITES.re), value: re100, unit: '%',
@@ -4515,7 +4516,7 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
       }
       const s = orgStatS(y), p = orgStatS(+y - 1)[key];
       $$(valId).textContent = fmtV(s[key]);
-      sub.textContent = `${yrShort(y)}${isCur && y !== yr ? ' (최근 입력)' : ''} · ${detail(s)}` + (p != null ? ` · ${diffTxt(s[key], p)}` : '');
+      sub.textContent = [`${yrShort(y)}${isCur && y !== yr ? ' (최근 입력)' : ''}`, detail(s), p != null ? diffTxt(s[key], p) : ''].filter(Boolean).join(' · ');
       oCalc(valId, { ...mk(s, y), value: s[key], period: `${yrShort(y)}년${isCur && y !== yr ? ' (최근 입력값)' : ''}`,
         facts: [...(mk(s, y).facts || []), ...(p != null ? [{ k: `${yrShort(+y - 1)} 값`, v: fmtV(p) }] : [])] });
     };
@@ -4619,8 +4620,9 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
     setBar(P, 'wt-act', a, `${fmt(a, 1)}%(${fq(p.ytd)}t)`, a > 100 ? 'var(--red)' : 'var(--green)');
     setBar(P, 'wt-pred', e, `${fmt(e, 1)}%(${fq(p.proj)}t)`, e > 100 ? 'var(--red)' : PRED_COLOR);
     $$('pct-wt-pred').style.color = e > 100 ? 'var(--red)' : PRED_COLOR;
-    sub.textContent = e > 100 ? `이대로면 목표보다 ${fq(p.proj - tgt)}t 많아요 · 예측 = 입력된 달 + 남은 달은 직전 2개년 같은 달 평균`
-                              : '예측 = 입력된 달 + 남은 달은 직전 2개년 같은 달 평균';
+    sub.className = 'kpi-sub kpi-yoy ' + (e > 100 ? 'bad' : 'good');
+    sub.textContent = e > 100 ? `✗ 이대로면 목표보다 ${fq(p.proj - tgt)}t 많아요` : `✓ 달성 전망 · 목표보다 ${fq(tgt - p.proj)}t 적게 발생`;
+    sub.title = '연말 예측 = 입력된 달 + 남은 달은 직전 2개년 같은 달 평균';
     wCalc({ value: tgt, formula: wEq(rm, yr, tgt),
       facts: [{ k: '감축률', v: `${fmt(rm.rates[yr], 1)}%` }, { k: '올해 누적', v: p.ytd, u: 'ton' }, { k: '연말 예측', v: p.proj, u: 'ton' },
               { k: e > 100 ? '초과 전망' : '목표보다 적을 전망', v: Math.abs(p.proj - tgt), u: 'ton' }],
