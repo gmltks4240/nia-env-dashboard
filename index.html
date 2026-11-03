@@ -254,6 +254,7 @@ button.sb-btn:focus-visible{outline:2px solid var(--primary);outline-offset:-2px
 .kpi-amt .amt-x{font-size:11px;font-weight:500;color:var(--muted);font-family:var(--font)}
 .kpi-amt .amt-x:not(:empty)::before{content:'·';margin:0 4px 0 2px;color:var(--border2)}
 .kpi-amt.amt-re{font-family:var(--fdata);color:var(--muted);font-weight:600;font-size:11px}
+.kpi-amt.amt-re{white-space:normal;text-align:right;max-width:100%}   /* 글만 있는 줄은 좁으면 줄바꿈 (왼쪽 이름 위로 넘치지 않게) */
 .sec-unit span{font-weight:500;color:var(--muted)}
 
 /* ── 차트 ────────────────────────────────────────────── */
@@ -1941,6 +1942,280 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
 .u-role.r-viewer{background:var(--surface2);color:var(--text2)}
 .u-role.r-none{background:rgba(217,119,6,.14);color:var(--amber)}
 .log-tbl td.log-who{white-space:nowrap;font-size:12.5px;color:var(--text2)}
+
+/* ── 한눈에 읽히게: 숫자·글 대신 그림으로 ─────────────────────────── */
+/* 탭 위 설명 띠 — 접으면 한 줄 (모든 탭 같이 · 이 브라우저에 기억) */
+.intro-x{margin-left:auto;align-self:center;flex:none;position:relative;z-index:1;padding:3px 11px;border:1px solid rgba(148,163,184,.35);border-radius:999px;
+  font-size:11.5px;font-weight:600;color:var(--muted);white-space:nowrap}
+.intro-x:hover{color:var(--text);border-color:var(--primary)}
+.intro-x:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+body.intro-min :is(.welcome-banner,.tab-banner){padding:6px 10px 6px 14px;gap:10px;margin-bottom:12px}
+body.intro-min :is(.wb-mascot,.tab-mascot){width:26px;height:26px;object-fit:contain}
+body.intro-min .welcome-banner .wb-text h2,body.intro-min .tab-banner strong{font-size:13px;margin:0}
+body.intro-min .welcome-banner .wb-text p,body.intro-min .tab-banner span{display:none}
+body.intro-min .welcome-banner::after{display:none}
+body.intro-min .site-info .si-desc{display:none}   /* 거점 설명 문장도 (적용 목표·관리 항목 줄은 그대로) */
+body.intro-min .site-info .si-head{grid-row:auto}
+@media(max-width:600px){   /* 좁은 화면: [접기]는 오른쪽 위 구석에 — 설명 글이 좁아지지 않게 */
+  body:not(.intro-min) :is(.welcome-banner,.tab-banner){position:relative}
+  body:not(.intro-min) .intro-x{position:absolute;top:8px;right:8px;padding:2px 9px;font-size:11px}
+  body:not(.intro-min) :is(.welcome-banner .wb-text h2,.tab-banner strong){padding-right:56px}
+}
+
+/* 월별 에너지원별 작은 그래프 — 에너지원마다 축 하나 (단위가 달라 한 그래프에 겹쳐 그리지 않음) */
+.em-key{display:flex;flex-wrap:wrap;align-items:center;gap:4px 14px;margin:-4px 0 10px;font-size:11.5px;color:var(--muted)}
+.em-key span{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.em-key i{display:inline-block;flex:none}
+.em-key .k-a{width:10px;height:10px;border-radius:2px;background:var(--text2)}
+.em-key .k-p{width:10px;height:10px;border-radius:2px;border:1px solid var(--text2);background:color-mix(in srgb,var(--text2) 20%,transparent)}
+.em-key .k-q{width:16px;height:0;border-top:2px dashed #94A3B8}
+.em-grid{display:grid;grid-template-columns:repeat(var(--n,4),minmax(0,1fr));gap:10px}
+.em-panel{min-width:0;display:flex;flex-direction:column;gap:4px;padding:10px 10px 4px 12px;border:1px solid var(--border);border-radius:9px;background:var(--surface2)}
+.em-hd{min-width:0;display:flex;flex-direction:column;gap:1px}
+.em-nm{display:flex;align-items:baseline;gap:5px;font-size:12.5px;font-weight:700;color:var(--text);white-space:nowrap}
+.em-nm .mt-dot{margin-right:1px;vertical-align:0}
+.em-nm small{font-size:11px;font-weight:500;color:var(--muted)}
+.em-s{min-height:18px;font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.em-s b{font-family:var(--fdata);font-weight:700;color:var(--text);font-variant-numeric:tabular-nums}
+.em-s .dpill{margin-left:4px}
+.em-box{position:relative;height:150px}
+@media(max-width:1000px){.em-grid{grid-template-columns:repeat(var(--nt,2),minmax(0,1fr))}}
+@media(max-width:560px){.em-grid{grid-template-columns:minmax(0,1fr)}.em-box{height:140px}}
+
+/* 온실가스 카드 아래 월별 미니 막대 — 실적(진하게) · 예측(옅게) · 전년 같은 달(회색 눈금) */
+:is(#sec-ghg,#y-sec-ghg) .kpi-card{display:flex;flex-direction:column}
+.kpi-total{--mbc:var(--teal)}.kpi-scope1{--mbc:var(--orange)}.kpi-scope2{--mbc:var(--primary)}.kpi-scope3{--mbc:var(--indigo)}
+.kpi-mb{margin-top:auto;padding-top:10px}
+.kpi-mb:empty{display:none}
+.mb{display:flex;align-items:stretch;gap:2px;height:32px;border-bottom:1px solid var(--border2)}
+.mb-c{flex:1 1 0;min-width:0;position:relative;display:flex;flex-direction:column;justify-content:flex-end;align-items:center}
+.mb-c>i{display:block;width:min(11px,74%);flex:none}
+.mb-a{background:var(--mbc,var(--primary));border-radius:2px 2px 0 0}
+.mb-p{background:color-mix(in srgb,var(--mbc,var(--primary)) 28%,transparent);border-radius:2px 2px 0 0;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--mbc,var(--primary)) 60%,transparent)}
+.mb-p+.mb-a{border-radius:0}
+.mb-c>i.mb-q{position:absolute;left:50%;width:calc(min(11px,74%) + 6px);height:0;border-top:2px solid #94A3B8;transform:translate(-50%,1px);opacity:.9}
+.mb-x{display:flex;justify-content:space-between;margin-top:3px;font-family:var(--fdata);font-size:9.5px;line-height:1;color:var(--muted)}
+.sec-unit .mb-legend{margin-right:10px;font-weight:500;color:var(--muted)}
+.sec-unit .mb-legend i{display:inline-block;width:8px;height:8px;margin:0 3px 0 6px;border-radius:2px;background:var(--text2);vertical-align:0}
+.sec-unit .mb-legend i.p{background:color-mix(in srgb,var(--text2) 25%,transparent);box-shadow:inset 0 0 0 1px var(--text2)}
+.sec-unit .mb-legend i.q{width:12px;height:0;border-top:2px solid #94A3B8;border-radius:0;vertical-align:3px;background:none}
+
+/* 목표 대비 막대 (불릿) — 값 막대 + 목표 눈금 */
+.gauge{position:relative;margin-top:8px}
+.g-tr{position:relative;height:8px;border-radius:4px;background:var(--border)}
+.g-f{position:absolute;left:0;top:0;bottom:0;min-width:3px;border-radius:4px;background:var(--primary)}
+.gauge.ok .g-f{background:var(--green)}
+.gauge.no .g-f{background:var(--red)}
+.g-t{position:absolute;top:-4px;bottom:-4px;width:2px;margin-left:-1px;border-radius:1px;background:var(--text)}
+.g-lb{position:relative;height:14px;margin-top:4px;font-size:10.5px;line-height:14px;color:var(--muted)}
+.g-lb span{position:absolute;top:0;transform:translateX(-50%);white-space:nowrap}
+.g-lb span.l{transform:none}
+.g-lb span.r{transform:translateX(-100%)}
+.ev-card .gauge{margin:9px 0 2px}
+.qa-list .gauge{grid-column:1/-1;margin:5px 0 1px}
+.qa-list .g-tr{height:6px}
+.qa-list .g-t{top:-3px;bottom:-3px}
+
+/* 그래프에 자료가 하나도 없으면 큰 빈 상자 대신 한 줄 (올해 현황 · 그 해 자세히) */
+:is(#yv,#y-yv) .chart-card.is-empty{grid-column:1/-1;order:9;display:flex;align-items:center;flex-wrap:wrap;gap:6px 14px;padding:12px 20px}
+:is(#yv,#y-yv) .chart-card.is-empty h3{margin:0;font-size:13px;color:var(--muted)}
+:is(#yv,#y-yv) .chart-card.is-empty .chart-empty{min-height:0;flex-direction:row;font-size:12.5px}
+:is(#yv,#y-yv) .chart-card.is-empty .chart-hd{margin:0}
+
+/* 휴대폰: 글자가 한 자씩 끊기지 않게 */
+.subtab-btn{white-space:nowrap}
+.rmap-scope .rsc-item{flex-wrap:wrap}
+.rmap-scope .rsc-item b,.rmap-scope .rsc-site,.gs-scope i,.gs-scope span{white-space:nowrap}
+.gs-scope{flex-wrap:wrap}
+@media(max-width:600px){
+  .subtab-nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+  .subtab-btn{padding:8px 10px;overflow:hidden;text-overflow:ellipsis}
+  #sub-list .main-tbl th,#sub-list .main-tbl td{white-space:nowrap}
+  .pagination{flex-wrap:wrap;gap:8px}
+  .pag-info{white-space:nowrap}
+}
+@media(max-width:700px){.evq-q{align-items:stretch}}   /* 세로로 쌓일 때 비계량 카드도 폭을 꽉 채움 */
+/* ── 탭별 검토 1 · 올해 현황 ───────────────────────────── */
+/* 거점 설명의 판정 칩 (적용 목표 → ✓ 여유 · ✗ 부족) — 누르면 그 목표 카드로 */
+.si-tag.si-v{display:inline-flex;align-items:baseline;gap:5px;font:inherit;font-weight:600;cursor:pointer;padding:1px 9px;border-radius:10px;transition:border-color .12s}
+.si-tag.si-v b{font-weight:800;white-space:nowrap}
+.si-tag.si-v.ok{color:var(--green);border-color:color-mix(in srgb,var(--green) 45%,transparent);background:var(--good-bg)}
+.si-tag.si-v.no{color:var(--red);border-color:color-mix(in srgb,var(--red) 45%,transparent);background:var(--bad-bg)}
+.si-tag.si-v.na{color:var(--muted)}   /* 그 해에 목표가 없는 지표 */
+.si-tag.si-v:hover{border-color:currentColor}
+.si-tag.si-v:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+.si-items{display:inline-flex;flex-wrap:wrap;align-items:center;gap:4px 6px}
+.kpi-card.flash{animation:cardFlash 1.3s ease-out}
+@keyframes cardFlash{0%,35%{box-shadow:0 0 0 3px var(--primary)}100%{box-shadow:var(--shadow)}}
+@media(prefers-reduced-motion:reduce){.kpi-card.flash{animation:none;outline:3px solid var(--primary)}}
+/* 경고 표시 읽는 법 · 카드 안 이유 한 줄 */
+.al-legend{display:flex;flex-wrap:wrap;align-items:center;gap:3px 14px;margin:-4px 0 12px;padding:7px 12px;border:1px solid var(--border);border-radius:9px;background:var(--surface);font-size:12px;line-height:1.6;color:var(--text2)}
+.al-legend b{color:var(--muted);font-weight:700}
+.al-legend>span{white-space:nowrap}
+.al-legend .al-up{color:var(--amber);font-weight:700}
+.al-legend .al-over{display:inline-block;padding:0 6px;border:1.5px solid rgba(185,28,28,.75);border-radius:5px;color:var(--red);font-weight:700}
+.kpi-why{margin-top:5px;font-size:11.5px;font-weight:600;line-height:1.45;word-break:keep-all;overflow-wrap:anywhere}
+.kpi-why.up{color:var(--amber)}.kpi-why.chk{color:var(--muted)}.kpi-why.over{color:var(--red)}
+/* 가로 카드(사용량): 늘 두 줄 — 이유 한 줄이 있으면 이름 아래(왼쪽 둘째 줄) · 값과 사용량은 오른쪽 두 줄 그대로 */
+.kpi-h.has-why{display:grid!important;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto auto;column-gap:10px;row-gap:3px;align-items:center}
+.kpi-h.has-why>.kpi-label{grid-column:1;grid-row:1;align-self:end}
+.kpi-h.has-why>.kpi-why{grid-column:1;grid-row:2;align-self:start;margin:0;font-size:11.5px;line-height:1.3;text-align:left}
+.kpi-h.has-why>.kpi-why~.kpi-why{display:none}   /* 이유가 둘이면 첫째만 (둘째는 이름 옆 표시에 마우스를 올리면) */
+.kpi-h.has-why>.kv{grid-column:2;grid-row:1/span 2}
+.kpi-h .kpi-why .wi{display:none}   /* 바로 위 이름 옆 ⚠와 겹쳐서 */
+.scope-cards>.kpi-card{min-height:66px}   /* 사용량 칸은 모두 같은 높이 (값만 있는 칸·항목 미정 칸도) */
+/* 누를 수 있는 카드: 늘 옅게 보이는 '근거 ›' (마우스를 올리면 진하게) */
+.kpi-click::after{content:'근거 ›';top:9px;right:10px;bottom:auto;font-size:11px;font-weight:600;color:var(--muted);opacity:.6}
+.kpi-click:hover::after,.kpi-click:focus-visible::after{opacity:1;color:var(--primary)}
+.kpi-click:not(.kpi-h)>.kpi-label{padding-right:44px;word-break:keep-all}
+.kpi-h.kpi-click{padding-right:30px!important}
+.kpi-h.kpi-click::after{content:'›';top:50%;right:11px;transform:translateY(-55%);font-size:17px;font-weight:700}
+.kpi-click.kpi-placeholder::after,.kpi-click.tgt-na::after{content:none}
+/* 온실가스 연말 예측 한 줄 (총 온실가스 카드) */
+.kpi-est{font-size:11.5px;color:var(--text2)}
+.kpi-est b{font-family:var(--fdata);color:var(--text)}
+.kpi-est .good{color:var(--green);font-weight:700}.kpi-est .bad{color:var(--red);font-weight:700}
+.kpi-est:empty{display:none}
+.mb-x .mb-n{font-family:var(--font);font-size:10px;color:var(--muted)}
+/* 목표 대비 실적: 온실가스 한 장(두 칸) — 막대 = 누적 + 연말 예측 · 눈금 = 자체·법적 · 끝 = 기준배출량 */
+.kpi-card.tgt-ghg{grid-column:span 2;border-top:3px solid #2DD4BF}
+.kpi-card:is(.tgt-ghg,.tgt-fam){display:flex;flex-direction:column;gap:2px}
+:is(.tgt-ghg,.tgt-fam) .kpi-label{display:flex;align-items:center;flex-wrap:wrap;gap:4px 6px}
+.tgt-fam .tg-nums span[hidden]{display:none}
+.tg-fill.p.bl{border-radius:3px}   /* RE100: 옅은 굵은 막대 = 연말 예측 (0부터) */
+.tg-fill.a.thin{top:25px;height:6px;border-radius:3px;z-index:1}   /* 그 안의 진한 가는 막대 = 누적 */
+.tg-tick.goal{background:#2DD4BF}.tg-tl.goal{color:#2DD4BF}.tg-key i.goal{background:#2DD4BF}
+.tgt-fam .tg-key{cursor:inherit}
+.tgt-fam .tg-key.nog{color:var(--muted)}
+.tgt-fam .tg-key.nog i{display:none}
+.tgt-fam .tg-key[hidden]{display:none}
+.tg-msg{margin-top:2px;font-size:11.5px;line-height:1.45}
+.tg-msg:empty{display:none}
+.tgt-ghg .tg-sc{font-size:11px;font-weight:600;color:var(--muted);text-transform:none;letter-spacing:0}
+.tg-nums{display:flex;flex-wrap:wrap;align-items:baseline;gap:3px 16px;font-size:12.5px;color:var(--text2)}
+.tg-nums b{font-family:var(--fdata);font-size:18px;font-weight:700;color:var(--text)}
+.tg-nums .tg-cut{font-size:12px;color:var(--muted)}
+.tg-k{display:inline-block;width:10px;height:10px;margin-right:5px;border-radius:2px;vertical-align:0}
+.tg-k.a{background:var(--tgc)}
+.tg-k.p{background:color-mix(in srgb,var(--tgc) 30%,transparent);box-shadow:inset 0 0 0 1px var(--tgc)}
+.tg-chart{position:relative;height:56px;margin:2px 0 4px}
+.tg-chart:empty{display:none}
+.tg-track,.tg-fill{position:absolute;top:22px;height:12px;border-radius:3px}
+.tg-track{left:0;right:0;background:var(--border)}
+.tg-fill.a{left:0;background:var(--tgc);border-radius:3px 0 0 3px}
+.tg-fill.a.solo{border-radius:3px}
+.tg-fill.p{background:color-mix(in srgb,var(--tgc) 30%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--tgc) 80%,transparent);border-radius:0 3px 3px 0}
+.tg-tick{position:absolute;top:15px;height:26px;width:2px;margin-left:-1px;border-radius:1px}
+.tg-tick.own{background:#2DD4BF}.tg-tick.law{background:#FBBF24}.tg-tick.base{background:#94A3B8}
+.tg-tl{position:absolute;transform:translateX(-50%);font-size:11px;font-weight:700;line-height:1;white-space:nowrap}
+.tg-tl.up{top:1px}.tg-tl.dn{top:43px}
+.tg-tl.l{transform:none}.tg-tl.r{transform:translateX(-100%)}
+.tg-tl.own{color:#2DD4BF}.tg-tl.law{color:#FBBF24}.tg-tl.base{color:#94A3B8}
+.tg-keys{display:flex;flex-wrap:wrap;gap:6px;container-type:inline-size}
+.tg-key{display:inline-flex;align-items:baseline;gap:4px;padding:3px 8px;border:1px solid var(--border);border-radius:14px;background:var(--surface2);font-size:11.5px;color:var(--text2);cursor:pointer;white-space:nowrap}
+.tg-key b{font-family:var(--fdata);color:var(--text)}
+.tg-key small{font-size:11px;color:var(--muted)}
+@container (max-width:544px){#tg-keys .tg-key small,#y-tg-keys .tg-key small{display:none}}   /* '▼31.4%'까지 한 줄에 안 들어가면 빼서 한 줄 유지 */
+@container (max-width:240px){.tgt-fam .tg-key small{display:none}}
+.tgt-fam{container:fam/inline-size}
+.tgt-fam>.kpi-label{padding-right:34px}   /* '근거 ›'(오른쪽 위)와 안 겹칠 만큼만 비움 */
+@container fam (max-width:252px){.tgt-fam .re-verdict .vs{display:none}}   /* 좁은 카드: 판정은 '✗ 6.6%p 부족'까지만 (전체 문장은 마우스를 올리면) */
+.tg-key i{display:inline-block;width:8px;height:8px;border-radius:2px;align-self:center}
+.tg-key i.own{background:#2DD4BF}.tg-key i.law{background:#FBBF24}.tg-key i.base{background:#94A3B8}
+.tg-key:hover{border-color:var(--primary);color:var(--text)}
+.tg-key:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+/* RE100·폐기물 목표 막대: 막대 = 값 · 눈금(80% 자리) = 목표 · 아래 줄 = 목표 이름 */
+/* 이 거점에 적용하지 않는 목표 — 빈 회색 카드 대신 남은 칸에 한 줄 */
+.tgt-na-note{grid-column:span var(--na-span,1);display:flex;align-items:center;padding:12px 16px;border:1px dashed var(--border2);border-radius:var(--radius);font-size:12.5px;color:var(--muted);line-height:1.6}
+.tgt-na-note b{color:var(--text2);margin-right:6px}
+/* 자원·기타 · 사용량: 빈 칸은 숨기고 한 줄 · 접힌 머리에 요약 */
+.tidy-out{display:none!important}
+.tidy-note{margin:4px 2px 2px;font-size:12px;line-height:1.7;color:var(--muted)}
+.tidy-note b{color:var(--text2);font-weight:700;margin-right:3px}
+.sec-peek{display:inline-flex;align-items:center;gap:8px;min-width:0;font-size:12px;font-weight:600;color:var(--text2)}
+.sec-peek:empty,.fold-sec[open]>summary .sec-peek:not(.pk-keep){display:none}   /* 배출 구성 막대(pk-keep)는 펼쳐도 그대로 */
+.pk-bar{display:inline-flex;flex:none;width:120px;height:8px;gap:1px;border-radius:4px;overflow:hidden;background:var(--border)}
+.pk-bar i{display:block;height:100%;min-width:2px}
+.pk-t{white-space:nowrap}
+.ev-bar{display:flex;gap:3px;flex:1 1 0;min-width:0;align-self:center;margin-left:4px}
+.ev-bar:empty{display:none}
+.ev-bar i{flex:0 1 11px;min-width:3px;height:11px;border-radius:3px;background:var(--border2)}
+.ev-bar i.on{background:var(--green)}
+.ev-bar.prog{height:7px;border-radius:4px;background:var(--border);overflow:hidden}
+.ev-bar.prog b{display:block;height:100%;background:var(--green);border-radius:4px}
+/* 예측 근거 · 얼마나 맞았나: 오차 막대 (짧을수록 정확) */
+.ebar{display:inline-block;width:64px;height:6px;margin-right:8px;border-radius:3px;background:var(--border);vertical-align:middle;overflow:hidden}
+.ebar i{display:block;height:100%;border-radius:3px;background:var(--muted)}
+.ebar i.ok{background:var(--green)}.ebar i.warn{background:var(--amber)}
+#bs-eval-tbl td.ok{color:var(--green);font-weight:700}
+#bs-eval-tbl td.warn{color:var(--amber);font-weight:700}
+/* 그 달 자료 팝업: 단위는 넓은 화면 = 단위 칸 · 휴대폰 = 이름 아래 (온실가스 칸이 잘리지 않게) */
+/* 예측 근거 표: 좁은 화면에서 글자가 한 자씩 끊기지 않게 (넘치면 표만 옆으로) */
+#sec-basis .mini-tbl td{white-space:nowrap}
+@media(max-width:600px){   /* 한 거점일 때만: 단위 칸을 빼고 이름 아래에 단위 (여러 거점은 '보는 거점' 고르기가 따로 있음) */
+  .dr-tbl.dr-month.one .dc-unit{display:none}
+  .dr-tbl.dr-month.one .dc-name::after{content:attr(data-u);display:block;margin:1px 0 0 17px;font-size:12px;font-weight:500;color:var(--muted)}
+}
+/* 올해 현황 · 그 해 자세히 — 휴대폰: 글자 11px 이상 · 누름 영역 36px 이상 */
+@media(max-width:700px){.kpi-card.tgt-ghg,.kpi-card.tgt-fam,.tgt-na-note{grid-column:1/-1}}   /* 두 칸 줄일 땐 한 줄 전체 */
+@media(max-width:600px){
+  :is(#yv,#y-yv) :is(.kpi-sub,.tbar-row-label,.tbar-row-pct,.mb-x,.mb-x .mb-n,.re-verdict,.kpi-rate,.scope-tag,.kpi-amt,.kpi-amt small,.kpi-unit,.re-when,.re-goal){font-size:11px}
+  :is(#yv,#y-yv) .tbar-row-label{width:30px}
+  :is(#yv,#y-yv) [id$="tgt-base-yr"]{font-size:11px!important}
+  :is(#yv,#y-yv) .kpi-placeholder .kpi-value{font-size:11px!important}
+  .h-toc a{display:inline-flex;align-items:center;min-height:36px;padding:3px 12px}
+  .intro-x{min-height:30px}
+  :is(.mini-seg button,.si-tag.si-v,.tg-key,.status-chip){min-height:36px}
+  .si-tag.si-v{align-items:center}
+  .tg-nums b{font-size:16px}
+  .kpi-click::after{content:'›';top:6px;right:9px;font-size:17px;font-weight:700}   /* 좁은 화면은 '›'만 */
+  .kpi-click:not(.kpi-h)>.kpi-label{padding-right:16px}
+  .dash-bar>img{display:none}
+  body.intro-min .site-info .si-items{display:none}   /* 설명을 접으면 관리 항목 목록도 */
+  .ebar{width:36px;margin-right:6px}
+  .kpi-h .kpi-label{flex:0 1 auto!important;white-space:normal;word-break:keep-all;line-height:1.3}   /* 좁으면 이름이 두 줄로 — 값은 줄지 않게 */
+  .kpi-h .kv{min-width:auto}
+}
+/* ── 탭별 검토 2 · 실적 조회 ───────────────────────────── */
+/* 지표 추이: 그 해 배출에서 차지하는 비중 띠 (어느 것이 큰지 한눈에) */
+.sum-co2{display:flex;align-items:center;gap:6px}
+.sh-bar{flex:1 1 auto;min-width:24px;max-width:90px;height:4px;border-radius:3px;background:var(--border);overflow:hidden}
+.sh-bar i{display:block;height:100%;border-radius:3px;background:var(--primary);opacity:.8}
+.sh-t{flex:none;font-family:var(--fdata);font-weight:700;color:var(--text2)}
+/* 월별 패턴: 비교 연도 고르기는 접어 둠 (지금 보는 연도만 한 줄로) */
+.yr-fold{margin:-4px 0 10px}
+.yr-fold>summary{display:flex;align-items:center;gap:8px;width:max-content;cursor:pointer;font-size:12px;color:var(--muted);list-style:none}
+.yr-fold>summary::-webkit-details-marker{display:none}
+.yr-fold>summary::before{content:'▸';font-size:11px;color:var(--muted)}
+.yr-fold[open]>summary::before{content:'▾'}
+.yr-fold .yc-now{font-weight:700;color:var(--text2)}
+.yr-fold .yc-more{padding:1px 8px;border:1px solid var(--border);border-radius:11px;font-size:11px}
+.yr-fold>summary:hover .yc-more{border-color:var(--primary);color:var(--primary)}
+.yr-fold .yr-chips{margin:8px 0 0}
+/* 실적 조회 — 휴대폰: 머리 한 줄 · 글자 11px 이상 · 낱말이 깨지지 않게 */
+@media(max-width:600px){
+  .hist-bar{gap:6px 8px;padding:8px 20px 6px}
+  .hist-bar .hy-pick{flex:none}
+  .hist-bar .hv-tabs{flex:1 1 auto;min-width:0}
+  .hist-bar .hv-tabs button{flex:1 1 0;padding:6px 8px;font-size:12px;min-height:36px}
+  .h-toc{flex:1 1 100%;order:3}
+  #tab-history :is(.sum-lbl,.sum-lbl small,.schip,.sum-co2,.sh-t,.dprev,.dabs,.dpill,.yb-y,.yb-na,.yc-lbl,.yc-hint,.dv-sub,.srow-note,.hd-note){font-size:11px}
+  #tab-history :is(.sum-lbl,.sum-lbl small,.schip,.dv-nm,.dv-sub,.hd-note,.tidy-note){word-break:keep-all;overflow-wrap:anywhere}
+  #tab-history .sum-v{font-size:22px}
+  #tab-history .sh-bar{max-width:60px}
+  /* 연도 고르기 + 보기 전환을 한 줄에 (바로가기는 아랫줄) */
+  .filter-bar .hy-pick select{font-size:13px;padding:3px 0}
+  .hist-bar .hy-step{width:24px;height:24px;font-size:16px}
+  .hist-bar .hv-tabs{flex:0 1 auto;min-width:0;padding:2px}
+  .hist-bar .hv-tabs button{padding:6px 5px;font-size:11.5px;min-height:36px}
+  #tab-history .hd-legend{display:none}   /* 읽는 법은 넓은 화면에서만 (첫 성과 카드를 끌어올림) */
+  /* 표·요인 목록의 작은 글자도 11px 이상 */
+  #tab-history :is(.cmp-sub,.cmp-unit,.cmp-th-sub,.cmp-delta,.dv-axl em,.mt-a,.sb-tbl td,.sb-tbl th) ,#tab-history small{font-size:11px}
+}
+/* 메인 바로가기: 줄마다 같은 개수 (6개 → 3 + 3) */
+.nav-grid{grid-template-columns:repeat(var(--cols,3),minmax(0,1fr))}
+@media(max-width:900px){.nav-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.nav-grid{grid-template-columns:minmax(0,1fr)}}
 </style>
 </head>
 <body>
@@ -2122,33 +2397,39 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
 
   <!-- 한 해 화면: 실적 조회의 '한 해' 화면도 이 묶음을 그대로 복제해 씀 (id 앞에 y- 를 붙여서) -->
   <div class="year-view" id="yv">
+  <p class="al-legend" id="al-legend" hidden></p>
   <!-- 온실가스 (누적) -->
   <details class="kpi-section fold-sec" id="sec-ghg" open>
     <summary class="kpi-section-hd">온실가스 배출 <span class="hd-note" id="ghg-period">올해 누적</span></summary>
-    <div class="sec-unit">단위: tCO₂eq</div>
+    <div class="sec-unit" id="ghg-unit">단위: tCO₂eq</div>
     <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr)">
       <div class="kpi-card kpi-total kpi-click" role="button" tabindex="0" data-calc="k-total">
         <div class="kpi-label">총 온실가스 <small>Scope 1+2</small></div>
         <div class="kpi-row"><div class="kpi-value num" id="k-total">—</div><span class="kpi-u">tCO₂eq</span></div>
         <div class="kpi-sub kpi-yoy" id="k-total-yoy"></div>
+        <div class="kpi-sub kpi-est" id="k-total-est"></div>
+        <div class="kpi-mb" id="k-total-mb"></div>
       </div>
       <div class="kpi-card kpi-scope1 kpi-click" role="button" tabindex="0" data-calc="k-s1">
         <div class="kpi-label">Scope 1 <small>직접 배출</small></div>
         <div class="kpi-row"><div class="kpi-value num" id="k-s1">—</div><span class="kpi-u">tCO₂eq</span></div>
         <div class="kpi-sub" id="k-s1-sub">도시가스·휘발유·경유</div>
         <div class="kpi-sub kpi-yoy" id="k-s1-yoy"></div>
+        <div class="kpi-mb" id="k-s1-mb"></div>
       </div>
       <div class="kpi-card kpi-scope2 kpi-click" role="button" tabindex="0" data-calc="k-s2">
         <div class="kpi-label">Scope 2 <small>간접 배출</small></div>
         <div class="kpi-row"><div class="kpi-value num" id="k-s2">—</div><span class="kpi-u">tCO₂eq</span></div>
         <div class="kpi-sub">전력·지역난방</div>
         <div class="kpi-sub kpi-yoy" id="k-s2-yoy"></div>
+        <div class="kpi-mb" id="k-s2-mb"></div>
       </div>
       <div class="kpi-card kpi-scope3 kpi-click" role="button" tabindex="0" data-calc="k-waste">
         <div class="kpi-label">Scope 3 <small>기타 간접</small></div>
         <div class="kpi-row"><div class="kpi-value num" id="k-waste">—</div><span class="kpi-u">tCO₂eq</span></div>
         <div class="kpi-sub" id="k-waste-sub">종량제 봉투 기준</div>
         <div class="kpi-sub kpi-yoy" id="k-waste-yoy"></div>
+        <div class="kpi-mb" id="k-waste-mb"></div>
       </div>
     </div>
   </details>
@@ -2158,6 +2439,13 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
     <summary class="kpi-section-hd">목표 대비 실적 <span class="tgt-site" id="tgt-site"></span></summary>
     <p class="sec-note" id="tgt-note"></p>
     <div class="kpi-grid" id="target-grid" style="grid-template-columns:repeat(4,minmax(0,1fr))">
+      <!-- 온실가스 배출목표 한 장: 막대 = 누적(진하게) + 연말 예측(옅게) · 눈금 = 자체·법적 목표 · 끝 = 기준배출량 (아래 세 카드의 숫자를 한 그림으로) -->
+      <div class="kpi-card kpi-click tgt-ghg" id="tc-ghg" role="button" tabindex="0" data-calc="k-tgt-own">
+        <div class="kpi-label">🏭 온실가스 배출목표 <small class="tg-sc">Scope 1+2</small> <span class="re-verdict" id="tg-verdict"></span></div>
+        <div class="tg-nums" id="tg-nums"></div>
+        <div class="tg-chart" id="tg-chart"></div>
+        <div class="tg-keys" id="tg-keys"></div>
+      </div>
       <div class="kpi-card kpi-click" id="tc-base" style="border-top:3px solid #64748b" role="button" tabindex="0" data-calc="k-tgt-base">
         <div class="kpi-label">기준배출량</div>
         <div style="font-size:9px;color:var(--muted);font-weight:600;letter-spacing:.3px;margin-bottom:2px" id="k-tgt-base-yr">올해 적용값</div>
@@ -2204,47 +2492,36 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
         </div>
         <div class="kpi-sub" id="k-tgt-law-sub"></div>
       </div>
-      <div class="kpi-card kpi-click" id="tc-re" style="border-top:3px solid #059669" role="button" tabindex="0" data-calc="k-re-pct">
-        <div class="kpi-label">RE100 이행률 <span class="re-verdict" id="k-re-verdict"></span></div>
-        <div class="kpi-row re-row">
-          <div class="kpi-value num" id="k-re-pct">—</div>
-          <span class="kpi-u">%</span><span class="re-when" id="k-re-when"></span>
-          <span class="kpi-u">/ <span class="re-goal" id="k-re-goal">목표</span></span>
+      <!-- RE100 · 폐기물도 온실가스 카드와 같은 모양: 판정 · 숫자 줄(■ 누적 □ 연말 예측) · 굵은 막대 + 눈금 · 열쇠 -->
+      <div class="kpi-card kpi-click tgt-fam" id="tc-re" style="border-top:3px solid #059669" role="button" tabindex="0" data-calc="k-re-pct">
+        <div class="kpi-label">☀ RE100 이행률 <span class="re-verdict" id="k-re-verdict"></span></div>
+        <div class="tg-nums">
+          <span class="cmp-na" id="re-na" hidden>재생에너지 자료가 아직 없어요</span>
+          <span id="re-n-a"><i class="tg-k a"></i><span id="re-n-ak">누적</span> <b id="k-re-act">—</b>%</span>
+          <span id="re-n-p"><i class="tg-k p"></i><span id="k-re-when">연말 예측</span> <b id="k-re-pct">—</b>%</span>
         </div>
-        <div style="margin:6px 0 2px">
-          <div class="tbar-row">
-            <span class="tbar-row-label tl-act">누적</span>
-            <div class="tbar"><div class="tbar-fill" id="tbar-re-act" style="width:0%;background:#059669"></div></div>
-            <span class="tbar-row-pct" id="pct-re-act">—</span>
-          </div>
-          <div class="tbar-row" id="row-re-pred">
-            <span class="tbar-row-label" style="color:#60A5FA">예측</span>
-            <div class="tbar"><div class="tbar-fill" id="tbar-re-pred" style="width:0%;background:#60A5FA;opacity:.75"></div></div>
-            <span class="tbar-row-pct" id="pct-re-pred" style="color:#60A5FA">—</span>
-          </div>
+        <div class="tg-chart" id="re-chart"></div>
+        <div class="tg-keys">
+          <span class="tg-key" id="re-k-goal"><i class="goal"></i><span id="k-re-goal">목표</span></span>
+          <span class="tg-key" id="re-k-2" hidden></span>
         </div>
-        <div class="kpi-sub" id="k-re-sub">데이터 없음</div>
+        <div class="kpi-sub tg-msg" id="k-re-sub"></div>
       </div>
-      <div class="kpi-card kpi-wtgt kpi-click" id="tc-wt" role="button" tabindex="0" data-calc="k-wt-target">
-        <div class="kpi-label">🗑 폐기물 감축 목표 <span id="k-wt-year"></span></div>
-        <div class="kpi-row" style="flex-wrap:wrap">
-          <div class="kpi-value num" id="k-wt-target">—</div><span class="kpi-u">ton 이하</span>
-          <span class="kpi-rate" id="k-wt-rate"></span>
+      <div class="kpi-card kpi-wtgt kpi-click tgt-fam" id="tc-wt" role="button" tabindex="0" data-calc="k-wt-target">
+        <div class="kpi-label">🗑 폐기물 감축 목표 <span class="re-verdict" id="k-wt-verdict"></span></div>
+        <div class="tg-nums">
+          <span class="cmp-na" id="wt-na" hidden>폐기물 자료가 아직 없어요</span>
+          <span id="wt-n-a"><i class="tg-k a"></i><span id="wt-n-ak">누적</span> <b id="k-wt-act">—</b>t</span>
+          <span id="wt-n-p"><i class="tg-k p"></i>연말 예측 <b id="k-wt-est">—</b>t</span>
         </div>
-        <div style="margin:6px 0 2px">
-          <div class="tbar-row">
-            <span class="tbar-row-label tl-act">누적</span>
-            <div class="tbar"><div class="tbar-fill" id="tbar-wt-act" style="width:0%"></div></div>
-            <span class="tbar-row-pct" id="pct-wt-act">—</span>
-          </div>
-          <div class="tbar-row" id="row-wt-pred">
-            <span class="tbar-row-label" style="color:#60A5FA">예측</span>
-            <div class="tbar"><div class="tbar-fill" id="tbar-wt-pred" style="width:0%;background:#60A5FA;opacity:.75"></div></div>
-            <span class="tbar-row-pct" id="pct-wt-pred" style="color:#60A5FA">—</span>
-          </div>
+        <div class="tg-chart" id="wt-chart"></div>
+        <div class="tg-keys">
+          <span class="tg-key" id="wt-k-goal"><i class="goal"></i><span id="k-wt-year">목표</span> <b><span id="k-wt-target">—</span>t</b><small id="k-wt-rate"></small></span>
+          <span class="tg-key" id="wt-k-base" hidden><i class="base"></i><span id="wt-base-k"></span> <b><span id="wt-base-v"></span>t</b></span>
         </div>
-        <div class="kpi-sub" id="k-wt-sub"></div>
+        <div class="kpi-sub tg-msg" id="k-wt-sub"></div>
       </div>
+      <div class="tgt-na-note" id="tgt-na-note" hidden></div>
     </div>
 
   </details>
@@ -2252,7 +2529,7 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
 
   <!-- 자원·기타 지표: 용수·친환경차 (선택 거점) -->
   <details class="kpi-section fold-sec" id="sec-env">
-    <summary class="kpi-section-hd">자원·기타 지표 <span class="hd-note">용수·친환경차·PUE·클라우드 전환률·회생제동</span></summary>
+    <summary class="kpi-section-hd">자원·기타 지표 <span class="hd-note">용수·친환경차·PUE·클라우드 전환률·회생제동</span><span class="sec-peek" id="env-peek"></span></summary>
     <div class="v2-setup compact"></div>
     <div class="kpi-grid env-grid">
       <div class="kpi-card kpi-water v2-only kpi-click" id="card-water" role="button" tabindex="0" data-calc="k-water">
@@ -2262,7 +2539,7 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
       </div>
       <div class="kpi-card kpi-ev v2-only kpi-click" id="card-ev" role="button" tabindex="0" data-calc="k-ev">
         <div class="kpi-label">🔋 친환경차 전환율</div>
-        <div class="kpi-row"><div class="kpi-value num" id="k-ev">—</div><span class="kpi-u">%</span></div>
+        <div class="kpi-row"><div class="kpi-value num" id="k-ev">—</div><span class="kpi-u">%</span><span class="ev-bar" id="k-ev-bar"></span></div>
         <div class="kpi-sub" id="k-ev-sub"></div>
       </div>
       <div class="kpi-card kpi-pue v2-only kpi-click" role="button" tabindex="0" data-calc="k-pue">
@@ -2282,18 +2559,19 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
       </div>
 
     </div>
+    <p class="tidy-note" id="env-empty" hidden></p>
   </details>
 
   <!-- 에너지·폐기물 사용량 (Scope별 한 줄) -->
   <details class="kpi-section fold-sec" id="sec-usage">
-    <summary class="kpi-section-hd">에너지·폐기물 사용량 <span class="hd-note" id="use-period">올해 누적</span></summary>
+    <summary class="kpi-section-hd">에너지·폐기물 사용량 <span class="hd-note" id="use-period">올해 누적</span><span class="sec-peek pk-keep" id="use-peek"></span></summary>
     <div class="sec-unit">단위: tCO₂eq <span>· 아래 작은 숫자 = 사용량</span></div>
     <div class="scope-row">
       <div class="scope-tag stag-1">Scope 1</div>
       <div class="scope-cards">
         <div class="kpi-card kpi-click kpi-gas kpi-h" role="button" tabindex="0" data-calc="k-gas-co2">
           <div class="kpi-label">🔥 도시가스</div>
-          <div class="kv"><div class="kv-main"><div class="kpi-value num" id="k-gas-co2">—</div><div class="kpi-unit">tCO₂eq</div></div><div class="kpi-amt" id="k-gas-amt"><span class="num" id="k-gas">—</span><small>천 Nm³</small></div></div>
+          <div class="kv"><div class="kv-main"><div class="kpi-value num" id="k-gas-co2">—</div><div class="kpi-unit">tCO₂eq</div></div><div class="kpi-amt" id="k-gas-amt"><span class="num" id="k-gas">—</span><small>Nm³</small></div></div>
         </div>
         <div class="kpi-card kpi-click kpi-gasoline kpi-h" id="card-gasoline" role="button" tabindex="0" data-calc="k-gasoline-co2">
           <div class="kpi-label">⛽ 휘발유</div>
@@ -2369,20 +2647,29 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
 
   <!-- 차트 -->
   <details class="kpi-section fold-sec" id="sec-charts" open>
-    <summary class="kpi-section-hd">월별 그래프 <span class="hd-note">에너지 사용량 · 온실가스 · 차량연료 · 회생제동 · 폐기물</span></summary>
+    <summary class="kpi-section-hd">월별 그래프 <span class="hd-note">에너지원별 사용량(차량연료 포함) · 온실가스 · 폐기물 · 회생제동</span></summary>
   <div class="chart-grid">
     <div class="chart-card chart-wide" id="ce-card">
       <div class="chart-hd">
-        <h3 id="ce-title">월별 전력·도시가스·지역난방·재생에너지 추이 (점선: 기상연동 예측)</h3>
+        <h3 id="ce-title">월별 에너지원별 사용량</h3>
         <div class="mini-seg" id="ce-view" role="group" aria-label="보기 방식">
           <button type="button" data-v="chart" aria-pressed="true">그래프</button><button type="button" data-v="table" aria-pressed="false">표</button>
         </div>
       </div>
-      <div class="chart-box"><canvas id="chart-energy"></canvas></div>
+      <!-- 에너지원마다 작은 그래프 하나 (단위가 달라 한 그래프에 겹치면 읽기 어려움) · 막대 = 그 해 · 회색 점선 = 전년 같은 달 -->
+      <div class="em-key" id="ce-key" aria-hidden="true"></div>
+      <div class="em-grid" id="ce-grid">
+        <div class="em-panel" id="em-p0"><div class="em-hd"><span class="em-nm" id="em-n0"></span><span class="em-s" id="em-s0"></span></div><div class="em-box"><canvas id="chart-em0" role="img" aria-label="월별 전력 사용량"></canvas></div></div>
+        <div class="em-panel" id="em-p1"><div class="em-hd"><span class="em-nm" id="em-n1"></span><span class="em-s" id="em-s1"></span></div><div class="em-box"><canvas id="chart-em1" role="img" aria-label="월별 도시가스 사용량"></canvas></div></div>
+        <div class="em-panel" id="em-p2"><div class="em-hd"><span class="em-nm" id="em-n2"></span><span class="em-s" id="em-s2"></span></div><div class="em-box"><canvas id="chart-em2" role="img" aria-label="월별 지역난방 사용량"></canvas></div></div>
+        <div class="em-panel" id="em-p3"><div class="em-hd"><span class="em-nm" id="em-n3"></span><span class="em-s" id="em-s3"></span></div><div class="em-box"><canvas id="chart-em3" role="img" aria-label="월별 휘발유 사용량"></canvas></div></div>
+        <div class="em-panel" id="em-p4"><div class="em-hd"><span class="em-nm" id="em-n4"></span><span class="em-s" id="em-s4"></span></div><div class="em-box"><canvas id="chart-em4" role="img" aria-label="월별 경유 사용량"></canvas></div></div>
+        <div class="em-panel" id="em-p5"><div class="em-hd"><span class="em-nm" id="em-n5"></span><span class="em-s" id="em-s5"></span></div><div class="em-box"><canvas id="chart-em5" role="img" aria-label="월별 재생에너지 자가발전량"></canvas></div></div>
+      </div>
       <div id="ce-empty" class="chart-empty" hidden>데이터가 없습니다</div>
       <div class="table-wrap mon-wrap" id="ce-tbl-wrap" hidden><table class="mon-tbl" id="ce-tbl"></table></div>
       <div class="mon-legend" id="ce-legend" hidden></div>
-      <p class="chart-note" id="ce-note">점에 마우스를 올리면 사용량과 온실가스 환산값(tCO₂eq)을 함께 보여 줘요 · 누르면 그 달 자료를 보고 바로 고칠 수 있어요</p>
+      <p class="chart-note" id="ce-note">막대에 마우스를 올리면 사용량·온실가스 환산값(tCO₂eq)·전년 같은 달을 함께 보여 줘요 · 누르면 그 달 자료를 보고 바로 고칠 수 있어요</p>
     </div>
     <div class="chart-card" id="cgm-card">
       <div class="chart-hd">
@@ -2503,6 +2790,7 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
       <div class="kpi-section-hd det-hd">핵심 성과 <span class="hd-note" id="h-sum-note"></span>
         <button class="btn-export" id="h-copy" type="button">📋 보고서 문구 복사</button></div>
       <div class="sum-grid" id="h-sum"></div>
+      <p class="tidy-note" id="h-sum-na" hidden></p>
       <details class="copy-prev"><summary>복사될 보고서 문구 보기</summary><pre id="h-copy-text"></pre></details>
     </div>
 
@@ -2543,7 +2831,10 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
             </div>
           </div>
         </div>
-        <div class="yr-chips" id="h-mon-yrs" role="group" aria-label="비교할 연도"></div>
+        <details class="yr-fold" id="h-mon-fold">
+          <summary><span class="yc-now" id="h-mon-now"></span><span class="yc-more">연도 바꾸기</span></summary>
+          <div class="yr-chips" id="h-mon-yrs" role="group" aria-label="비교할 연도"></div>
+        </details>
         <div class="chart-box"><canvas id="h-chart-energy"></canvas></div>
         <div id="h-ce-empty" class="chart-empty" hidden>데이터가 없습니다</div>
       </div>
@@ -2678,7 +2969,7 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
         <div id="h-cwr-empty" class="chart-empty" hidden>데이터가 없습니다</div>
       </div>
     </div>
-      <details class="hist-details" id="rmap-ghg-details" open>
+      <details class="hist-details" id="rmap-ghg-details">
         <summary>📋 온실가스 감축 로드맵 표 <span class="hd-note">연도별 기준배출량 · 법적 목표 · 자체 목표 · 실적 — 보고서용 숫자<span data-need="admin"> (값은 데이터 관리 → 연도 마감·로드맵에서)</span></span></summary>
       <div class="kpi-section" style="margin-bottom:0">
         <div class="kpi-section-hd det-hd">온실가스 감축 로드맵 <span class="hd-note" id="rmap-ghg-note"></span>
@@ -3970,7 +4261,7 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
 
     // ① 화면용
     const viewSites = filterSite ? [filterSite] : SITES;
-    const predEnergy = {}, lineActual = {}, linePred = {};
+    const predEnergy = {};
     const predGhgS1 = Array(12).fill(null), predGhgS2 = Array(12).fill(null), missing = m12(() => []);
     PRED_TYPES.forEach(type => {
       const per = viewSites.map(s => series(s, type)).filter(p => p.active);
@@ -3978,12 +4269,6 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
         if (p.active) p.pred.forEach((v, i) => { if (v != null) missing[i].push(`${s} ${type}`); }); });
       // 예측분만 (실적이 없는 거점·달) — 누적 막대·RE·연간 예측용
       predEnergy[type] = m12(i => sumOrNull(per.map(p => p.pred[i])));
-      // 꺾은선 실선: 모든 거점 입력이 끝난 달만
-      lineActual[type] = m12(i => (per.length > 0 && per.every(p => p.actual[i] != null))
-        ? per.reduce((a, p) => a + p.actual[i], 0) : null);
-      // 꺾은선 점선: 일부라도 미입력인 달 = 입력된 실적 + 미입력 거점 예측
-      linePred[type] = m12(i => (lineActual[type][i] != null || !per.some(p => p.pred[i] != null)) ? null
-        : per.reduce((a, p) => a + (p.actual[i] ?? p.pred[i] ?? 0), 0));
       if (isEmit(type)) predEnergy[type].forEach((v, i) => {
         if (v == null) return;
         const arr = scopeOf(type) === 'Scope 1' ? predGhgS1 : predGhgS2;
@@ -3997,7 +4282,7 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
     PRED_TYPES.filter(isEmit).forEach(t => series('대구본원', t).pred.forEach(v => { if (v != null) predDgb += calcGHG(t, v); }));
     const annualPred = (actDgb + predDgb) > 0 ? actDgb + predDgb : null;
 
-    return { trainYears, predEnergy, lineActual, linePred, predGhgS1, predGhgS2, annualPred, missing };
+    return { trainYears, predEnergy, predGhgS1, predGhgS2, annualPred, missing };
   }
 
   // Supabase는 한 번에 최대 1,000행만 돌려줌(프로젝트 기본값) → 1,000행씩 끝까지 이어 읽음
@@ -4090,6 +4375,8 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
       optional(sbAll('env_metrics', 'period.desc')),
       optional(sb('GET', 'env_settings', '?select=*')),
     ]);
+    // 자료 지문: 자동 새로고침 때 바뀐 게 없으면 화면을 다시 그리지 않으려고 (그래프가 1분마다 다시 자라나지 않게)
+    dataSig = hashStr(JSON.stringify([eData, wData, mData, sData]));
     energyRecs = eData.map(normE);
     wasteRecs  = wData.map(normW);
     v2 = mData != null && sData != null;
@@ -4156,12 +4443,19 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
     run('탭 배지', refreshTabCounts);
     run('일괄 입력 미리보기', () => { if (bulkGrid) runBulk(); });   // 새 자료와 다시 비교 (중복 저장 방지)
     if (failed.length) showToast(`화면 표시 오류: ${failed.join(', ')} (데이터 연결은 정상)`, 'err');
+    shownSig = viewSig();   // 이 자료로 그렸음 — 다음 자동 새로고침에서 같으면 건너뜀
   }
 
   // force: 저장 직후처럼 입력표도 반드시 DB 값으로 다시 그려야 할 때
+  // opts.auto = 1분 자동 새로고침: 자료·누가 바꿨나·날씨·날짜가 그대로면 다시 그리지 않음 · 바뀌었으면 애니메이션 없이 조용히 다시 그림
+  let dataSig = '', shownSig = '', chartQuiet = false;
+  const hashStr = str => { let h = 2166136261; for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(36); };
+  const viewSig = () => [dataSig, whoAt || '', !!wxBySite, new Date().toDateString(), me?.role || '', users.length].join('|');
   async function refresh(opts = {}) {
     await loadAll();   // DB 오류는 호출한 쪽으로 전달
-    renderAll(opts);
+    if (opts.auto && viewSig() === shownSig) return;   // shownSig = 마지막으로 화면을 그릴 때의 지문 (renderAll 끝에서 적음)
+    chartQuiet = !!opts.auto;
+    try { renderAll(opts); } finally { chartQuiet = false; }
   }
 
   /* ── 탭 배지 업데이트 ─────────────────────────────── */
@@ -4333,8 +4627,8 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
           t.sum += v;
           if (!t.el || (horiz ? el.x > t.el.x : el.y < t.el.y)) t.el = el;
         }));
-        Object.values(top).forEach(t => items.push([t.el, t.sum]));
-      } else metas.forEach(m => m.data.forEach((el, i) => { const v = val(m, i); if (v != null) items.push([el, v, own(m, i), floating(m, i)]); }));
+        Object.entries(top).forEach(([i, t]) => { if (!o.only || o.only.includes(+i)) items.push([t.el, t.sum]); });
+      } else metas.forEach(m => m.data.forEach((el, i) => { const v = val(m, i); if (v != null && (!o.only || o.only.includes(i))) items.push([el, v, own(m, i), floating(m, i)]); }));
       const maxAbs = Math.max(0, ...items.map(([, v]) => Math.abs(v))), d = maxAbs >= 100 ? 0 : maxAbs >= 10 ? 1 : 2;
       const f = o.kind === 'pct' ? fmtPct : v => fmt(v, d);
       ctx.save();
@@ -4386,9 +4680,15 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
       const x = chart.scales.x, a = chart.chartArea, n = (chart.data.labels || []).length;
       if (!x || !a || !(o?.idx >= 0) || o.idx >= n) return;
       const w = Math.min(x.width / n * 0.86, 120), l = x.getPixelForValue(o.idx) - w / 2, ctx = chart.ctx;
-      ctx.save(); ctx.fillStyle = o.color || 'rgba(96,165,250,.12)';
+      ctx.save();
+      if (o.color) {   // 바탕 상자는 기본으로 그리지 않음 (막대가 주인공이 되게)
+        ctx.fillStyle = o.color; ctx.beginPath();
+        if (ctx.roundRect) ctx.roundRect(l, a.top, w, a.bottom - a.top, 6); else ctx.rect(l, a.top, w, a.bottom - a.top);
+        ctx.fill();
+      }
+      ctx.fillStyle = o.line || 'rgba(96,165,250,.9)';     // 아래 굵은 밑줄 = 고른 해
       ctx.beginPath();
-      if (ctx.roundRect) ctx.roundRect(l, a.top, w, a.bottom - a.top, 6); else ctx.rect(l, a.top, w, a.bottom - a.top);
+      if (ctx.roundRect) ctx.roundRect(l, a.bottom - 1, w, 4, 2); else ctx.rect(l, a.bottom - 1, w, 4);
       ctx.fill(); ctx.restore();
     },
   };
@@ -4397,27 +4697,27 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
   function makeChartSet(P = '') {
     const { grid, tick } = chartTheme(), $$ = id => $(P + id);
     const legend = { labels: { color: tick, boxWidth: 12, font: { size: 12 } } };
-    const axis = (t, unit, position, extra = {}) => ({ position, beginAtZero: true, ticks: { color: typeCol(t), font: { size: 11 } },
-      title: { display: true, text: `${unit} (${t})`, color: typeCol(t), font: { size: 11 } }, ...extra });
     return {
-      // 에너지 추이 — 에너지원마다 단위가 달라 축 3개 · 툴팁에 사용량과 온실가스 환산값을 함께
-      energy: new Chart($$('chart-energy'), {
-        type: 'line',
+      // 월별 에너지원별 작은 그래프 (전력·도시가스·지역난방·재생에너지) — 에너지원마다 단위가 달라 그래프도 축도 하나씩
+      //  막대 = 그 해 실적 (올해는 아직 입력 안 된 거점·달을 옅은 막대로 예측) · 회색 점선 = 전년 같은 달
+      //  툴팁에 사용량 + 온실가스 환산값 + 전년 같은 달 대비
+      em: ETYPES.map((t, k) => new Chart($$('chart-em' + k), {
+        type: 'bar',
         data: { labels: MONTHS, datasets: [] },
         options: {
-          responsive: true,
-          interaction: { mode: 'index', intersect: false },
-          plugins: { legend, tooltip: { filter: energyTipFilter, callbacks: { label: energyTipLabel } } },
+          responsive: true, interaction: { mode: 'index', intersect: false },
+          layout: { padding: { top: 4 } },
+          plugins: { legend: { display: false },
+                     tooltip: { filter: c => c.raw != null, itemSort: (a, b) => a.datasetIndex - b.datasetIndex,
+                                callbacks: { title: items => items.length ? `${items[0].label} · ${emName(t)}` : '', label: emTipLabel, footer: emTipFoot } } },
           scales: {
-            x: { ticks: { color: tick }, grid: { color: grid } },
-            y:  axis('전력', 'kWh', 'left', { grid: { color: grid } }),
-            y2: axis('도시가스', 'Nm³', 'right', { grid: { drawOnChartArea: false } }),
-            y3: axis('지역난방', 'GJ', 'right', { grid: { drawOnChartArea: false } }),
-            // 재생에너지(태양광)는 전력보다 훨씬 작아 같은 축이면 바닥에 붙음 → 왼쪽 바깥에 따로
-            y4: axis(RE_SELF, 'kWh', 'left', { weight: 1, grid: { drawOnChartArea: false } }),
+            x: { stacked: true, grid: { display: false },
+                 ticks: { color: tick, font: { size: 10 }, maxRotation: 0, autoSkipPadding: 4, callback(v) { return String(this.getLabelForValue(v)).replace('월', ''); } } },
+            y: { stacked: true, beginAtZero: true, grace: '6%', border: { display: false }, grid: { color: grid },
+                 ticks: { color: tick, font: { size: 10 }, maxTicksLimit: 4, callback: v => compactNum(v) } },
           }
         }
-      }),
+      })),
       // 차량연료 월별 막대 (툴팁: L + tCO₂eq)
       fuel: new Chart($$('chart-fuel'), {
         type: 'bar',
@@ -4560,7 +4860,7 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
     Chart.defaults.maintainAspectRatio = false; // 높이는 .chart-box가 정함
     if (!Chart.registry.plugins.get('barLabels')) Chart.register(barLabelPlugin);
     if (!Chart.registry.plugins.get('colBand')) Chart.register(colBandPlugin);
-    Object.values(CHARTS).forEach(set => Object.values(set).forEach(c => c && c.destroy()));
+    Object.values(CHARTS).forEach(set => Object.values(set).flat().forEach(c => c && c.destroy()));   // em = 차트 여러 개
     CHARTS[''] = makeChartSet('');
     CHARTS['y-'] = makeChartSet('y-');
     CHARTS.h = makeHistCharts();
@@ -4570,9 +4870,7 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
 
   /* ── 차트·카드 헬퍼 ──────────────────────────────────── */
   const PRED_COLOR = '#60A5FA';
-  const ETYPES = ['전력', '도시가스', '지역난방', RE_SELF];
-  const EUNITS = ['kWh', 'Nm³', 'GJ', 'kWh'];
-  const EYAXIS = ['y', 'y2', 'y3', 'y4'];
+  const ETYPES = ['전력', '도시가스', '지역난방', '휘발유', '경유', RE_SELF];   // 월별 에너지원별 작은 그래프 순서 (표 줄 순서와 같게)
   // 에너지원 색 (모든 그래프·표에서 같은 색) — 색각 이상(적록·청황)에서도 서로 구분되게 고른 값, 다크 모드는 밝은 단계
   const TYPE_COLS = {
     light: { '전력': '#0369A1', '도시가스': '#EA580C', '지역난방': '#8B5CF6', '휘발유': '#854D0E', '경유': '#334155', [RE_SELF]: '#059669' },
@@ -4585,10 +4883,7 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
   const isAvoid = t => t === RE_SELF || t === SAVE_REGEN;
   const co2Of = (t, v) => v == null ? null : isEmit(t) ? calcGHG(t, v) : isAvoid(t) ? calcGHG('전력', v) : null;
   const co2Txt = (t, v) => { const g = co2Of(t, v); return g == null ? '' : `${isAvoid(t) ? '회피 ' : ''}${fq(g)} tCO₂eq`; };
-  // 에너지 그래프 툴팁: '전력: 123,456 kWh · 56.719 tCO₂eq' (계열의 $type = 에너지원, $pred = 예측 점선)
-  //  예측 점선이 실선과 이어지는 달(같은 값)은 실선 값만 보여 줌
-  const energyTipFilter = (c, i, arr) => c.raw != null &&
-    !(c.dataset.$pred && arr.some(o => o !== c && o.dataset.$type === c.dataset.$type && !o.dataset.$pred && o.raw != null));
+  // 차량연료 그래프 툴팁: '경유: 100 L · 0.266 tCO₂eq' (계열의 $type = 에너지원)
   const energyTipLabel = c => {
     const t = c.dataset.$type, g = co2Txt(t, c.raw);
     return `${t}${c.dataset.$pred ? ' 예측' : ''}: ${amtTxt(t, c.raw)}${g ? ` · ${g}` : ''}`;
@@ -4607,36 +4902,167 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
     const rs = recs.filter(r => r.date?.slice(5, 7) === pad(i + 1));
     return rs.length ? sumBy(rs, f) : null;
   });
-  // 예측 점선이 앞뒤 실선 점과 이어지도록 실적 값을 예측 계열에 복사
-  function bridge(act, pred) {
-    const data = [...pred];
-    pred.forEach((v, k) => {
-      if (v == null) return;
-      if (k > 0  && pred[k - 1] == null && act[k - 1] != null) data[k - 1] = act[k - 1];
-      if (k < 11 && pred[k + 1] == null && act[k + 1] != null) data[k + 1] = act[k + 1];
-    });
-    return data;
-  }
   // 값이 있는 계열만 그리고, 하나도 없으면 '데이터가 없습니다' 표시
   function setChart(chart, canvasId, emptyId, datasets) {
     const ds = datasets.filter(d => d.data.some(v => v != null));
     $(emptyId).hidden = ds.length > 0;
-    const cv = $(canvasId);
+    const cv = $(canvasId), card = cv.closest('.chart-card');
     (cv.parentElement.classList.contains('chart-box') ? cv.parentElement : cv).hidden = ds.length === 0;
-    if (chart) { chart.data.datasets = ds; chart.update(); }
+    // 그래프 하나짜리 카드: 자료가 없으면 표시 (올해 현황·그 해 자세히는 큰 빈 상자 대신 한 줄로 줄여 맨 아래로)
+    if (card && card.querySelectorAll('canvas').length === 1) card.classList.toggle('is-empty', ds.length === 0);
+    if (chart) { chart.data.datasets = ds; chart.update(chartQuiet ? 'none' : undefined); }   // 자동 새로고침은 애니메이션 없이
   }
-  // 에너지 차트 축: 에너지원마다 축 하나 — 고른 거점에 그 에너지원 자료가 없으면 그 축은 숨김
-  function setEnergyAxes(chart, datasets) {
-    if (!chart) return;
-    const s = chart.options.scales, used = new Set(datasets.filter(d => d.data.some(v => v != null)).map(d => d.yAxisID));
-    ['y2', 'y3', 'y4'].forEach(k => { s[k].display = used.has(k); });
-  }
+  // 에너지원별 작은 그래프 — 이름 · 툴팁 ('26년 실적: 123,456 kWh · 56.719 tCO₂eq' · 아래에 합계·전년 같은 달 대비)
+  const emName = t => t === RE_SELF ? '재생에너지 자가발전' : t;
+  const emTipLabel = c => {
+    const t = c.dataset.$type, g = c.dataset.$prev ? '' : co2Txt(t, c.raw);
+    return `${c.dataset.label}: ${amtTxt(t, c.raw)}${g ? ` · ${g}` : ''}`;
+  };
+  const emTipFoot = items => {
+    const cur = items.filter(x => !x.dataset.$prev && x.raw != null), pv = items.find(x => x.dataset.$prev)?.raw;
+    if (!cur.length) return '';
+    const t = cur[0].dataset.$type, v = sumBy(cur, x => x.raw), pred = cur.some(x => x.dataset.$pred), out = [];
+    if (cur.length > 1) out.push(`합계 ${amtTxt(t, v)} (실적 + 예측)`);
+    if (pv > 0) out.push(`전년 같은 달 대비 ${v >= pv ? '▲' : '▼'}${fmt(Math.abs(v - pv) / pv * 100, 1)}%${pred ? ' (예측 포함)' : ''}`);
+    return out;
+  };
+  // 작은 그래프 세로축 숫자: 15만 · 2.5만 · 3,000
+  const compactNum = v => { const a = Math.abs(v);
+    return a >= 1e8 ? `${+(v / 1e8).toFixed(a >= 1e9 ? 0 : 1)}억` : a >= 1e4 ? `${+(v / 1e4).toFixed(a >= 1e5 ? 0 : 1)}만` : fq(v); };
   // 목표 카드 게이지 (P = 화면 id 접두어: '' 올해 현황 · 'y-' 실적 조회 한 해)
   function setBar(P, id, pct, text, color) {
     const fill = $(`${P}tbar-${id}`);
     fill.style.width = Math.max(0, Math.min(pct || 0, 100)) + '%';
     if (color) fill.style.background = color;
     $(`${P}pct-${id}`).textContent = text;
+  }
+  // 목표 카드 막대 (RE100 · 폐기물) — 온실가스 카드와 같은 그림 (굵은 막대 + 색 눈금 + 눈금 이름)
+  //  stack  = 진한 = 누적 · 옅은 = 남은 달(연말 예측까지) — 폐기물처럼 쌓이는 양
+  //  bullet = 옅은 굵은 막대 = 연말 예측 · 안의 진한 가는 막대 = 누적 — 비율(RE100)은 쌓이지 않아 누적이 예측보다 클 수도 있어서
+  //  ticks  = [{ k: 'goal' 청록 목표 | 'base' 회색 기준, x, n: 눈금 이름 }] · 눈금이 없으면 견줄 것이 없어 막대도 그리지 않음
+  function famChart(el, { mode, act, est, ticks, col, aria }) {
+    if (!(act > 0 || est > 0) || !ticks.length) { el.innerHTML = ''; el.removeAttribute('aria-label'); return; }
+    const goal = ticks.find(t => t.k === 'goal')?.x;
+    const mx = Math.max(mode === 'bullet' && goal > 0 ? goal / 0.8 : 0, ...[act, est, ...ticks.map(t => t.x)].filter(x => x > 0).map(x => x * 1.04));
+    const pc = x => +(Math.max(0, Math.min(x || 0, mx)) / mx * 100).toFixed(2), pe = est > 0;
+    el.style.setProperty('--tgc', col); el.setAttribute('aria-label', aria);
+    const bars = mode === 'bullet'
+      ? (pe ? `<div class="tg-fill p bl" style="left:0;width:${pc(est)}%"></div>` : '') + (act > 0 ? `<div class="tg-fill a ${pe ? 'thin' : 'solo'}" style="width:${pc(act)}%"></div>` : '')
+      : `<div class="tg-fill a${pe && est > act ? '' : ' solo'}" style="width:${pc(act)}%"></div>` +
+        (pe && est > act ? `<div class="tg-fill p" style="left:${pc(act)}%;width:${(pc(est) - pc(act)).toFixed(2)}%"></div>` : '');
+    el.innerHTML = '<div class="tg-track"></div>' + bars + ticks.map((t, i) => { const at = pc(t.x), al = at > 93 ? ' r' : at < 7 ? ' l' : '';
+      return `<i class="tg-tick ${t.k}" style="left:${at}%"></i><span class="tg-tl ${t.k} ${i % 2 ? 'dn' : 'up'}${al}" style="left:${at}%">${esc(t.n)}</span>`; }).join('');
+  }
+  const TG_COL = { ok: 'var(--green)', mid: 'var(--amber)', no: 'var(--red)', na: 'var(--primary)' };
+
+  // 온실가스 배출목표 한 장 (대구본원 · Scope 1+2) — 기준·자체·법적 세 숫자를 한 막대에
+  //  막대 = 누적(진하게) + 연말 예측(옅게, 지난 연도는 실적만) · 눈금 = 자체·법적 목표 · 끝 = 기준배출량
+  //  색 = 판정 (자체 목표 이하 초록 · 자체 초과·법적 이하 주황 · 법적도 초과 빨강) · 아래 열쇠를 누르면 그 목표의 계산 근거
+  //  → 거점 설명 판정 칩용 { st: 'ok' | 'no', txt } | null
+  function renderGhgTarget(P, o) {
+    const $$ = id => $(P + id), { act, est, own, law, base, isCur, yS } = o;
+    const v = isCur ? est : act, has = v > 0, tg = own ?? law, tgN = own != null ? '자체 목표' : '법적 목표';
+    const st = !has || tg == null ? 'na' : v <= tg ? 'ok' : own != null && law != null && v <= law ? 'mid' : 'no';
+    const col = TG_COL[st];
+    const gap = has && tg != null ? Math.abs(v - tg) : 0, est1 = isCur ? ' 전망' : '';
+    const say = st === 'ok' ? `✓ ${tgN}보다 ${fq(gap)}t ${isCur ? '적을 전망' : '적게 배출'}`
+      : st === 'mid' ? `✗ 자체 목표 ${fq(v - own)}t 초과${est1} · 법적 목표 ✓`
+      : st === 'no' ? `✗ ${law != null ? '법적 목표도' : tgN} ${fq(v - (law ?? tg))}t 초과${est1}` : '';
+    const vd = $$('tg-verdict');
+    vd.className = 're-verdict' + (st === 'ok' ? ' good' : st === 'na' ? '' : ' bad'); vd.textContent = say;
+    const pct = x => +(Math.max(0, x) / (Math.max(base || 0, v || 0, act || 0, own || 0, law || 0) * 1.04 || 1) * 100).toFixed(2);
+    $$('tg-nums').innerHTML = !(act > 0) ? '<span class="cmp-na">대구본원 배출 자료가 아직 없어요</span>' :
+      `<span><i class="tg-k a" style="--tgc:${col}"></i>${isCur ? '누적' : `${yS} 실적`} <b>${fq(act)}</b>t</span>` +
+      (isCur && est > 0 ? `<span><i class="tg-k p" style="--tgc:${col}"></i>연말 예측 <b>${fq(est)}</b>t</span>` : '') +
+      (base > 0 && has ? `<span class="tg-cut">기준배출량 대비 ${v <= base ? '▼' : '▲'}${fmt(Math.abs(base - v) / base * 100, 1)}%${est1}</span>` : '');
+    const ticks = [['own', own, '자체'], ['law', law, '법적'], ['base', base, '기준']].filter(([, x]) => x > 0);
+    const ch = $$('tg-chart'), pe = isCur && est > act;
+    ch.style.setProperty('--tgc', col);
+    ch.setAttribute('aria-label', !(act > 0) ? '' : `${isCur ? `누적 ${fq(act)}t · 연말 예측 ${fq(est)}t` : `${yS} 실적 ${fq(act)}t`} · ` +
+      ticks.map(([, x, n]) => `${n} ${fq(x)}t`).join(' · '));
+    ch.innerHTML = !(act > 0) ? '' : '<div class="tg-track"></div>' +
+      `<div class="tg-fill a${pe ? '' : ' solo'}" style="width:${pct(act)}%"></div>` +
+      (pe ? `<div class="tg-fill p" style="left:${pct(act)}%;width:${(pct(est) - pct(act)).toFixed(2)}%"></div>` : '') +
+      ticks.map(([k, x, n], i) => { const at = pct(x), al = at > 93 ? ' r' : at < 7 ? ' l' : '';
+        return `<i class="tg-tick ${k}" style="left:${at}%"></i><span class="tg-tl ${k} ${i % 2 ? 'dn' : 'up'}${al}" style="left:${at}%">${n}</span>`; }).join('');
+    const NM = { own: '자체 목표', law: '법적 목표', base: '기준배출량' };
+    $$('tg-keys').innerHTML = ticks.map(([k, x]) => { const cut = k !== 'base' && base > 0 ? fmt((base - x) / base * 100, 1) : null;
+      return `<button type="button" class="tg-key" data-calc="k-tgt-${k}" title="${cut ? `기준배출량 대비 ${cut}% 감축 · ` : ''}누르면 ${NM[k]} 계산 근거">` +
+        `<i class="${k}"></i>${NM[k]} <b>${fq(x)}t</b>${cut ? `<small>▼${cut}%</small>` : ''}</button>`; }).join('');
+    return st === 'na' ? null : st === 'ok' ? { st: 'ok', txt: `✓ 여유 ${fq(gap)}t` } : { st: 'no', txt: `✗ ${tgN === '자체 목표' ? '자체 ' : ''}${fq(gap)}t 초과` };
+  }
+
+  // 거점 설명의 '적용 목표' 칩 → 판정 칩 (예: 온실가스 감축 ✓ 여유 97t) · 누르면 그 목표 카드로
+  //  P = '' 올해 현황(#site-info) · 'y-' 그 해 자세히(#h-site-info)
+  const VD_CARD = { ghg: 'tc-ghg', re: 'tc-re', wt: 'tc-wt' };
+  function siteVerdicts(P, vd, isCur, year) {
+    const box = $(P ? 'h-site-info' : 'site-info'); if (!box) return;
+    box.querySelectorAll('.si-tag[data-k]').forEach(tg => {
+      const k = tg.dataset.k, v = vd[k], nm = tg.dataset.nm || tg.textContent;
+      if (!v) return;
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = `si-tag si-v ${v.st}`; b.dataset.k = k; b.dataset.nm = nm; b.dataset.to = VD_CARD[k];
+      b.title = `${nm} — ${isCur ? '연말 전망' : `${yrShort(year)} 실적`} · 누르면 목표 카드로`;
+      b.innerHTML = `${esc(nm)} <b>${esc(v.txt)}</b>`;
+      tg.replaceWith(b);
+    });
+    const lb = box.querySelector('.si-tk');
+    if (lb && Object.keys(vd).length) lb.textContent = isCur ? `적용 목표 · ${yrShort(year)} 연말 전망` : `적용 목표 · ${yrShort(year)} 실적`;
+  }
+  document.addEventListener('click', e => {
+    const b = e.target.closest('.si-v[data-to]'); if (!b) return;
+    const inHist = !!b.closest('#h-site-info'), cmpOn = inHist && !$('h-cmp-view')?.hidden;
+    let card;
+    if (cmpOn) card = document.querySelector(`#h-sum [data-vk="${b.dataset.k}"]`);   // 연도별 비교 → 핵심 성과 카드
+    else { const P = inHist ? 'y-' : ''; card = $(P + b.dataset.to); const sec = $(P + 'sec-target'); if (sec && !sec.open) sec.open = true; }
+    if (!card) return;
+    card.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });
+    card.classList.remove('flash'); void card.offsetWidth; card.classList.add('flash');
+    setTimeout(() => card.classList.remove('flash'), 1400);
+  });
+
+  // 자원·기타 지표 정리: 값이 있는 카드만 · 자료 없음·해당 없음은 한 줄 · 접힌 머리에 요약 (예: 용수 1,200㎥ ▲20.0% · 친환경차 40%)
+  function tidyEnv(P) {
+    const $$ = id => $(P + id), sec = $$('sec-env'); if (!sec) return;
+    const none = [], na = [], peek = [];
+    sec.querySelectorAll('.env-grid > .kpi-card').forEach(c => {
+      if (c.classList.contains('v2-only') && !v2) return;   // 2단계 전: 설정 안내가 대신
+      const nm = (c.querySelector('.kpi-label')?.firstChild?.textContent || '').replace(/^[^\p{L}\p{N}]+/u, '').replace(/\s*\(.*\)\s*$/, '').trim();
+      const val = c.querySelector('.kpi-value')?.textContent.trim() || '', sub = c.querySelector('.kpi-sub')?.textContent || '';
+      const isNa = c.classList.contains('tgt-na') || /해당 없음/.test(val + sub) || (c.id?.endsWith('card-regen') && c.hidden);
+      const empty = isNa || !val || val === '-' || val === '—';
+      c.classList.toggle('tidy-out', empty);
+      if (isNa) na.push(nm); else if (empty) none.push(nm);
+      else { const u = c.querySelector('.kpi-u')?.textContent.trim() || '', yo = c.querySelector('.kpi-yoy')?.textContent.match(/[▲▼]\s?[\d.,]+%/)?.[0] || '';
+             peek.push(`${nm.replace(/ (사용량|전환율|전환률|발전량)$/, '')} ${val}${u === '%' || u === '㎥' || u === '배' ? u : ` ${u}`}${yo ? ` ${yo.replace(/\s/g, '')}` : ''}`); }
+    });
+    const note = $$('env-empty');
+    note.innerHTML = [none.length ? `<b>자료 없음</b> ${esc(none.join(' · '))}<span data-need="edit"> — 데이터 입력 → 기타 지표에서 넣어요</span>` : '',
+                      na.length ? `<b>해당 없음</b> ${esc(na.join(' · '))}` : ''].filter(Boolean).join('<br>');
+    note.hidden = !(none.length || na.length) || (!v2 && !na.length);
+    $$('env-peek').textContent = peek.join(' · ');
+  }
+  // 에너지·폐기물 사용량: 칸은 예전처럼 모두 그대로 ('항목 미정'·'추후 업데이트 예정'·'해당 없음'도 — Scope별 칸 구성이 늘 같아야
+  //  앞으로 넣을 항목(출장 등)까지 한눈에 보여서) · 접힌 머리에 배출 구성 막대 (어디서 많이 나오나)
+  function tidyUsage(P, ey) {
+    const $$ = id => $(P + id); if (!$$('sec-usage')) return;
+    // 배출 구성 (Scope 1+2 · 에너지원별 비중) — 접혀 있어도 머리에 보임
+    const parts = EMIT_TYPES.map(t => ({ t, g: sumBy(ey.filter(r => r.type === t), r => r.ghg) })).filter(x => x.g > 0).sort((a, b) => b.g - a.g);
+    const tot = sumBy(parts, x => x.g), pc = x => fmt(x.g / tot * 100, 0);
+    $$('use-peek').innerHTML = !(tot > 0) ? '' :
+      `<span class="pk-bar" role="img" aria-label="${esc(`온실가스 배출 구성: ${parts.map(x => `${x.t} ${pc(x)}%`).join(', ')}`)}">` +
+      parts.map(x => `<i style="flex:${x.g} 0 0;background:${typeCol(x.t)}" title="${esc(`${x.t} ${fq(x.g)} tCO₂eq (${fmt(x.g / tot * 100, 1)}%)`)}"></i>`).join('') + '</span>' +
+      `<span class="pk-t">${parts.slice(0, 3).map(x => `${x.t} ${pc(x)}%`).join(' · ')}</span>`;
+  }
+  // 경고 표시 읽는 법 (카드에 표시가 하나라도 있을 때만) — ⚠ 늘어남 · 🔍 입력 확인(입력 권한) · 빨간 테두리 = 목표 초과
+  function alLegend(P) {
+    const root = $(P ? 'y-yv' : 'yv'), el = $(P + 'al-legend'); if (!root || !el) return;
+    const up = !!root.querySelector('.kpi-alert'), chk = !!root.querySelector('.kpi-check'), over = !!root.querySelector('.kpi-card.alert-over:not([hidden])');
+    el.hidden = !(up || chk || over);
+    const cur = !P;   // 그 해 자세히(지난 연도)는 '넘었음', 올해는 '넘을 전망'
+    el.innerHTML = '<b>표시 읽는 법</b>' + (up ? '<span><span class="al-up">⚠</span> 전년·평년보다 늘어남</span>' : '') +
+      (chk ? '<span data-need="edit">🔍 입력 실수 의심</span>' : '') + (over ? `<span><span class="al-over">빨간 테두리</span> 목표 초과${cur ? ' 전망' : ''}</span>` : '') +
+      '<span>카드를 누르면 이유·계산 근거</span>';
   }
   const yearSpan = o => { const k = Object.keys(o); return `${k[0].slice(2)}~${k[k.length - 1].slice(2)}년`; };
   const tgtOf = (y, kind) => kind === 'own' ? (ROADMAP[y]?.target ?? null)
@@ -4648,23 +5074,34 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
     const up = diff > 0, ok = (good === 'up') === up;
     return `<div class="cmp-delta ${ok ? 'good' : 'bad'}">${up ? '▲' : '▼'}${fmt(Math.abs(diff), 1)}${unit}</div>`;
   };
-  // 목표 구역: 고른 거점에 해당하는 목표 카드만 보여 줌 (목표가 없는 거점·전체 합계는 구역을 숨김 — 이유는 거점 설명 카드에)
+  // 목표 구역: 고른 거점에 해당하는 목표 카드만 · 해당 없는 목표는 숨기고 줄 끝에 한 줄로 (빈 회색 카드 대신)
+  //  온실가스는 한 장(tc-ghg · 두 칸 너비)으로 그리고, 예전 세 카드(기준·자체·법적)는 계산 근거·기존 동작용으로 숨겨 둠
   const TGT_LABEL = { ghg: '온실가스', re: 'RE100', wt: '폐기물' };
+  const TGT_COLS = 4;
   function setTargetView(T, si, cards, secId, gridId, siteId) {
-    // 다섯 칸은 늘 같은 자리에 · 그 거점에 해당하지 않는 목표는 '해당 없음'으로 (대구본원과 같은 모양)
-    const NA_WHY = { ghg: '온실가스 감축 목표는 대구본원에만 적용돼요', re: 'RE100 목표는 대구본원·제주글로벌센터에 적용돼요', wt: '폐기물 감축 목표가 아직 없어요 (DB 설정 필요)' };
-    const n = Object.entries(cards).filter(([id, k]) => {
-      const el = $(id); el.hidden = false; el.classList.toggle('tgt-na', !T[k]);
-      el.title = T[k] ? '' : NA_WHY[k];
-      return T[k]; }).length;
+    const NA_WHY = { ghg: '온실가스 감축 목표 = 대구본원만', re: 'RE100 = 대구본원·제주글로벌센터', wt: '폐기물 감축 목표 = DB 설정 후' };
+    let used = 0;
+    Object.entries(cards).forEach(([id, k]) => {
+      const el = $(id), legacy = /tc-(base|own|law)$/.test(id);
+      el.classList.remove('tgt-na'); el.title = '';
+      el.hidden = legacy || !T[k];
+      if (!el.hidden) used += el.classList.contains('tgt-ghg') ? 2 : 1;
+    });
+    const na = [...new Set(Object.values(cards))].filter(k => !T[k]), P = gridId.startsWith('y-') ? 'y-' : '', note = $(P + 'tgt-na-note');
+    if (note) {
+      note.hidden = !na.length;
+      note.innerHTML = `<span><b>이 거점에 적용하지 않는 목표</b> ${na.map(k => NA_WHY[k]).join(' · ')}</span>`;
+      note.style.setProperty('--na-span', String(Math.max(1, TGT_COLS - used)));
+    }
     $(secId).hidden = false;
-    $(gridId).style.gridTemplateColumns = `repeat(${Object.keys(cards).length},minmax(0,1fr))`;   // 내용 길이와 관계없이 칸 너비를 똑같이
+    $(gridId).style.gridTemplateColumns = `repeat(${TGT_COLS},minmax(0,1fr))`;
+    const n = ['ghg', 're', 'wt'].filter(k => T[k]).length;
     $(siteId).textContent = n ? `${si || '전체 합계'} · ${['ghg', 're', 'wt'].filter(k => T[k]).map(k => TGT_LABEL[k]).join('·')}` : '';
     // 전체 합계일 때 카드 제목 옆에 대상 거점 (대구본원 · 대구+제주 합산 · 세 거점 합산)
     const SCOPE = { ghg: TARGET_SITES.ghg, re: TARGET_SITES.re, wt: TARGET_SITES.waste };
     Object.entries(cards).forEach(([id, k]) => { const lb = $(id)?.querySelector('.kpi-label'); if (!lb) return;
       let sp = lb.querySelector('.tgt-scope'); if (!sp) { sp = document.createElement('span'); sp.className = 'tgt-scope'; lb.appendChild(sp); }
-      sp.textContent = si || k === 're' ? '' : k === 'wt' ? '세 거점 합산' : sitesLabel(SCOPE[k]); });   // RE100은 제목 줄이 꽉 차서 아래 계산식 줄에 '대구+제주'로 표시
+      sp.textContent = si ? '' : k === 'wt' ? '세 거점 합산' : k === 're' ? '대구+제주 합산' : sitesLabel(SCOPE[k]); });
     return n;
   }
 
@@ -4692,16 +5129,17 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
     if (metricRecs.some(r => mine(r) && r.item === EV_ALL && r.period >= from)) out.push('친환경차');
     return out;
   }
-  function renderSiteInfo(id, si) {
+  function renderSiteInfo(id, si, year) {
     const info = SITE_INFO[si] ?? SITE_INFO[''], items = siteItems(si);
-    const cy = new Date().getFullYear(), rg = reGoalOf(cy);
-    const tags = [TARGET_SITES.ghg.includes(si) && '온실가스 감축', TARGET_SITES.re.includes(si) && `RE100 ${rg != null ? `${yrShort(cy)} ${rg}%` : '이행'}`,
-                  TARGET_SITES.waste.includes(si) && '폐기물 감축'].filter(Boolean);
-    if (!si) tags.push('온실가스 감축 (대구본원)', `RE100 (대구+제주 합산)`, '폐기물 감축 (세 거점 합산)');
+    const cy = +year || new Date().getFullYear(), rg = reGoalOf(cy);   // year = 보고 있는 연도 (없으면 올해)
+    // 적용 목표 칩 (data-k = 목표 종류) — 올해 현황·그 해 자세히는 목표 카드를 그린 뒤 '✓ 여유 · ✗ 부족' 판정 칩으로 바꿈 (siteVerdicts)
+    const tags = [TARGET_SITES.ghg.includes(si) && ['ghg', '온실가스 감축'], TARGET_SITES.re.includes(si) && ['re', `RE100 ${rg != null ? `${yrShort(cy)} ${rg}%` : '이행'}`],
+                  TARGET_SITES.waste.includes(si) && ['wt', '폐기물 감축']].filter(Boolean);
+    if (!si) tags.push(['ghg', '온실가스 감축 (대구본원)'], ['re', `RE100 (대구+제주 합산)`], ['wt', '폐기물 감축 (세 거점 합산)']);
     $(id).innerHTML = `<div class="si-head"><b class="si-name">${si || '전체 합계'}</b><span class="si-role ${info.tone}">${info.role}</span></div>` +
-      `<p class="si-desc">${info.desc}</p><div class="si-meta"><span class="si-k">적용 목표</span>` +
-      (tags.length ? tags.map(t => `<span class="si-tag">${t}</span>`).join('') : '<span class="si-none">없음</span>') +
-      `<span class="si-k">관리 항목</span><span>${items.length ? items.map(esc).join(' · ') : '<span class="si-none">입력된 자료 없음</span>'}</span></div>`;
+      `<p class="si-desc">${info.desc}</p><div class="si-meta"><span class="si-k si-tk">적용 목표</span>` +
+      (tags.length ? tags.map(([k, t]) => `<span class="si-tag" data-k="${k}">${t}</span>`).join('') : '<span class="si-none">없음</span>') +
+      `<span class="si-items"><span class="si-k">관리 항목</span><span>${items.length ? items.map(esc).join(' · ') : '<span class="si-none">입력된 자료 없음</span>'}</span></span></div>`;
   }
   function setSite(si) {
     curSite = si;
@@ -4740,12 +5178,23 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
   }
 
   /* ── 올해 현황 ───────────────────────────────────────── */
+  // 실적이 몇 월까지 들어왔나 (거점마다 배출원 자료가 있는 마지막 달) → { by: {거점: 월}, max, txt: '1~9월' · '대구 9월 · 제주·서울 4월까지' }
+  function dataThrough(year, sites) {
+    const by = Object.fromEntries(sites.map(s => [s, Math.max(0, ...energyRecs.filter(r => r.site === s && isEmit(r.type) && r.date?.startsWith(String(year))).map(r => +r.date.slice(5, 7)))]));
+    const ms = [...new Set(Object.values(by).filter(Boolean))].sort((a, b) => b - a), max = ms[0] || 0;
+    const txt = !max ? '' : ms.length === 1 ? `1~${max}월` : ms.map(m => `${sites.filter(s => by[s] === m).map(s => SITE_SHORT[s] || s).join('·')} ${m}월`).join(' · ') + '까지';
+    return { by, max, txt };
+  }
   function renderDash() {
     const si = curSite, today = new Date(), curYr = today.getFullYear();
     renderSiteInfo('site-info', si);
-    $('cur-year-label').textContent = `${curYr}년 현황 · ${today.toLocaleDateString('ko-KR')} 기준`;
     const allTs = [...energyRecs, ...wasteRecs, ...metricRecs].map(r => r.updatedAt || r.createdAt).filter(Boolean).sort().reverse();
     $('hdr-updated').textContent = allTs.length ? '최근 업데이트: ' + fmtTs(allTs[0]) : '';
+    // 오늘 날짜 대신 '실적이 몇 월까지 + 남은 달은 예측' · 최근 업데이트 (휴대폰은 머리 오른쪽이 숨겨져 여기서 봄)
+    const thr = dataThrough(curYr, si ? [si] : SITES), upd = allTs.length ? new Date(allTs[0]) : null;
+    $('cur-year-label').textContent = `${curYr}년 현황 · ` + (thr.max ? `실적 ${thr.txt}${thr.max < 12 ? ' + 예측' : ''}` : '아직 입력 전 · 예측') +
+      (upd ? ` · ${upd.getMonth() + 1}.${upd.getDate()} 업데이트` : '');
+    $('cur-year-label').title = `${today.toLocaleDateString('ko-KR')} 기준 · ` + (thr.max ? `거점마다 입력된 마지막 달: ${Object.entries(thr.by).map(([s, m]) => `${s} ${m ? `${m}월` : '없음'}`).join(' · ')} · 남은 달·빈 칸은 기상연동 예측` : '입력된 실적이 없어요');
     renderYearView('', curYr, si);
     renderDashToc();
   }
@@ -4771,19 +5220,39 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
     return { typeRows, siteRows, monthRows };
   }
 
+  // 카드 안 경고 이유 한 줄 (kind = up 늘어남 · chk 입력 확인(입력 권한만) · over 목표 초과) — 빈 글이면 지움
+  //  세로 카드는 월별 막대 위에 · 가로 카드(사용량)는 이름 아래 왼쪽 둘째 줄에 (카드는 늘 두 줄 — 값·사용량은 오른쪽 두 줄)
+  //  맨 앞 표시(⚠·🔍·▲)는 따로 감싸 둠 — 가로 카드에서는 바로 위 이름 옆 표시와 겹쳐서 숨김
+  function whyLine(card, kind, text) {
+    let el = card.querySelector(`.kpi-why.${kind}`);
+    if (!text) { el?.remove(); card.classList.toggle('has-why', !!card.querySelector('.kpi-why')); return; }
+    if (!el) {
+      el = document.createElement('div'); el.className = `kpi-why ${kind}`;
+      if (kind === 'chk') el.dataset.need = 'edit';
+      const mb = card.querySelector('.kpi-mb'); mb ? card.insertBefore(el, mb) : card.append(el);
+    }
+    const m = /^(\S+)\s+([\s\S]*)$/u.exec(text);
+    if (m) { const ic = document.createElement('span'); ic.className = 'wi'; ic.textContent = m[1]; el.replaceChildren(ic, ` ${m[2]}`); }
+    else el.textContent = text;
+    el.title = text;
+    card.classList.add('has-why');
+  }
   function renderYearView(P, year, si) {
     const $$ = id => $(P + id), curYr = new Date().getFullYear(), isCur = year === curYr;
     const yr = String(year), prevYr = String(year - 1), yS = yrShort(yr), pS = yrShort(prevYr);
-    $$('ghg-period').textContent = isCur ? '올해 누적' : `${yS} 연간 실적`;
-    $$('use-period').textContent = isCur ? '올해 누적' : `${yS} 연간`;
+    // 올해 = '1~9월 누적'처럼 실적이 들어온 달까지 (거점마다 다르면 가장 늦은 달 · 날짜 줄에 거점별로)
+    const thr = isCur ? dataThrough(year, si ? [si] : SITES) : null, cumTxt = thr?.max ? `1~${thr.max}월 누적` : '올해 누적';
+    $$('ghg-period').textContent = isCur ? cumTxt : `${yS} 연간 실적`;
+    $$('use-period').textContent = isCur ? cumTxt : `${yS} 연간`;
     $$('yv').querySelectorAll('.tl-act').forEach(e => { e.textContent = isCur ? '누적' : '실적'; });
-    ['own', 'law', 're', 'wt'].forEach(k => { $$(`row-${k}-pred`).hidden = !isCur; });   // 지난 연도엔 예측 줄 없음
+    ['own', 'law'].forEach(k => { $$(`row-${k}-pred`).hidden = !isCur; });   // 지난 연도엔 예측 줄 없음 (RE100·폐기물은 카드가 직접)
 
     const inView = r => !si || r.site === si;
     // 전체 합계: 목표를 모두 보여 주되 목표마다 대상 거점으로 집계 (온실가스 = 대구본원 · RE100 = 대구+제주 합산 · 폐기물 = 세 거점 합산)
     const T = si ? targetsFor(si) : { ghg: true, re: true, wt: v2 };
-    setTargetView(T, si, { [P + 'tc-base']: 'ghg', [P + 'tc-own']: 'ghg', [P + 'tc-law']: 'ghg', [P + 'tc-re']: 're', [P + 'tc-wt']: 'wt' },
+    setTargetView(T, si, { [P + 'tc-ghg']: 'ghg', [P + 'tc-base']: 'ghg', [P + 'tc-own']: 'ghg', [P + 'tc-law']: 'ghg', [P + 'tc-re']: 're', [P + 'tc-wt']: 'wt' },
                   P + 'sec-target', P + 'target-grid', P + 'tgt-site');
+    const vdict = {};   // 목표마다 판정 { st: ok|no, txt } — 거점 설명의 판정 칩에 씀
     const reNote = 'RE100 = (자가발전 + 구매) ÷ 총 전력 · 폐기물 = 종량제 봉투 기준';
     $$('tgt-note').innerHTML = !isCur ? `${yS} 실적 기준 · ${T.ghg ? '온실가스 = Scope 1+2' : reNote}`
       : T.ghg ? '온실가스 = Scope 1+2 · 예측 = 기상연동 예측(직전 2개년 같은 달 평균 + 냉난방도일 보정) · <a href="#sec-basis" class="hd-link">근거 보기 ↓</a>'
@@ -4891,6 +5360,8 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
       card.classList.toggle('alert-up', !!al?.up.length);
       badge(lb, 'kpi-alert', '⚠', al?.up);
       badge(lb, 'kpi-check', '🔍', al?.chk);
+      whyLine(card, 'up', al?.up?.length ? `⚠ ${al.up[0].txt}` : '');
+      whyLine(card, 'chk', al?.chk?.length ? `🔍 ${al.chk[0].txt}` : '');
     };
     // 목표를 넘었거나 넘을 전망인 카드 (빨강) — 목표가 있는 항목만 · 늘어남(주황)보다 셈
     //  keep    = 목표를 안 넘었을 때 되돌릴 ⚠ 표시 (총 온실가스 카드처럼 두 표시를 같이 쓰는 카드용)
@@ -4903,6 +5374,9 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
       if (!lb) return;
       if (noBadge) { badge(lb, 'kpi-alert', '⚠', keep?.up || null); card.title = over ? why : ''; return; }
       badge(lb, 'kpi-alert', over ? '▲' : '⚠', over ? [{ txt: why }] : (keep?.up || null));
+      whyLine(card, 'over', over ? `▲ ${String(why).split(' · ')[0]}` : '');   // 목표 초과는 이유 한 줄 (늘어남 줄 대신)
+      if (over) whyLine(card, 'up', '');
+      else if (keep?.up?.length) whyLine(card, 'up', `⚠ ${keep.up[0].txt}`);
     };
 
     // ① 온실가스 (선택 거점) — Scope는 에너지원 기준으로 분류
@@ -4921,10 +5395,31 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
       setYoy('k-s1-yoy', yoy(isScope('Scope 1')));
       setYoy('k-s2-yoy', yoy(isScope('Scope 2')));
     } else ['k-total-yoy', 'k-s1-yoy', 'k-s2-yoy'].forEach(id => { $$(id).className = 'kpi-sub'; $$(id).textContent = '-'; });
+    // 총 온실가스 연말 예측 (= 입력된 실적 + 아직 입력 안 된 거점·달의 기상연동 예측) · 전년 연간과 견줌 — 보고서에 쓸 숫자를 카드에서 바로
+    const estTot = isCur && hasE && fc ? s1 + s2 + sumArr(fc.predGhgS1) + sumArr(fc.predGhgS2) : null;
+    const prevTot = sumBy(prevRecs.filter(r => isEmit(r.type)), r => r.ghg);
+    $$('k-total-est').innerHTML = estTot == null ? '' : `연말 예측 <b>${fq(estTot)}</b>t` +
+      (prevTot > 0 ? ` · ${pS} ${fq(prevTot)}t <span class="${estTot <= prevTot ? 'good' : 'bad'}">${arrow(estTot - prevTot)}${fmt(Math.abs(estTot - prevTot) / prevTot * 100, 1)}%</span>` : '');
+    $$('k-total-est').title = estTot == null ? '' : '연말 예측 = 입력된 실적 + 아직 입력 안 된 거점·달의 기상연동 예측 · 전년은 연간 실적';
     // Scope 3(폐기물)은 지난 연도만 전년 대비 — 봉투는 매달 사지 않아 올해 누적끼리 비교하면 들쭉날쭉
     const wPrev = wasteRecs.filter(r => r.date?.startsWith(prevYr) && inView(r)), wPrevGhg = wasteGhg(sumBy(wPrev, r => r.weightTon));
     if (isCur || !wy.length) $$('k-waste-yoy').textContent = '';
     else setYoy('k-waste-yoy', wPrev.length && wPrevGhg > 0 ? { v: (wasteGhg(wTon) - wPrevGhg) / wPrevGhg * 100, p: wPrevGhg } : null);
+    // 카드 아래 월별 막대: 그 해 실적 · 올해 아직 입력 안 된 칸의 예측(옅게) · 전년 같은 달(회색 눈금) — 숫자 하나로는 안 보이는 흐름
+    {
+      const ghgMon = (rs, test) => monthlySum(rs.filter(test), r => r.ghg), wMon = rs => monthlySum(rs, r => wasteGhg(r.weightTon));
+      const predOf = (...arrs) => fc ? m12(i => { const v = arrs.reduce((a, arr) => a + (arr?.[i] || 0), 0); return v > 0 ? v : null; }) : null;
+      const emit = r => isEmit(r.type);
+      const put = (id, act, pred, prev, name, o = {}) => { $$(id).innerHTML = monthBars(m12(i => ({ m: i + 1, a: act[i], p: pred?.[i] ?? null, q: prev?.[i] ?? null })), { name, pS, ...o }); };
+      put('k-total-mb', ghgMon(ey, emit), predOf(fc?.predGhgS1, fc?.predGhgS2), ghgMon(prevRecs, emit), '총 온실가스');
+      put('k-s1-mb', ghgMon(ey, isScope('Scope 1')), predOf(fc?.predGhgS1), ghgMon(prevRecs, isScope('Scope 1')), 'Scope 1');
+      put('k-s2-mb', ghgMon(ey, isScope('Scope 2')), predOf(fc?.predGhgS2), ghgMon(prevRecs, isScope('Scope 2')), 'Scope 2');
+      // 폐기물은 봉투를 산 달에 몰려 있어(사는 달만 막대) 전년 같은 달과 견주지 않음 — 다른 곳(전년 대비)과 같은 규칙
+      put('k-waste-mb', wMon(wy), null, null, 'Scope 3 (폐기물)', { act: '구매', note: '봉투 산 달 기준' });
+      const mbs = ['k-total-mb', 'k-s1-mb', 'k-s2-mb', 'k-waste-mb'].map(id => $$(id)), has = sel => mbs.some(el => el.querySelector(sel));
+      $$('ghg-unit').innerHTML = (has('.mb') ? '<span class="mb-legend">카드 아래 막대 = 월별<i></i>실적' + (has('.mb-p') ? '<i class="p"></i>예측' : '') +
+        (has('.mb-q') ? `<i class="q"></i>${pS} 같은 달` : '') + '</span>' : '') + '단위: tCO₂eq';
+    }
 
     /* ── 계산 근거 (카드를 누르면 뜨는 팝업에 쓸 자료) ─────────────
        무엇이 합쳐져 이 값이 됐는지: 에너지원별(사용량 × 배출계수) · 거점별 · 월별 · 경고 이유 */
@@ -4962,7 +5457,7 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
     const show = (t, div) => ey.some(r => r.type === t) ? fq(amt(t) / div) : '—'; // 입력이 없으면 0 대신 '—'
     const elecKwh = amt('전력'), reSelf = amt(RE_SELF), reBuy = amt(RE_BUY);
     $$('k-elec').textContent     = show('전력', 1);
-    $$('k-gas').textContent      = show('도시가스', 1000);
+    $$('k-gas').textContent      = show('도시가스', 1);   // Nm³ (작은 그래프·표·팝업과 같은 단위)
     $$('k-heat').textContent     = show('지역난방', 1);
     $$('k-gasoline').textContent = show('휘발유', 1);
     $$('k-diesel').textContent   = show('경유', 1);
@@ -5012,13 +5507,22 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
     const rElec = reSt ? (reSt.elec ?? 0) : elecKwh, rSelf = reSt ? (reSt.reSelf ?? 0) : reSelf, rBuy = reSt ? (reSt.reBuy ?? 0) : reBuy;
     const cons = rElec + rSelf, reAll = rSelf + rBuy, reSub = $$('k-re-sub'), reGoal = reGoalOf(year);
     let rePred = null;
-    reSub.className = 'kpi-sub';
+    reSub.className = 'kpi-sub tg-msg'; reSub.textContent = ''; reSub.title = '';
     if (T.re) {
-      $$('k-re-goal').textContent = reGoal != null ? `${yS} 목표 ${reGoal}%` : `목표는 ${yrShort(RE_FIRST)}부터`;
-      const scale = v => reGoal ? v / reGoal * 100 : v;   // 게이지: 목표 대비 % (목표가 없는 해는 0~100% 눈금)
+      const reCard = $$('tc-re'), vd = $$('k-re-verdict');
+      // 열쇠 ① 그 해 정부 목표 (청록) — 목표가 없는 해(25년까지)는 '목표는 26년부터' 글자만
+      $$('k-re-goal').textContent = reGoal != null ? `목표 ${reGoal}%` : `목표는 ${yrShort(RE_FIRST)}부터`;
+      $$('re-k-goal').classList.toggle('nog', reGoal == null);
+      $$('re-k-goal').title = `${reGoal != null ? `${yS} 목표 ${reGoal}% · ` : ''}공공기관 RE100 이행 목표 (${yrShort(RE_FIRST)} ${RE_GOAL[RE_FIRST]}% → 30년 60% → 50년 100%)`;
+      // 열쇠 ② 모자라면 몇 kWh 더 필요한지 · 아니면 전년 실적 (흐름)
+      const k2 = $$('re-k-2'), prevRe = re100Of(yearStat(prevYr, si ? [si] : TARGET_SITES.re));
+      const setK2 = need => {
+        k2.innerHTML = need > 0 ? `<b>+${fq(Math.ceil(need))}kWh</b> 필요` : prevRe != null ? `${pS} 실적 <b>${fmt(prevRe, 1)}%</b>` : '';
+        k2.title = need > 0 ? `${fmt(reGoal, 0)}%까지 ${needTxt(need)}` : prevRe != null ? `${pS} RE100 이행률 (실적)` : '';
+        k2.hidden = !k2.innerHTML;
+      };
       if (reAll > 0 && cons > 0) {
         const re100 = reAll / cons * 100, reEq = `${si ? '' : '대구+제주 · '}(자가 ${fq(rSelf)} + 구매 ${fq(rBuy)}) ÷ 총 ${fq(cons)} kWh`;
-        setBar(P, 're-act', scale(re100), `${fmt(re100, 1)}% (${fq(reAll)}kWh)`, '#059669');
         // 올해 연말 예측 — 전력·자가발전은 남은 달을 예측, 구매분은 입력된 양 그대로 (rePredParts와 같은 셈)
         let pp = null;
         if (isCur && !si) pp = rePredParts(curYr, TARGET_SITES.re);   // 전체 합계: 대구·제주를 각각 예측해 합산
@@ -5028,26 +5532,31 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
           pp.cons = pp.elec + pp.self; pp.re = pp.self + pp.buy;
         }
         rePred = pp && pp.cons > 0 ? pp.re / pp.cons * 100 : null;
-        if (rePred != null) setBar(P, 're-pred', scale(rePred), `${fmt(rePred, 1)}% (${fq(Math.round(pp.re))}kWh)`, PRED_COLOR); else setBar(P, 're-pred', 0, '—');
-        // 큰 숫자 = 목표와 견주는 값 (올해는 연말 예측) — '15.1% / 목표 15%'인데 '부족'이라 뜨는 엇갈림을 없앰
-        //  지금까지 이행률은 누적 막대에 그대로 (구매는 1년치가 한 번에 들어와 연중에는 높게 보일 수 있음)
         const showPred = isCur && rePred != null;
-        $$('k-re-pct').textContent = fmt(showPred ? rePred : re100, 1);
-        $$('k-re-when').textContent = showPred ? '연말 예측' : '';
         const v = isCur ? rePred : re100;   // 올해는 연말 예측으로, 지난 연도는 실적으로 목표 비교
         const need = reGoal != null && v != null && v < reGoal && (pp || !isCur)
           ? Math.max(0, reGoal / 100 * (pp ? pp.cons : cons) - (pp ? pp.re : reAll)) : 0;
-        // 달성 여부는 제목 옆에 (실패 전망이면 빨강) · 아래 줄은 계산식만 한 줄로
-        const vd = $$('k-re-verdict');
-        vd.className = 're-verdict' + (reGoal == null || v == null ? '' : v >= reGoal ? ' good' : ' bad');
-        // 카드 한 줄에 들어가게 짧게 · 마우스를 올리면 전체 문장
-        vd.textContent = reGoal == null || v == null ? '' : v >= reGoal ? `✓ 달성${isCur ? ' 전망' : ''}` : `✗ ${fmt(reGoal - v, 1)}%p 부족${isCur ? ' (예측)' : ''}`;
-        vd.dataset.full = reGoal == null || v == null ? '' : v >= reGoal ? `✓ 목표 달성${isCur ? ' 전망 (연말 예측)' : ''}` : `✗ 목표까지 ${fmt(reGoal - v, 1)}%p${isCur ? ' (연말 예측)' : ''}`;
-        // 계산식((자가 + 구매) ÷ 총 전력)은 카드를 누르면 뜨는 팝업에 있어 여기서는 뺌 · 모자라면 몇 kWh 더 필요한지
-        reSub.textContent = [si ? '' : sitesLabel(TARGET_SITES.re), reGoal == null ? `목표는 ${yrShort(RE_FIRST)}(${RE_GOAL[RE_FIRST]}%)부터` : '',
-                             need > 0 ? `${fmt(reGoal, 0)}%까지 ${needTxt(need)}` : ''].filter(Boolean).join(' · ');
-        reSub.title = reEq; vd.title = vd.dataset.full;
-        const reMiss = reGoal != null && v != null && v < reGoal;
+        const st = reGoal == null || v == null ? 'na' : v >= reGoal ? 'ok' : 'no';
+        // 숫자 줄: ■ 누적 14.5% □ 연말 예측 12.4% (지난 연도는 ■ 25년 실적 9.0%) — 목표와 견주는 값은 연말 예측
+        //  지금까지 이행률은 1년치 구매가 한 번에 들어와 연중에는 높게 보일 수 있음
+        $$('re-na').hidden = true; $$('re-n-a').hidden = false; $$('re-n-p').hidden = !showPred;
+        $$('re-n-ak').textContent = isCur ? '누적' : `${yS} 실적`;
+        $$('k-re-act').textContent = fmt(re100, 1);
+        $$('k-re-pct').textContent = fmt(showPred ? rePred : re100, 1);
+        $$('k-re-when').textContent = showPred ? '연말 예측' : '';
+        $$('k-re-act').closest('.tg-nums').title = reEq;
+        reCard.style.setProperty('--tgc', TG_COL[st]);
+        // 막대: 옅은 굵은 막대 = 연말 예측 · 그 안의 진한 막대 = 누적 · 청록 눈금 = 목표
+        famChart($$('re-chart'), { mode: 'bullet', act: re100, est: showPred ? rePred : null, col: TG_COL[st],
+          ticks: reGoal != null ? [{ k: 'goal', x: reGoal, n: '목표' }] : [],
+          aria: `${isCur ? '누적' : `${yS} 실적`} ${fmt(re100, 1)}%${showPred ? ` · 연말 예측 ${fmt(rePred, 1)}%` : ''}${reGoal != null ? ` · 목표 ${reGoal}%` : ''}` });
+        // 판정은 제목 옆에 짧게 (마우스를 올리면 전체 문장)
+        vd.className = 're-verdict' + (st === 'ok' ? ' good' : st === 'no' ? ' bad' : '');
+        vd.innerHTML = st === 'na' ? '' : (st === 'ok' ? '✓ 달성' : `✗ ${fmt(reGoal - v, 1)}%p 부족`) + (isCur ? '<span class="vs"> 전망</span>' : '');
+        vd.title = vd.dataset.full = st === 'na' ? '' : st === 'ok' ? `✓ 목표 달성${isCur ? ' 전망 (연말 예측)' : ''}` : `✗ 목표까지 ${fmt(reGoal - v, 1)}%p${isCur ? ' (연말 예측)' : ''}`;
+        setK2(need);
+        const reMiss = st === 'no';
+        if (st !== 'na') vdict.re = reMiss ? { st: 'no', txt: `✗ ${fmt(reGoal - v, 1)}%p 부족` } : { st: 'ok', txt: '✓ 달성' };
         setOver('k-re-pct', reMiss, `RE100 이행 목표 ${isCur ? '미달 전망' : '미달'} · 목표 ${fmt(reGoal, 1)}% · ${isCur ? '연말 예측' : '실적'} ${fmt(v || 0, 1)}%`, { noBadge: true });
         // 계산 근거: 올해는 연말 예측 셈(남은 달 예측 포함)을, 지난 연도는 실적 셈을 보여 줌
         const fE = Math.round(showPred ? pp.elec : rElec), fS = Math.round(showPred ? pp.self : rSelf), fB = Math.round(showPred ? pp.buy : rBuy);
@@ -5072,9 +5581,12 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
           note: (showPred ? '지금까지 이행률은 1년치 구매가 이미 들어와 있어 연중에는 높게 보일 수 있어요 — 남은 달 전기 사용까지 더한 연말 예측으로 목표와 견줘요 · ' : '') +
                 '자가발전은 쓴 전기이자 만든 전기라 분모·분자에 모두 들어가요 · 구매분은 이행률에만 반영하고 배출량에는 반영하지 않아요' });
       } else {
-        $$('k-re-pct').textContent = '—'; $$('k-re-when').textContent = '';
-        setBar(P, 're-act', 0, '—'); setBar(P, 're-pred', 0, '—');
-        reSub.textContent = '-'; $$('k-re-verdict').textContent = ''; $$('k-re-verdict').className = 're-verdict';
+        $$('re-na').hidden = false; $$('re-n-a').hidden = $$('re-n-p').hidden = true;
+        $$('k-re-act').textContent = $$('k-re-pct').textContent = '—'; $$('k-re-when').textContent = '';
+        famChart($$('re-chart'), { ticks: [] });
+        vd.textContent = ''; vd.className = 're-verdict'; vd.title = '';
+        reCard.style.setProperty('--tgc', TG_COL.na);
+        setK2(0);
         setOver('k-re-pct', false, '', { noBadge: true });
         calc('k-re-pct', { title: 'RE100 이행률', sub: '재생에너지로 쓴 전기의 비율', site: si || sitesLabel(TARGET_SITES.re), value: null, unit: '%',
           empty: '재생에너지 자료가 없어요', rows: [], sites: [], months: [], note: '자가발전·구매 실적을 입력하면 이행률이 계산돼요' });
@@ -5089,12 +5601,16 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
       const rm = ROADMAP[year], lr = LAW_RATE[year], b = baseOf(year);
       const vOwn = renderTargetCard(P, 'own', rm ? { target: rm.target, rate: ownRate(year) } : null, totalDgb, annualEst, `자체 로드맵 목표 없음 (${yearSpan(ROADMAP)})`, isCur);
       const vLaw = renderTargetCard(P, 'law', lr !== undefined && b ? { target: b * (1 - lr / 100), rate: lr } : null, totalDgb, annualEst, `법적 권장감축률 없음 (${yearSpan(LAW_RATE)})`, isCur);
+      const ownT0 = rm ? rm.target : null, lawT0 = lr !== undefined && b ? b * (1 - lr / 100) : null;
+      const gv = renderGhgTarget(P, { act: totalDgb, est: annualEst, own: ownT0, law: lawT0, base: b || null, isCur, yS });
+      if (gv) vdict.ghg = gv;
       $$('k-tgt-base').textContent = b ? fq(b) : '—';
       $$('k-tgt-base-yr').textContent = `${yS} 적용값 (해마다 조정)`;
       $$('k-tgt-base-sub').textContent = isCur || !(totalDgb > 0) || !b ? '대구본원 기준'
         : `${yS} 실적 ${fq(totalDgb)}t · 기준 대비 ${totalDgb <= b ? '▼' : '▲'}${fmt(Math.abs(b - totalDgb) / b * 100, 1)}%`;
       // 목표를 넘었으면 빨강 — 목표 카드에 · 거점이 대구본원(목표 적용 거점)이면 총 온실가스 카드에도
       setOver('k-tgt-own', vOwn?.over, `자체 배출목표 초과 · ${vOwn?.msg || ''}`);
+      setOver('tg-verdict', gv?.st === 'no', `온실가스 배출목표 ${isCur ? '초과 전망' : '초과'}`, { noBadge: true });
       setOver('k-tgt-law', vLaw?.over, `법적 배출목표 초과 · ${vLaw?.msg || ''}`);
       const overGhg = si === ORG_SITE && (vOwn?.over || vLaw?.over);
       // 목표 카드 계산 근거 — 목표는 대구본원 기준
@@ -5125,10 +5641,12 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
         note: '기준배출량에 정부 권장감축률을 적용한 목표예요' });
       setOver('k-total', overGhg, [vOwn?.over ? '자체' : '', vLaw?.over ? '법적' : ''].filter(Boolean).join('·') +
         ` 배출목표 ${isCur ? '초과 전망' : '초과'} · ${(vOwn?.over ? vOwn : vLaw)?.msg || ''}`, { keep: calcStore[P]?.['k-total']?.alert });
-    } else { setOver('k-tgt-own', false); setOver('k-tgt-law', false); setOver('k-total', false, '', { keep: calcStore[P]?.['k-total']?.alert }); }
+    } else { setOver('k-tgt-own', false); setOver('k-tgt-law', false); setOver('tg-verdict', false, '', { noBadge: true }); setOver('k-total', false, '', { keep: calcStore[P]?.['k-total']?.alert }); }
     // 전체 합계 = 세 거점 합산 목표
-    setOver('k-wt-target', T.wt ? renderWasteTarget(P, year, si || TARGET_SITES.waste, isCur)?.over : false,
-      `폐기물 감축 목표 ${isCur ? '초과 전망' : '초과'}`, { noBadge: true });
+    const wv = T.wt ? renderWasteTarget(P, year, si || TARGET_SITES.waste, isCur) : null;
+    if (wv?.t != null) vdict.wt = wv.over ? { st: 'no', txt: `✗ ${fq(wv.v - wv.t)}t 초과` } : { st: 'ok', txt: `✓ 여유 ${fq(wv.t - wv.v)}t` };
+    setOver('k-wt-target', !!wv?.over, `폐기물 감축 목표 ${isCur ? '초과 전망' : '초과'}`, { noBadge: true });
+    siteVerdicts(P, vdict, isCur, year);   // 거점 설명의 '적용 목표' 칩 → 판정 칩 (첫 화면에서 '목표 지키나?')
 
     // 차량연료를 쓰지 않는 거점(서울·제주): 휘발유·경유 카드는 '해당 없음', 월별 차량연료 차트는 빼고 온실가스 차트를 넓게
     const fuelNA = itemNA(si, '휘발유') && itemNA(si, '경유');
@@ -5137,8 +5655,7 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
       if (itemNA(si, t)) { $$(`${id}-co2`).textContent = '해당 없음'; $$(`${id}-amt`).hidden = true; }
     });
     $$('k-s1-sub').textContent = fuelNA ? '도시가스' : '도시가스·휘발유·경유';
-    $$('cf-card').hidden = fuelNA;
-    $$('cgm-card').classList.toggle('chart-wide', fuelNA);
+    $$('cf-card').hidden = fuelNA;   // 온실가스 그래프를 넓게 하는 것은 renderYearCharts에서 (자료 없는 그래프와 함께)
 
     // ⑤ 승강기 회생제동 발전량 (대구본원만 · 자원·기타 지표 카드 · 배출량에서 다시 빼지 않는 참고 지표)
     $$('card-regen').hidden = !!si && itemNA(si, SAVE_REGEN);   // 전체 합계에서는 대구본원 값
@@ -5164,6 +5681,8 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
     // ⑦ 자원·기타 지표 (2단계)
     if (v2) renderEnvKpis(P, si, year, isCur);
 
+    // 빈 칸 정리 (자원·기타 · 사용량) · 경고 표시 읽는 법
+    tidyEnv(P); tidyUsage(P, ey); alLegend(P);
     // 자료가 없어 '해당 없음·추후 예정'인 카드는 눌러도 보여 줄 게 없으니 키보드 차례에서도 뺌
     document.querySelectorAll(`#${P ? 'y-yv' : 'yv'} .kpi-click`).forEach(c =>
       c.setAttribute('tabindex', c.classList.contains('kpi-placeholder') ? '-1' : '0'));
@@ -5175,7 +5694,7 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
      에너지 칸 위 = 사용량, 아래 = 온실가스 환산 · 칸이나 거점 이름을 누르면 그 거점의 그 해 월별 자료 */
   const SB_ROWS = [
     { label: '⚡ 전력', unit: 'kWh', ts: ['전력'], div: 1 },
-    { label: '🔥 도시가스', unit: '천 Nm³', ts: ['도시가스'], div: 1000 },
+    { label: '🔥 도시가스', unit: 'Nm³', ts: ['도시가스'], div: 1 },
     { label: '♨ 지역난방', unit: 'GJ', ts: ['지역난방'], div: 1 },
     { label: '⛽ 차량연료', unit: 'L · 휘발유+경유', ts: ['휘발유', '경유'], div: 1 },
   ];
@@ -5266,6 +5785,7 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
     const ev = evYears.map(y => ({ y, s: evStat(y, sites) })).find(o => o.s);
     const evCalc = o => { (calcStore[P] ||= {})['k-ev'] = { title: '🔋 친환경차 전환율', sub: '업무용 차량 중 친환경차 비율',
       period: `${yrShort(yr)}`, site: si || '세 거점 합계', unit: '%', rows: [], sites: [], months: [], ...o }; };
+    $$('k-ev-bar').innerHTML = '';
     if (evNA) { $$('k-ev').textContent = '-'; $$('k-ev-sub').textContent = '해당 없음';
       evCalc({ value: null, empty: '이 거점은 해당 없는 항목이에요' }); }
     else if (ev && ev.s.rate != null) {
@@ -5276,6 +5796,11 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
         note: '전기·수소차를 친환경차로 봐요 · 연말 보유 대수 기준 (올해는 지금 기준)' });
       $$('k-ev').textContent = fmt(ev.s.rate, 1);
       $$('k-ev-sub').textContent = `${yrShort(ev.y)} ${ev.y === yr && isCur ? '현재' : '말'} · 업무용 ${fmt(ev.s.all, 0)}대 중 ${fmt(ev.s.green, 0)}대`;
+      // 업무용 차 한 대 = 한 칸 (친환경차 = 초록) · 차가 많으면 막대 하나
+      const nAll = Math.round(ev.s.all), nG = Math.round(ev.s.green), bar = $$('k-ev-bar');
+      bar.className = 'ev-bar' + (nAll > 24 ? ' prog' : '');
+      bar.setAttribute('role', 'img'); bar.setAttribute('aria-label', `업무용 ${nAll}대 중 친환경차 ${nG}대`);
+      bar.innerHTML = nAll > 24 ? `<b style="width:${Math.min(100, ev.s.rate).toFixed(1)}%"></b>` : Array.from({ length: nAll }, (_, i) => `<i class="${i < nG ? 'on' : ''}"></i>`).join('');
     } else {
       $$('k-ev').textContent = '-';
       $$('k-ev-sub').textContent = ev ? `${yrShort(ev.y)} 업무용 차량 0대` : isCur ? '데이터 입력 → 기타 지표' : '-';
@@ -5389,59 +5914,76 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
   const wEq = (rm, yr, tgt) => ({ parts: [{ k: `${yrShort(rm.baseYear)} 기준연도 발생량`, v: rm.baseTon, u: 't' },
       { k: `남길 비율 (100 − ${fmt(rm.rates[yr], 1)}%)`, v: `${fmt(100 - rm.rates[yr], 1)}%`, op: '×' }],
     result: { k: `${yrShort(yr)} 목표`, v: tgt, u: 't' } });
+  // 폐기물 감축 목표 카드 — 온실가스 카드와 같은 모양: 판정 · ■ 누적 □ 연말 예측 · 막대(진한 누적 + 옅은 남은 달) · 청록 = 목표 · 회색 = 기준연도
+  //  목표가 없어도(로드맵 미설정 등) 발생량은 보여 주고, 견줄 것으로 전년 발생량(회색)을 깔아 둠
   function renderWasteTarget(P, year, site, isCur) {   // site = 거점 하나 또는 거점 배열(합산)
     const sites = Array.isArray(site) ? site : [site], siteName = sitesLabel(sites);
-    const $$ = id => $(P + id), rm = wasteRoadmap(sites), yr = String(year), sub = $$('k-wt-sub');
+    const $$ = id => $(P + id), rm = wasteRoadmap(sites), yr = String(year), yS = yrShort(yr), sub = $$('k-wt-sub'), vd = $$('k-wt-verdict');
     // 누르면 뜨는 계산 근거 (기준연도 발생량 × 남길 비율 = 목표)
     const wCalc = o => { (calcStore[P] ||= {})['k-wt-target'] = {
-      title: '🗑 폐기물 감축 목표', sub: '종량제 봉투 발생량 기준', period: `${yrShort(yr)} 목표`, site: siteName,
+      title: '🗑 폐기물 감축 목표', sub: '종량제 봉투 발생량 기준', period: `${yS} 목표`, site: siteName,
       unit: 'ton', rows: [], sites: [], months: [], ...o }; };
-    $$('k-wt-year').textContent = `· ${yrShort(yr)}`;
-    sub.className = 'kpi-sub';
-    const reset = msg => {
-      $$('k-wt-target').textContent = '—'; $$('k-wt-rate').textContent = '';
-      setBar(P, 'wt-act', 0, '—'); setBar(P, 'wt-pred', 0, '—'); sub.textContent = msg;
-      wCalc({ value: null, empty: msg, note: '기준연도 발생량에 연도별 감축률을 적용해 목표를 정해요 · 데이터 관리 → 연도 마감·로드맵',
-              src: [S_SET('폐기물 감축 로드맵 (기준연도·연도별 감축률)', rm ? `${yrShort(rm.baseYear)} 기준` : '미설정'), { k: `${yrShort(yr)} 발생량`, ...S_IN_W }] });
+    // 양: 올해 = 누적 + 연말 예측(남은 달은 직전 2개년 같은 달 평균) · 지난 연도 = 그 해 실적
+    const p = isCur ? wasteProjection(year, sites) : null;
+    const act = isCur ? (p ? p.ytd : null) : wasteYearTon(yr, sites), est = isCur && p ? p.proj : null;
+    const tgt = rm && rm.baseTon != null && +yr > +rm.baseYear ? rm.target(yr) : null;
+    // 회색 기준: 로드맵 기준연도 발생량 · 로드맵이 없거나 그 이전이면 전년 발생량(참고)
+    const prevY = String(year - 1), prevT = wasteYearTon(prevY, sites);
+    const ref = tgt != null ? { y: rm.baseYear, x: rm.baseTon, base: true } : prevT != null ? { y: prevY, x: prevT, base: false } : null;
+    const v = isCur ? est : act, st = tgt == null || v == null ? 'na' : v > tgt ? 'no' : 'ok', col = TG_COL[st];
+    $$('tc-wt').style.setProperty('--tgc', col);
+    // 숫자 줄: ■ 누적 1.566t □ 연말 예측 6.264t (지난 연도는 ■ 25년 실적)
+    const hasV = act != null || est != null;
+    $$('wt-na').hidden = hasV; $$('wt-n-a').hidden = !hasV; $$('wt-n-p').hidden = !(hasV && est != null);
+    $$('wt-n-ak').textContent = isCur ? '누적' : `${yS} 실적`;
+    $$('k-wt-act').textContent = hasV ? fq(act ?? 0) : '—'; $$('k-wt-est').textContent = est != null ? fq(est) : '—';
+    famChart($$('wt-chart'), { mode: 'stack', act: act ?? 0, est, col,
+      ticks: [tgt != null && { k: 'goal', x: tgt, n: '목표' }, ref && { k: 'base', x: ref.x, n: yrShort(ref.y) }].filter(Boolean),
+      aria: `${isCur ? '누적' : `${yS} 실적`} ${fq(act ?? 0)}t${est != null ? ` · 연말 예측 ${fq(est)}t` : ''}${tgt != null ? ` · 목표 ${fq(tgt)}t` : ''}${ref ? ` · ${yrShort(ref.y)} ${fq(ref.x)}t` : ''}` });
+    // 열쇠: ■ 26년 목표 5.951t ▼5.0% · ■ 25년 6.264t (기준연도 또는 전년)
+    $$('k-wt-year').textContent = '목표';
+    $$('k-wt-target').textContent = tgt != null ? fq(tgt) : '—';
+    $$('k-wt-rate').textContent = tgt != null ? `▼${fmt(rm.rates[yr], 1)}%` : '';
+    $$('wt-k-goal').hidden = tgt == null;
+    $$('wt-k-goal').title = tgt != null ? `${yS} 목표 · ${yrShort(rm.baseYear)} 발생량 ${fq(rm.baseTon)}t 대비 ${fmt(rm.rates[yr], 1)}% 감축` : '';
+    $$('wt-k-base').hidden = !ref;
+    if (ref) { $$('wt-base-k').textContent = yrShort(ref.y); $$('wt-base-v').textContent = fq(ref.x);
+               $$('wt-k-base').title = ref.base ? `기준연도(${yrShort(ref.y)}) 발생량` : `${yrShort(ref.y)} 발생량 (참고 — 감축 목표가 없어 전년과 견줌)`; }
+    // 목표가 없는 경우의 안내 (아래 한 줄)
+    const noTgt = !rm ? '감축 로드맵 미설정' + forAdmin(' · 데이터 관리 → 연도 마감·로드맵에서 정하세요')
+      : !isCur && yr === rm.baseYear ? `${yS}${josa(yS, '은', '는')} 기준연도${rm.baseTon != null ? ` · ${fq(rm.baseTon)}t` : ''}`
+      : +yr < +rm.baseYear ? `기준연도(${yrShort(rm.baseYear)}) 이전이라 목표 없음`
+      : rm.baseTon == null ? `기준연도(${rm.baseYear}년) ${siteName} 폐기물 데이터 없음`
+      : tgt == null ? `${yr}년 목표 없음${forAdmin(' · 로드맵에서 감축률을 입력하세요')}` : '';
+    sub.className = 'kpi-sub tg-msg'; sub.textContent = noTgt; sub.title = '';
+    vd.className = 're-verdict'; vd.textContent = ''; vd.title = '';
+    if (noTgt) {
+      wCalc({ value: null, empty: noTgt, note: '기준연도 발생량에 연도별 감축률을 적용해 목표를 정해요 · 데이터 관리 → 연도 마감·로드맵',
+              src: [S_SET('폐기물 감축 로드맵 (기준연도·연도별 감축률)', rm ? `${yrShort(rm.baseYear)} 기준` : '미설정'), { k: `${yS} 발생량`, ...S_IN_W }] });
       return null;
-    };
-    if (!rm) return reset('감축 로드맵 미설정' + forAdmin(' · 데이터 관리 → 연도 마감·로드맵에서 정하세요'));
-    if (!isCur && yr === rm.baseYear) return reset(`${yrShort(yr)}${josa(yrShort(yr), '은', '는')} 기준연도${rm.baseTon != null ? ` · ${fq(rm.baseTon)}t` : ''}`);
-    if (+yr < +rm.baseYear) return reset(`기준연도(${yrShort(rm.baseYear)}) 이전이라 목표 없음`);
-    if (rm.baseTon == null) return reset(`기준연도(${rm.baseYear}년) ${siteName} 폐기물 데이터 없음`);
-    const tgt = rm.target(yr);
-    if (tgt == null) return reset(`${yr}년 목표 없음${forAdmin(' · 로드맵에서 감축률을 입력하세요')}`);
-    $$('k-wt-target').textContent = fq(tgt);
-    $$('k-wt-rate').textContent = `(${yrShort(rm.baseYear)} ${fq(rm.baseTon)}t 대비 ${fmt(rm.rates[yr], 1)}% 감축)`;
-    if (!isCur) {
-      const act = wasteYearTon(yr, sites);
-      if (act == null) { setBar(P, 'wt-act', 0, '—'); sub.textContent = '-'; return null; }
-      const a = act / tgt * 100;
-      setBar(P, 'wt-act', a, `${fmt(a, 1)}%(${fq(act)}t)`, a > 100 ? 'var(--red)' : 'var(--green)');
-      sub.className = 'kpi-sub kpi-yoy ' + (a > 100 ? 'bad' : 'good');
-      sub.textContent = a > 100 ? `✗ 목표보다 ${fq(act - tgt)}t 많이 발생` : `✓ 달성 · 목표보다 ${fq(tgt - act)}t 적게 발생`;
-      wCalc({ value: tgt, formula: wEq(rm, yr, tgt),
-        vs: { k: `${yrShort(yr)} 실적`, v: act, t: tgt, tk: '목표', unit: 'ton', gu: 't', lower: true, est: false, d: 3 },
-        facts: [{ k: '감축률', v: `${fmt(rm.rates[yr], 1)}%` }], src: srcWaste(rm, yr, false),
-        over: a > 100 ? `폐기물 감축 목표 초과 · 목표 ${fq(tgt)}t · 실적 ${fq(act)}t` : '', note: WT_NOTE });
-      return { over: a > 100 };
     }
-    const p = wasteProjection(year, sites);
-    if (!p) { setBar(P, 'wt-act', 0, '—'); setBar(P, 'wt-pred', 0, '—'); sub.textContent = '-'; return null; }
-    const a = p.ytd / tgt * 100, e = p.proj / tgt * 100;
-    setBar(P, 'wt-act', a, `${fmt(a, 1)}%(${fq(p.ytd)}t)`, a > 100 ? 'var(--red)' : 'var(--green)');
-    setBar(P, 'wt-pred', e, `${fmt(e, 1)}%(${fq(p.proj)}t)`, e > 100 ? 'var(--red)' : PRED_COLOR);
-    $$('pct-wt-pred').style.color = e > 100 ? 'var(--red)' : PRED_COLOR;
-    sub.className = 'kpi-sub kpi-yoy ' + (e > 100 ? 'bad' : 'good');
-    sub.textContent = e > 100 ? `✗ 이대로면 목표보다 ${fq(p.proj - tgt)}t 많아요` : `✓ 달성 전망 · 목표보다 ${fq(tgt - p.proj)}t 적게 발생`;
-    sub.title = '연말 예측 = 입력된 달 + 남은 달은 직전 2개년 같은 달 평균';
-    wCalc({ value: tgt, formula: wEq(rm, yr, tgt),
-      vs: { k: `${yrShort(yr)} 연말 예측`, v: p.proj, t: tgt, tk: '목표', unit: 'ton', gu: 't', lower: true, est: true, d: 3 },
-      facts: [{ k: '감축률', v: `${fmt(rm.rates[yr], 1)}%` }],
-      fc: fcWasteOf(year, sites), src: srcWaste(rm, yr, true),
-      over: e > 100 ? `폐기물 감축 목표 초과 전망 · 목표 ${fq(tgt)}t · 연말 예측 ${fq(p.proj)}t` : '',
-      note: `${WT_NOTE} · 연말 예측 = 입력된 달 + 남은 달은 직전 2개년 같은 달 평균` });
-    return { over: e > 100 };
+    if (v == null) { wCalc({ value: tgt, formula: wEq(rm, yr, tgt), facts: [{ k: '감축률', v: `${fmt(rm.rates[yr], 1)}%` }], src: srcWaste(rm, yr, isCur), note: WT_NOTE }); return null; }
+    // 판정 (제목 옆에 짧게 · 마우스를 올리면 전체 문장)
+    const gap = Math.abs(v - tgt), over = st === 'no';
+    vd.className = 're-verdict ' + (over ? 'bad' : 'good');
+    vd.innerHTML = (over ? `✗ ${fq(gap)}t 초과` : `✓ ${fq(gap)}t 여유`) + (isCur ? '<span class="vs"> 전망</span>' : '');
+    vd.title = isCur ? (over ? `이대로면 목표보다 ${fq(gap)}t 많아요 (연말 예측)` : `목표보다 ${fq(gap)}t 적게 발생할 전망 (연말 예측)`)
+                     : (over ? `목표보다 ${fq(gap)}t 많이 발생` : `목표 달성 · ${fq(gap)}t 적게 발생`);
+    if (isCur) {
+      sub.title = '연말 예측 = 입력된 달 + 남은 달은 직전 2개년 같은 달 평균';
+      wCalc({ value: tgt, formula: wEq(rm, yr, tgt),
+        vs: { k: `${yS} 연말 예측`, v: est, t: tgt, tk: '목표', unit: 'ton', gu: 't', lower: true, est: true, d: 3 },
+        facts: [{ k: '감축률', v: `${fmt(rm.rates[yr], 1)}%` }],
+        fc: fcWasteOf(year, sites), src: srcWaste(rm, yr, true),
+        over: over ? `폐기물 감축 목표 초과 전망 · 목표 ${fq(tgt)}t · 연말 예측 ${fq(est)}t` : '',
+        note: `${WT_NOTE} · 연말 예측 = 입력된 달 + 남은 달은 직전 2개년 같은 달 평균` });
+    } else {
+      wCalc({ value: tgt, formula: wEq(rm, yr, tgt),
+        vs: { k: `${yS} 실적`, v: act, t: tgt, tk: '목표', unit: 'ton', gu: 't', lower: true, est: false, d: 3 },
+        facts: [{ k: '감축률', v: `${fmt(rm.rates[yr], 1)}%` }], src: srcWaste(rm, yr, false),
+        over: over ? `폐기물 감축 목표 초과 · 목표 ${fq(tgt)}t · 실적 ${fq(act)}t` : '', note: WT_NOTE });
+    }
+    return { over, v, t: tgt };
   }
 
   /* ── 입력 현황판: 연도별로 월마다 입력해야 할 칸이 채워졌는지 ── */
@@ -5542,38 +6084,24 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
     const sync = (id, v) => $$(id).querySelectorAll('button[data-v]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === v)));
     sync('ce-view', st.view); sync('cgm-by', st.by);
 
-    // ① 월별 에너지 추이 — 그래프(실선 = 모든 거점 입력이 끝난 달, 점선 = 미입력분을 예측으로 채운 예상치) 또는 표(사용량 + tCO₂eq)
+    // ① 월별 에너지원별 사용량 — 그래프(에너지원마다 작은 그래프: 막대 = 그 해 · 회색 점선 = 전년 같은 달) 또는 표(사용량 + tCO₂eq)
     const asTable = st.view === 'table';
-    $$('ce-title').textContent = asTable ? '월별 에너지원별 사용량 · 온실가스 환산 (표)'
-      : '월별 전력·도시가스·지역난방·재생에너지 추이' + (showPred ? ' (점선: 기상연동 예측)' : '');
+    $$('ce-title').textContent = asTable ? '월별 에너지원별 사용량 · 온실가스 환산 (표)' : '월별 에너지원별 사용량';
     const tap = canEdit() ? '그 달 자료를 보고 바로 고칠 수 있어요' : '그 달 자료를 거점·에너지원별로 볼 수 있어요';
     $$('ce-note').textContent = asTable ? `칸을 누르면 ${tap}`
-      : `점에 마우스를 올리면 사용량과 온실가스 환산값(tCO₂eq)을 함께 보여 줘요 · 누르면 ${tap}`;
+      : `막대에 마우스를 올리면 사용량·온실가스 환산값(tCO₂eq)·전년 같은 달을 함께 보여 줘요 · 누르면 ${tap}`;
     $$('ce-tbl-wrap').hidden = !asTable;
     $$('ce-legend').hidden = !asTable;
+    $$('ce-grid').hidden = asTable; $$('ce-key').hidden = asTable;
     if (asTable) {
-      $$('chart-energy').parentElement.hidden = true;
-      $$('ce-empty').hidden = true;
+      $$('ce-empty').hidden = true; $$('ce-card').classList.remove('is-empty');
       renderMonthTable(P, ey, fc, si);
-    } else {
-      const eds = ETYPES.map((t, i) => ({
-        label: `${t} (${EUNITS[i]})`, $type: t,
-        data: showPred ? fc.lineActual[t] : monthlySum(ey.filter(r => r.type === t), r => r.amount),
-        yAxisID: EYAXIS[i], borderColor: typeCol(t), backgroundColor: typeCol(t) + '22',
-        borderWidth: 2, pointRadius: 4, pointHoverRadius: 6, tension: .3, fill: false, spanGaps: !showPred
-      }));
-      const predEds = !showPred ? [] : ETYPES.map((t, i) => ({
-        label: `${t} 예측`, $type: t, $pred: true, data: bridge(fc.lineActual[t], fc.linePred[t]), yAxisID: EYAXIS[i],
-        borderColor: typeCol(t), backgroundColor: 'transparent', borderWidth: 2, borderDash: [6, 4],
-        pointRadius: 3, tension: .3, fill: false, spanGaps: false
-      }));
-      setEnergyAxes(set.energy, [...eds, ...predEds]);
-      setChart(set.energy, P + 'chart-energy', P + 'ce-empty', [...eds, ...predEds]);
-    }
+    } else renderEnergyPanels(P, set, ey, fc, si, year);
 
-    // ② 차량연료 (L) — 툴팁에 tCO₂eq
+    // ② 차량연료 (L) — 이제 위 에너지원별 작은 그래프의 휘발유·경유 칸(실적·예측·전년 같은 달)으로 봄 · 예전 그래프는 숨김
     setChart(set.fuel, P + 'chart-fuel', P + 'cf-empty', ['휘발유', '경유'].map(t => ({
       label: `${t} (L)`, $type: t, data: monthlySum(ey.filter(r => r.type === t), r => r.amount), backgroundColor: hexA(typeCol(t), .8), borderRadius: 3 })));
+    $$('cf-card').hidden = true;
 
     // ③ 월별 온실가스: 입력된 실적(Scope 1·2 또는 에너지원별) 위에 아직 입력 안 된 거점·항목의 예측 막대를 쌓음
     //    (일부만 입력된 달도 빠진 부분을 예측으로 채워 보여 줌 — 아직 입력 전인 달은 예측 막대만)
@@ -5594,7 +6122,11 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
       const miss = fc?.missing?.[i] || [];
       return [`미입력 ${miss.length}건 → 예측으로 채움:`, ...miss.slice(0, 6).map(x => ` · ${x}`), ...(miss.length > 6 ? [` · 외 ${miss.length - 6}건`] : [])];
     };
-    if (set.ghg) set.ghg.data.labels = MONTHS;
+    if (set.ghg) {
+      set.ghg.data.labels = MONTHS;
+      const tot = m12(i => actual.reduce((a, d) => a + (d.data[i] || 0), 0) + (predAll[i] > 0 ? predAll[i] : 0));
+      set.ghg.options.plugins.barLabels.only = labelPicks(tot, hasAct);   // 숫자는 가장 큰 달 · 마지막 실적 달만 (나머지는 마우스)
+    }
     $$('cgm-note').hidden = !partial.some(Boolean);
     setChart(set.ghg, P + 'chart-ghg-monthly', P + 'cgm-empty', [
       ...actual,
@@ -5605,11 +6137,11 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
     // ④-1 월별 승강기 회생제동 발전량 (kWh) — 대구본원(또는 전체 합계)일 때만 · 폐기물 그래프 왼쪽 · 전년 같은 달은 점선
     const showRegen = !si || !itemNA(si, SAVE_REGEN);
     $$('crg-card').hidden = !showRegen;
-    $$('cw-card').classList.toggle('chart-wide', !showRegen);   // 회생제동이 없으면 폐기물 그래프를 넓게
     if (showRegen) {
       const rgMon = rs => m12(i => { const x = rs.filter(r => r.date?.slice(5, 7) === pad(i + 1)); return x.length ? sumBy(x, r => r.amount) : null; });
       const cur = ey.filter(r => r.type === SAVE_REGEN), prev = energyRecs.filter(r => r.type === SAVE_REGEN && r.date?.startsWith(String(year - 1)) && (!si || r.site === si));
-      if (set.regen) { set.regen.data.labels = MONTHS; set.regen.options.plugins.legend.display = prev.length > 0; }
+      if (set.regen) { set.regen.data.labels = MONTHS; set.regen.options.plugins.legend.display = prev.length > 0;
+                       const rv = rgMon(cur); set.regen.options.plugins.barLabels.only = labelPicks(rv, rv.map(v => v != null)); }
       setChart(set.regen, P + 'chart-regen', P + 'crg-empty', !cur.length ? [] : [
         { type: 'bar', label: `${yrShort(year)} 발전량`, data: rgMon(cur), order: 2, backgroundColor: '#0D9488', borderRadius: 3, maxBarThickness: 36 },
         ...(prev.length ? [{ type: 'line', label: `${yrShort(year - 1)} (전년)`, data: rgMon(prev), order: 1, borderColor: '#94A3B8', backgroundColor: '#94A3B8',
@@ -5623,15 +6155,85 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
     const prevW = wasteRecs.filter(r => r.date?.startsWith(String(year - 1)) && wSites.includes(r.site));
     const prevMon = m12(i => { const x = prevW.filter(r => r.date.slice(5, 7) === pad(i + 1)); return x.length ? sumBy(x, wKg) : null; });
     $$('cw-title').textContent = `월별 폐기물 발생량 · ${si || '전체 합계'} (kg)`;
-    if (set.ws) { set.ws.data.labels = MONTHS; set.ws.options.plugins.legend.display = !si || prevW.length > 0; }
+    if (set.ws) { set.ws.data.labels = MONTHS; set.ws.options.plugins.legend.display = !si || prevW.length > 0;
+                  const wt = m12(i => wSites.reduce((a, s) => a + (wMon(wy, s)[i] || 0), 0)); set.ws.options.plugins.barLabels.only = labelPicks(wt, wt.map(v => v > 0)); }
     setChart(set.ws, P + 'chart-ws', P + 'cw-empty', !wy.length ? [] : [
       ...wSites.map(s => ({ type: 'bar', label: si ? `${yrShort(year)} 발생량` : s, $site: s, data: wMon(wy, s), stack: 'w', order: 2,
         backgroundColor: SITE_COL[s], borderRadius: 3, maxBarThickness: 36 })),
       ...(prevW.length ? [{ type: 'line', label: `${yrShort(year - 1)} (전년)`, data: prevMon, order: 1, borderColor: '#94A3B8', backgroundColor: '#94A3B8',
         borderDash: [5, 4], borderWidth: 1.5, pointRadius: 2.5, tension: .3, spanGaps: true, stack: 'prev' }] : []),
     ]);
+
+    // 짝 그래프가 빠졌거나(해당 없음) 자료가 없어 한 줄로 줄었으면 남은 그래프를 넓게
+    //  (차량연료 ↔ 월별 온실가스 · 회생제동 ↔ 폐기물)
+    const out = id => $$(id).hidden || $$(id).classList.contains('is-empty');
+    [['cgm-card', 'cf-card'], ['cf-card', 'cgm-card'], ['cw-card', 'crg-card'], ['crg-card', 'cw-card']]
+      .forEach(([a, b]) => $$(a).classList.toggle('chart-wide', out(b) && !out(a)));
   }
 
+  // 월별 에너지원별 작은 그래프 — 에너지원마다 그래프 하나 (축 하나)
+  //  막대 = 그 해 실적 · 올해는 아직 입력 안 된 거점·달의 예측을 옅은 막대로 위에 쌓음 (표의 '+예측'과 같은 값)
+  //  회색 점선 = 전년 같은 달 · 위 줄 = 누적(지난 연도는 연간) + 전년 대비 (올해는 입력된 칸끼리 = 전년 동기)
+  //  고른 거점에 그 에너지원이 없거나 자료가 없으면 그 그래프는 뺌
+  function renderEnergyPanels(P, set, ey, fc, si, year) {
+    const $$ = id => $(P + id), isCur = !!fc, yS = yrShort(year), pS = yrShort(year - 1), sites = si ? [si] : SITES;
+    const prevE = energyRecs.filter(r => r.date?.startsWith(String(year - 1)) && sites.includes(r.site));
+    const cellKey = r => `${r.site}|${r.date.slice(5, 7)}`;
+    let shown = 0, anyPred = false, anyPrev = false;
+    ETYPES.forEach((t, k) => {
+      const c = set.em?.[k], cur = ey.filter(r => r.type === t), pr = prevE.filter(r => r.type === t);
+      const act = monthlySum(cur, r => r.amount);
+      const pred = m12(i => { const v = isCur ? fc.predEnergy?.[t]?.[i] : null; return v > 0 ? v : null; });
+      const prev = monthlySum(pr, r => r.amount);
+      const on = sites.some(s => !itemNA(s, t)) && (act.some(v => v != null) || pred.some(v => v != null));
+      $$('em-p' + k).hidden = !on;
+      if (!on) { if (c) { c.data.datasets = []; c.update('none'); } return; }
+      shown++;
+      const hasPred = pred.some(v => v != null), hasPrev = pr.length > 0, col = typeCol(t), A = sumArr(act);
+      anyPred ||= hasPred; anyPrev ||= hasPrev;
+      // 전년 대비: 올해 = 올해 입력된 (거점·달) 칸과 같은 칸의 작년 값끼리 · 지난 연도 = 연간 합계끼리
+      let yo = null;
+      if (!isCur) { const p = sumArr(prev); yo = hasPrev && p > 0 && cur.length ? (A - p) / p * 100 : null; }
+      else {
+        const pv = {}; pr.forEach(r => { pv[cellKey(r)] = (pv[cellKey(r)] || 0) + (+r.amount || 0); });
+        const cc = {}; cur.forEach(r => { cc[cellKey(r)] = (cc[cellKey(r)] || 0) + (+r.amount || 0); });
+        let a = 0, b = 0; Object.entries(cc).forEach(([kk, v]) => { if (kk in pv) { a += v; b += pv[kk]; } });
+        yo = b > 0 ? (a - b) / b * 100 : null;
+      }
+      const good = t === RE_SELF ? yo > 0 : yo < 0, flat = yo == null || Math.abs(yo) < 0.05;
+      $$('em-n' + k).innerHTML = `<i class="mt-dot" style="background:${col}"></i>${esc(emName(t))}<small>${esc(GHG[t]?.unit || '')}</small>`;
+      $$('em-s' + k).innerHTML = !cur.length ? `<span>${isCur ? '아직 입력 전 · 예측만' : '입력 없음'}</span>`
+        : `${isCur ? '누적' : '연간'} <b>${fq(A)}</b>` +
+          (yo == null ? '' : ` <span class="dpill ${flat ? 'flat' : good ? 'good' : 'bad'}" title="${isCur ? '전년 동기 대비 (올해 입력된 칸끼리)' : '전년 대비'}">` +
+            `${isCur ? '전년 동기 ' : '전년 '}${flat ? '→ ' : yo > 0 ? '▲' : '▼'}${fmt(Math.abs(yo), 1)}%</span>`);
+      $$('chart-em' + k).setAttribute('aria-label', `${yS} 월별 ${emName(t)} 사용량 (${GHG[t]?.unit || ''})` +
+        (cur.length ? ` · ${isCur ? '누적' : '연간'} ${fq(A)}` : '') + (yo == null ? '' : ` · 전년 대비 ${yo > 0 ? '+' : ''}${fmt(yo, 1)}%`));
+      if (!c) return;
+      c.data.labels = MONTHS;
+      c.data.datasets = [
+        { type: 'bar', label: `${yS} 실적`, $type: t, data: act, stack: 'a', order: 2, backgroundColor: hexA(col, .85), borderRadius: 2, maxBarThickness: 22 },
+        ...(hasPred ? [{ type: 'bar', label: '예측 (미입력분)', $type: t, $pred: true, data: pred, stack: 'a', order: 2,
+          backgroundColor: hexA(col, .22), borderColor: hexA(col, .85), borderWidth: 1, borderRadius: 2, maxBarThickness: 22 }] : []),
+        ...(hasPrev ? [{ type: 'line', label: `${pS} 같은 달`, $type: t, $prev: true, data: prev, stack: 'p', order: 1,
+          borderColor: '#94A3B8', backgroundColor: '#94A3B8', borderDash: [4, 3], borderWidth: 1.5, pointRadius: 1.8, pointHoverRadius: 4, tension: .3, spanGaps: true }] : []),
+      ];
+      c.update(chartQuiet ? 'none' : undefined);
+    });
+    // 한 줄에 그래프 수만큼 (넓은 화면) · 중간 화면은 4개면 2+2
+    $$('ce-grid').style.setProperty('--n', String(shown <= 4 ? Math.max(1, shown) : 3));
+    $$('ce-grid').style.setProperty('--nt', String(shown === 3 ? 3 : shown <= 1 ? 1 : 2));
+    $$('ce-grid').hidden = !shown; $$('ce-empty').hidden = !!shown; $$('ce-key').hidden = !shown;
+    $$('ce-card').classList.toggle('is-empty', !shown);
+    $$('ce-key').innerHTML = `<span><i class="k-a"></i>${yS} 실적</span>` + (anyPred ? '<span><i class="k-p"></i>예측 (아직 입력 안 된 거점·달)</span>' : '') +
+      (anyPrev ? `<span><i class="k-q"></i>${pS} 같은 달</span>` : '') + '<span>· 에너지원마다 단위가 달라 그래프를 나눴어요</span>';
+  }
+
+  // 막대 숫자를 붙일 칸: 가장 큰 칸 + 마지막 실적 칸 (막대마다 숫자를 다 쓰면 읽기 어려움 · 나머지는 마우스를 올리면)
+  function labelPicks(vals, hasAct) {
+    let mx = -1, last = -1;
+    vals.forEach((v, i) => { if (v > 0 && (mx < 0 || v > vals[mx])) mx = i; if (hasAct[i]) last = i; });
+    return [...new Set([mx, last].filter(i => i >= 0))];
+  }
   // 월별 표: 에너지원 × 월 — 칸마다 위 = 사용량(원래 단위), 아래 = 온실가스 환산(tCO₂eq)
   //  올해는 아직 입력 전인 칸을 기상연동 예측(파란 기울임)으로, 일부 거점만 입력된 달은 '+예측'으로 함께 보여 줌
   function renderMonthTable(P, ey, fc, si) {
@@ -5749,11 +6351,15 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
       slopes.map(r => `<tr><td>${r.s}</td><td>${r.t}</td>${r.wx ? `<td class="r">${k(r.kH, r.t)}</td><td class="r">${k(r.kC, r.t)}</td>`
         : '<td colspan="2" class="warn">기상 데이터 없음</td>'}</tr>`).join('') + '</tbody>';
     const rows = [...WX_TYPES].filter(t => ev[t]?.a > 0);
+    // 오차를 막대로 (짧을수록 정확) — 기상연동 예측 vs 같은 달 평균만 · 어느 쪽이 나은지 한눈에
+    const errMax = Math.max(1e-9, ...rows.map(t => Math.max(ev[t].w, ev[t].b) / ev[t].a * 100));
+    const ebar = (v, cls) => `<span class="ebar" aria-hidden="true"><i class="${cls}" style="width:${(v / errMax * 100).toFixed(1)}%"></i></span>`;
     $('bs-eval-tbl').innerHTML = !rows.length ? '<tbody><tr><td class="table-empty">올해 비교할 입력 달이 아직 없어요</td></tr></tbody>' :
-      '<thead><tr><th>에너지원</th><th class="r">비교한 달</th><th class="r">기상연동 예측 오차</th><th class="r">같은 달 평균만</th></tr></thead><tbody>' +
+      '<thead><tr><th>에너지원</th><th class="r">비교한 달</th><th class="r">기상연동 예측 오차</th><th class="r">같은 달 평균만</th><th>더 잘 맞힌 쪽</th></tr></thead><tbody>' +
       rows.map(t => {
-        const e = ev[t], w = e.w / e.a * 100, b = e.b / e.a * 100;
-        return `<tr><td>${t}</td><td class="r">${e.n}</td><td class="r ${w <= b ? 'ok' : 'warn'}">${fmt(w, 1)}%</td><td class="r">${fmt(b, 1)}%</td></tr>`;
+        const e = ev[t], w = e.w / e.a * 100, b = e.b / e.a * 100, better = w <= b;
+        return `<tr><td>${t}</td><td class="r">${e.n}</td><td class="r ${better ? 'ok' : 'warn'}">${ebar(w, better ? 'ok' : 'warn')}${fmt(w, 1)}%</td>` +
+          `<td class="r">${ebar(b, '')}${fmt(b, 1)}%</td><td class="${better ? 'ok' : 'warn'}">${better ? '✓ 날씨 보정' : '같은 달 평균'}</td></tr>`;
       }).join('') + '</tbody>';
     $('bs-eval-note').textContent = rows.length
       ? '오차 = |실제 − 예측|의 합 ÷ 실제의 합 (거점 합산, 기상 관측이 끝난 달만) · 낮을수록 정확해요. 초록이면 날씨 보정이 같은 달 평균보다 잘 맞힌 것'
@@ -5802,7 +6408,7 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
   // 실적 조회: 위쪽에서 연도 하나(‹ 2025년 ›)를 고르고 [연도별 비교 | 그 해 자세히]를 오감 (기본 = 가장 최근 연도 · 연도별 비교)
   function renderHistory() {
     const years = pastYears(), si = curSite;
-    renderSiteInfo('h-site-info', si);
+    renderSiteInfo('h-site-info', si, histYear);
     $('h-empty').hidden = years.length > 0;
     $('h-body').hidden = !years.length;
     $('h-pick').hidden = $('h-tabs').hidden = !years.length;
@@ -5820,6 +6426,11 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
     $('h-cmp-view').hidden = !cmp;
     $('h-year-view').hidden = cmp;
     const S = Object.fromEntries(years.map(yy => [yy, yearStat(yy, si ? [si] : SITES)]));
+    // RE100은 대상 거점(대구·제주)만 — 전체 합계에서 서울이 섞이지 않게 (올해 현황과 같은 셈)
+    //  연도 키와 섞이지 않게 숨은 칸(enumerable:false)으로 달아 둠
+    Object.defineProperty(S, 're', { value: si ? S : Object.fromEntries(years.map(yy => [yy, yearStat(yy, TARGET_SITES.re)])), enumerable: false });
+    // 온실가스 자체·법적 목표는 대구본원만 — 전체 합계에서도 목표 비교는 대구본원 배출로 (세 거점 합을 대구 목표와 견주지 않게)
+    Object.defineProperty(S, 'ghg', { value: si ? S : Object.fromEntries(years.map(yy => [yy, yearStat(yy, TARGET_SITES.ghg)])), enumerable: false });
     if (cmp) renderCompareView(years, S, si);
     else { renderYearView('y-', +histYear, si); renderHistSiteTable(histYear); }
     renderHistToc();
@@ -5935,6 +6546,7 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
   const qFromGoal = (i, num, area, name) => ({
     area, n: name || i.g.k, st: i.st,
     v: i.j.v != null ? num(i.j.v, i.g.unit) : null, t: i.j.t != null ? num(i.j.t, i.g.unit) : null,
+    nv: i.j.v, nt: i.j.t, up: !i.g.lower,   // 목표 대비 막대용 숫자 (lower = 적을수록 좋음)
     say: i.st === 'na' ? i.why : `${EV_WORD[i.st]}${i.gapTxt ? ` · ${i.gapTxt}` : ''}`, tab: 'roadmap',
   });
   function qualList(items, num, curYr) {
@@ -5946,14 +6558,14 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
     // 친환경차 전환율 — 업무용 차량이 있는 거점(대구본원) 기준 · 아직 목표가 없어 값과 전년 대비만
     const evN = (y) => { const s = yearStat(String(y), TARGET_SITES.ghg); return s?.evRate ?? null; };
     const ev = evN(curYr) ?? evN(curYr - 1), evP = evN(curYr - 1);
-    L.push({ area: 'infra', n: '친환경차 전환율', st: 'na', v: ev != null ? `${fmt(ev, 1)}%` : null, t: null,
+    L.push({ area: 'infra', n: '친환경차 전환율', st: 'na', v: ev != null ? `${fmt(ev, 1)}%` : null, t: null, nv: ev, max: 100,
              say: ev == null ? '업무용 차량·친환경차 대수를 넣으면 보여요'
                : evP != null && ev !== evP ? `전년 ${fmt(evP, 1)}% → ${ev > evP ? '▲' : '▼'}${fmt(Math.abs(ev - evP), 1)}%p` : '목표 미설정',
              tab: ev == null ? 'input' : 'dashboard' });
     // 클라우드 전환률 · PUE — 기관 전체 값 (연 1회 입력)
     const cl = orgPick('cloud', curYr), clP = cl ? orgStat(cl.y - 1).cloud : null;
     L.push({ area: 'digital', n: '클라우드 전환률', st: 'na',
-             v: cl ? `${fmt(cl.s.cloud, 1)}%` : null, t: null,
+             v: cl ? `${fmt(cl.s.cloud, 1)}%` : null, t: null, nv: cl ? cl.s.cloud : null, max: 100,
              say: !cl ? '운영 정보시스템·전환 시스템 수를 넣으면 보여요'
                : `${yrShort(cl.y)} ${fmt(cl.s.done, 0)}/${fmt(cl.s.all, 0)}개` +
                  (clP != null ? ` · 전년 ${cl.s.cloud > clP ? '▲' : cl.s.cloud < clP ? '▼' : '→'}${fmt(Math.abs(cl.s.cloud - clP), 1)}%p` : ''),
@@ -5995,7 +6607,8 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
             `<span class="qi-k">${esc(q.n)}</span>` +
             `<span class="qi-v">${q.v == null ? '<i>자료 없음</i>' : esc(q.v)}` +
             `${q.t ? `<small>/ ${esc(q.t)}</small>` : ''}</span>` +
-            `<span class="qi-r">${q.st === 'ok' ? '✓' : q.st === 'no' ? '✗' : '·'} ${esc(q.say)}</span></li>`).join('') +
+            `<span class="qi-r">${q.st === 'ok' ? '✓' : q.st === 'no' ? '✗' : '·'} ${esc(q.say)}</span>` +
+            (q.nv == null || (q.nt == null && !q.max) ? '' : gaugeHtml(q.nv, q.nt, { up: q.up, max: q.max, aria: `${q.n} ${q.v}${q.t ? ` · 목표 ${q.t}` : ''}` })) + '</li>').join('') +
           '</ul></div>';
       }).join('') + '</div>';
   }
@@ -6033,19 +6646,35 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
       need: '기준배출량·권장감축률과 배출 실적이 있어야 계산돼요',
       line: o => `${o.est ? '연말 예측' : '실적'} 감축률 <b>${fmt(o.cut, 1)}%</b> · 권장감축률 ${fmt(o.rate, 1)}%`,
       say: o => o.pt >= o.full ? '권장감축률을 넘겨 만점' : `권장감축률까지 ${fmt(o.rate - o.cut, 1)}%p 더 줄여야`,
-      cell: o => `감축률 ${fmt(o.cut, 1)}% / 권장 ${fmt(o.rate, 1)}%` },
+      cell: o => `감축률 ${fmt(o.cut, 1)}% / 권장 ${fmt(o.rate, 1)}%`,
+      gauge: o => gaugeHtml(o.cut, o.rate, { up: true, max: Math.max(o.rate * 2, o.cut * 1.1), tl: `권장 ${fmt(o.rate, 1)}%`,
+        aria: `감축률 ${fmt(o.cut, 1)}% · 권장감축률 ${fmt(o.rate, 1)}%` }) },
     { k: 'e', n: '에너지', ttl: '에너지 사용량 절감 실적', full: EVAL.enPt,
       need: `기준연도(${EVAL.baseYears.map(yrShort).join('·')}) 사용량이 있어야 계산돼요`,
       line: o => `${o.est ? '연말 예측' : msLabel(o.ms)} 절감률 <b>${fmt(o.X, 2)}%</b> · 만점 기준 1%`,
       say: o => o.needRe ? `RE100 이행실적을 더해 ${fmt(o.X2, 2)}%` : o.pt >= o.full ? '1% 이상이라 만점'
         : o.pt > 0 ? `1%까지 ${fmt(1 - o.X, 2)}%p 모자라` : '0.5%에 못 미침',
-      cell: o => `${o.est ? '연말 예측' : msLabel(o.ms)} 절감률 ${fmt(o.X, 2)}%` },
+      cell: o => `${o.est ? '연말 예측' : msLabel(o.ms)} 절감률 ${fmt(o.X, 2)}%`,
+      gauge: o => { const x = o.needRe ? o.X2 : o.X;
+        return gaugeHtml(x, 1, { up: true, max: Math.max(2, x * 1.1), tl: '만점 1%', aria: `절감률 ${fmt(x, 2)}% · 만점 기준 1%` }); } },
   ];
+  // 목표 대비 막대 (불릿) — 값 막대 + 목표 눈금(있으면) · up = 클수록 좋음 · max를 안 주면 값·목표 중 큰 쪽의 1.15배
+  //  목표를 지키면 초록, 못 지키면 빨강, 목표가 없으면 파랑 · 눈금 이름(tl)은 막대 아래
+  function gaugeHtml(v, t, o = {}) {
+    if (v == null || !isFinite(v)) return '';
+    const hasT = t != null && isFinite(t), max = o.max || Math.max(hasT ? t : 0, v, 1e-9) * 1.15;
+    const pos = x => (Math.max(0, Math.min(x, max)) / max * 100).toFixed(1);
+    const st = !hasT ? 'n' : (o.up ? v >= t : v <= t) ? 'ok' : 'no', tp = hasT ? +pos(t) : 0;
+    return `<div class="gauge ${st}" role="img" aria-label="${esc(o.aria || '')}"><div class="g-tr"><i class="g-f" style="width:${pos(v)}%"></i>` +
+      (hasT ? `<i class="g-t" style="left:${tp}%"></i>` : '') + '</div>' +
+      (hasT && o.tl ? `<div class="g-lb"><span class="${tp > 82 ? 'r' : tp < 18 ? 'l' : ''}" style="left:${tp}%">${esc(o.tl)}</span></div>` : '') + '</div>';
+  }
   const evCard = (o, p) => {
     const st = !o ? 'na' : o.pt >= p.full ? 'ok' : 'no';
     return `<div class="ev-card ${st}"${o ? ` role="button" tabindex="0" data-calc="${p.k}" data-calc-p="e-" title="누르면 계산 근거를 봐요"` : ''}>` +
       `<div class="ec-k">${esc(p.ttl)}<em>${p.full}점 만점</em></div>` +
       `<div class="ec-v">${o ? fmt(o.pt, 1) : '—'}<small>/ ${p.full}점</small></div>` +
+      (o && p.gauge ? p.gauge(o) : '') +
       `<div class="ec-t">${o ? p.line(o) : esc(p.need)}</div>` +
       `<div class="ec-r">${st === 'ok' ? '✓' : st === 'no' ? '✗' : 'ⓘ'} ${o ? esc(p.say(o)) : '판단 전'}</div></div>`;
   };
@@ -6211,9 +6840,11 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
       : `<li class="done"><span class="td-i">✓</span><span class="td-t">${canEdit() ? '지금 할 일이 없어요 · 입력과 목표가 모두 갖춰졌어요' : '지금 챙길 일이 없어요'}</span></li>`;
 
     // ③ 탭 바로가기
-    $('home-nav').innerHTML = HOME_NAV.filter(n => !n.need || canEdit()).map(n =>
+    const navs = HOME_NAV.filter(n => !n.need || canEdit());
+    $('home-nav').innerHTML = navs.map(n =>
       `<button type="button" class="nav-card" data-go="${n.tab}"><span class="nc-k">${n.k}</span>` +
       `<span class="nc-d">${esc(n.d)}</span><span class="nc-go">${esc(n.go)} →</span></button>`).join('');
+    $('home-nav').style.setProperty('--cols', colsFor(navs.length, 4, 2));   // 6개 → 3+3 · 4개 → 한 줄 (혼자 남는 칸 없게)
   }
   // 메인에서 목표 카드를 눌렀을 때 쓸 계산 근거만 만들어 둠 (목표·로드맵 탭을 아직 안 열었을 때)
   function renderGoalStatusCalcOnly(y, ghgPred, rePred, wtPred) {
@@ -6670,7 +7301,7 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
     drawReRoadmap(set.re, set.re50, reIds('h'), rmapYear, RS, isCur ? rePred : null, ROL);
     renderRmOlLinks(OL, ROL);
     $('h-wrm-card').hidden = !v2;
-    if (v2) renderWasteRoadmapChart(set.wrm, years, WS);
+    if (v2) renderWasteRoadmapChart(set.wrm, years, WS, isCur ? wtPred : null);
     $('rmap-wt-details').hidden = !v2;
     renderWasteRoadmapTable(WS);
   }
@@ -6975,7 +7606,8 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
   }
 
   function renderCompareView(years, S, si) {
-    const T = targetsFor(si), set = CHARTS.h || {}, dark = isDark(), fy = histYear;
+    // 전체 합계도 목표를 보여 줌 — 목표마다 대상 거점으로 집계 (올해 현황과 같은 규칙)
+    const T = si ? targetsFor(si) : { ghg: true, re: true, wt: v2 }, set = CHARTS.h || {}, dark = isDark(), fy = histYear;
     const py = years.includes(String(+fy - 1)) ? String(+fy - 1) : null;
     buildCmpCalcs(fy, si, T);
     renderSummary(years, S, si, T, fy, py);
@@ -7005,6 +7637,20 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
           `</div><span class="yb-y">${yrShort(it.y)}</span></div>`;
       }).join('') + '</div>';
   }
+  // 월별 미니 막대 (HTML) — 온실가스 카드 아래 · items = [{ m, a(실적), p(예측: 아직 입력 안 된 칸), q(전년 같은 달) }]
+  //  실적 = 진한 막대 · 예측 = 옅은 막대(실적 위에 쌓음) · 전년 = 회색 눈금 · 막대에 마우스를 올리면 값
+  function monthBars(items, o = {}) {
+    if (!items.some(i => i.a != null || i.p != null)) return '';
+    const u = o.unit || 't', A = o.act || '실적', max = Math.max(...items.map(i => Math.max((i.a || 0) + (i.p || 0), i.q || 0))) || 1;
+    const h = v => `${(Math.max(0, v) / max * 100).toFixed(1)}%`, v3 = v => `${fq(v)}${u}`;
+    const tip = it => `${it.m}월 · ` + (it.a == null && it.p == null ? '자료 없음' : it.a == null ? `예측 ${v3(it.p)}`
+      : `${A} ${v3(it.a)}${it.p ? ` + 예측 ${v3(it.p)}` : ''}`) + (it.q != null ? ` · ${o.pS || '전년'} ${v3(it.q)}` : '');
+    return `<div class="mb" role="img" aria-label="${esc(`${o.name || ''} 월별 (${u}) — ${items.map(tip).join(', ')}`)}">` +
+      items.map(it => `<div class="mb-c" title="${esc(tip(it))}">` +
+        (it.p ? `<i class="mb-p" style="height:${h(it.p)}"></i>` : '') + (it.a != null ? `<i class="mb-a" style="height:${h(it.a)}"></i>` : '') +
+        (it.q != null ? `<i class="mb-q" style="bottom:${h(it.q)}"></i>` : '') + '</div>').join('') +
+      `</div><div class="mb-x" aria-hidden="true"><span>1월</span>${o.note ? `<span class="mb-n">${esc(o.note)}</span>` : ''}<span>12월</span></div>`;
+  }
   // 카드 줄 수를 맞춤: 한 줄 최대 max개 · 마지막 줄이 혼자 남지 않게 고르게 (예: 6개 → 3+3, 5개 → 3+2)
   const colsFor = (n, max, min = 2) => Math.max(min, Math.ceil((n || 1) / Math.ceil((n || 1) / max)));
   // 성과 카드: 고른 연도 값 · 전년 대비(▲▼% · 차이 · 전년 값) · 목표 상태 칩 · 연도별 미니 막대
@@ -7016,23 +7662,29 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
       const d = c.pct ? v - p : p !== 0 ? (v - p) / Math.abs(p) * 100 : null, flat = d == null || Math.abs(d) < 0.05;
       const tone = flat ? 'flat' : (c.up ? d > 0 : d < 0) ? 'good' : 'bad';
       delta = (d == null ? '' : `<span class="dpill ${tone}">${flat ? '→ ' : d > 0 ? '▲' : '▼'}${fmt(Math.abs(d), 1)}${c.pct ? '%p' : '%'}</span>`) +
-        (c.pct ? '' : `<span class="dabs">${v - p >= 0 ? '+' : '−'}${fq(Math.abs(v - p))}</span>`) +
+        (c.pct ? '' : `<span class="dabs">${v - p >= 0 ? '+' : '△'}${fq(Math.abs(v - p))}</span>`) +
         `<span class="dprev">${yrShort(py)} ${c.pct ? `${fmt(p, 1)}%` : fq(p)}</span>`;
-    } else delta = `<span class="dprev">${v == null ? '-' : py ? `${yrShort(py)} 자료 없음` : '비교할 전년 없음'}</span>`;
+    } else if (v == null) delta = '<span class="dprev">-</span>';
+    else if (py) delta = `<span class="dprev">${yrShort(py)} 자료 없음</span>`;
+    else delta = '';   // 비교할 전년이 아예 없는 해 — 되풀이하지 않고 구역 머리에 한 줄로
     let chips = c.chips ? c.chips(fy, v) : '';
     if (!c.chips && c.goal && v != null) {
       if (g == null) chips = c.noGoal ? `<span class="schip">${c.noGoal}</span>` : '';
       else { const ok = c.up ? v >= g : v <= g;
-             chips = `<span class="schip ${ok ? 'ok' : 'no'}">${ok ? '✓' : '✗'} ${c.goalName} ${c.pct ? `${fmt(g, 1)}%` : `${fq(g)}${c.unitShort ?? ''}`} ${ok ? '달성' : '미달'}</span>`; }
+             const gt = c.pct ? `${fmt(g, 1)}%` : `${fq(g)}${c.unitShort ?? ''}`;
+             chips = `<span class="schip ${ok ? 'ok' : 'no'}" title="${esc(`${c.goalName} ${gt} · ${ok ? '달성' : '미달'}`)}">${ok ? '✓' : '✗'} ${c.goalName} ${gt}</span>`; }
     }
     const co2 = c.co2 ? c.co2(fy) : null;
     const items = ys.map(y => ({ y, v: c.v(y), t: c.goal ? c.goal(y) : null }));
     // 카드를 누르면 '이 숫자가 어떻게 나왔는지' 팝업 (오른쪽 아래 🔎는 올해 현황 카드와 같은 표시)
-    const attrs = c.calc ? ` role="button" tabindex="0" data-calc="${esc(c.calc)}" data-calc-p="c-" title="누르면 계산 근거를 봐요"` : '';
+    const attrs = (c.calc ? ` role="button" tabindex="0" data-calc="${esc(c.calc)}" data-calc-p="c-" title="누르면 계산 근거를 봐요"` : '')
+      + (c.vk ? ` data-vk="${c.vk}"` : '');
     return `<div class="sum-card${mini ? ' mini' : ''}${c.calc ? ' sum-click' : ''}"${attrs}>` +
       `<div class="sum-hd"><span class="sum-lbl">${c.label}${c.sub ? `<small>${c.sub}</small>` : ''}</span><span class="sum-unit">${c.unit}</span></div>` +
       `<div class="sum-v">${v == null ? '—' : c.pct ? fmt(v, 1) : fq(v)}</div>` +
-      (co2 != null ? `<div class="sum-co2">${c.avoid ? '회피 ' : ''}${fq(co2)} tCO₂eq${c.avoid ? ' (참고)' : ''}</div>` : '') +
+      (co2 != null ? `<div class="sum-co2">${c.avoid ? '회피 ' : ''}${fq(co2)} tCO₂eq${c.avoid ? ' (참고)' : ''}` +
+        (c.share != null ? `<span class="sh-bar" role="img" aria-label="${esc(`배출 비중 ${fmt(c.share, 1)}%`)}" title="${esc(`${String(c.label).replace(/^[^\p{L}\p{N}]+/u, '')} — 그 해 온실가스 배출의 ${fmt(c.share, 1)}%`)}"><i style="width:${c.share.toFixed(1)}%"></i></span><span class="sh-t">${fmt(c.share, 0)}%</span>` : '') +
+        '</div>' : '') +
       `<div class="sum-d">${delta}</div>` + (chips ? `<div class="schips">${chips}</div>` : '') + yearBars(items, fy, c) + '</div>';
   }
 
@@ -7040,24 +7692,47 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
   function renderSummary(years, S, si, T, fy, py) {
     const ys = years.filter(y => +y <= +fy).slice(-6), rm = T.wt ? wasteRoadmap(si) : null;
     const cut = y => { const d = dgbOf(y), b = baseOf(y); return d > 0 && b ? (b - d) / b * 100 : null; };   // 그 해 기준배출량 대비
-    const ghgChips = (y, v) => {   // 대구본원: 자체·법적 배출목표 대비
-      if (!T.ghg || v == null) return '';
+    //  자체·법적 배출목표는 대구본원만 적용 — 카드 값이 세 거점 합(전체 합계)이어도 비교는 늘 대구본원 배출로
+    const ghgOwn = y => ghgOfStat(S.ghg[y]);
+    const ghgChips = y => {
+      const v = T.ghg ? ghgOwn(y) : null;
+      if (v == null) return '';
+      const at = si ? '' : ' (대구본원)';
       return [['자체 목표', tgtOf(y, 'own')], ['법적 목표', tgtOf(y, 'law')]].filter(([, t]) => t != null)
-        .map(([nm, t]) => `<span class="schip ${v <= t ? 'ok' : 'no'}">${v <= t ? '✓' : '✗'} ${nm} ${fq(t)}t 대비 ${fmt(v / t * 100, 1)}%</span>`).join('');
+        .map(([nm, t]) => `<span class="schip ${v <= t ? 'ok' : 'no'}" title="${esc(`${nm} ${fq(t)} tCO₂eq 대비 ${fmt(v / t * 100, 1)}% (${v <= t ? '달성' : '미달'})${si ? '' : ' · 온실가스 목표는 대구본원만 적용해요'}`)}">${v <= t ? '✓' : '✗'} ${nm} ${fmt(v / t * 100, 1)}%${at}</span>`).join('');
     };
     const CARDS = [
-      { label: '총 온실가스', sub: 'Scope 1+2', unit: 'tCO₂eq', calc: 'k-total', v: y => ghgOfStat(S[y]), goal: T.ghg ? y => tgtOf(y, 'own') : null, goalName: '자체 목표', chips: ghgChips },
+      { label: '총 온실가스', sub: si ? 'Scope 1+2' : 'Scope 1+2 · 세 거점 합', unit: 'tCO₂eq', calc: 'k-total', vk: 'ghg', v: y => ghgOfStat(S[y]),
+        goal: T.ghg && si ? y => tgtOf(y, 'own') : null, goalName: '자체 목표', chips: ghgChips },
       { label: 'Scope 1', sub: '도시가스·차량연료 (직접)', unit: 'tCO₂eq', calc: 'k-s1', v: y => S[y].months ? S[y].s1 : null },
       { label: 'Scope 2', sub: '전력·지역난방 (간접)', unit: 'tCO₂eq', calc: 'k-s2', v: y => S[y].months ? S[y].s2 : null },
       T.ghg && { label: '기준배출량 대비 감축률', sub: '대구본원 · 그 해 기준배출량 대비', unit: '%', pct: true, up: true, calc: 'k-cut', v: cut, goal: y => ownRate(y), goalName: '자체 목표' },
-      T.re && { label: 'RE100 이행률', sub: '(자가발전 + 구매) ÷ 총 전력', unit: '%', pct: true, up: true, calc: 'k-re-pct', v: y => re100Of(S[y]), goal: y => reGoalOf(y), goalName: '정부 목표',
+      T.re && { label: 'RE100 이행률', sub: si ? '(자가발전 + 구매) ÷ 총 전력' : '대구+제주 합산', unit: '%', pct: true, up: true, calc: 'k-re-pct', vk: 're',
+                v: y => re100Of(S.re[y]), goal: y => reGoalOf(y), goalName: '정부 목표',
                 noGoal: `정부 목표는 ${yrShort(RE_FIRST)}(${RE_GOAL[RE_FIRST]}%)부터` },
-      { label: '폐기물 발생량', sub: `Scope 3 · 종량제 봉투 기준`, unit: 'ton', calc: 'k-waste-ton', v: y => S[y].wTon, goal: rm ? y => (y === rm.baseYear ? null : rm.target(y)) : null, goalName: '감축 목표', unitShort: 't',
+      { label: '폐기물 발생량', sub: `Scope 3 · 종량제 봉투 기준`, unit: 'ton', calc: 'k-waste-ton', vk: 'wt', v: y => S[y].wTon, goal: rm ? y => (y === rm.baseYear ? null : rm.target(y)) : null, goalName: '감축 목표', unitShort: 't',
         noGoal: rm && fy === rm.baseYear ? '감축 기준연도' : '' },
-    ].filter(c => c && ys.some(y => c.v(y) != null));
-    $('h-sum').innerHTML = CARDS.map(c => sumCard(c, ys, fy, py)).join('');
-    $('h-sum').style.setProperty('--cols', colsFor(CARDS.length, 4));
-    $('h-sum-note').textContent = `${si || '전체 거점'} · ${yrShort(fy)}${isClosed(fy) ? ' 확정' : ''} 실적${py ? ` · ${yrShort(py)} 대비` : ''} · 막대 = ${yearsSpan(ys)}` + (T.ghg || T.re || rm ? ' · 주황 선 = 그 해 목표' : '');
+    ].filter(Boolean);
+    const SHOW = CARDS.filter(c => ys.some(y => c.v(y) != null)), NONE = CARDS.filter(c => !SHOW.includes(c));
+    $('h-sum').innerHTML = SHOW.map(c => sumCard(c, ys, fy, py)).join('');
+    $('h-sum').style.setProperty('--cols', colsFor(SHOW.length, 4));
+    // 자료가 없어 뺀 지표는 빈 칸 대신 한 줄로 (거점마다 칸 수가 들쭉날쭉해 보이지 않게)
+    // 거점 설명의 '적용 목표' 칩 → 그 해 판정 칩 (✓ 달성 / ✗ 미달) — 올해 현황과 같은 모양
+    const vd = {};
+    const mark = (k, v, g, lower) => { if (v == null || g == null) return;
+      const ok = lower ? v <= g : v >= g, gap = Math.abs(v - g);
+      vd[k] = ok ? { st: 'ok', txt: `✓ 달성` } : { st: 'no', txt: `✗ ${k === 're' ? `${fmt(gap, 1)}%p 부족` : `${fq(gap)}t 초과`}` }; };
+    const noGoal = (k, why) => { vd[k] = { st: 'na', txt: why }; };
+    if (T.ghg) { const g = tgtOf(fy, 'own'); g == null ? noGoal('ghg', '자체 목표 없음') : mark('ghg', ghgOwn(fy), g, true); }
+    if (T.re) { const g = reGoalOf(fy); g == null ? noGoal('re', `목표는 ${yrShort(RE_FIRST)}부터`) : mark('re', re100Of(S.re[fy]), g, false); }
+    if (T.wt) { const g = rm && fy !== rm.baseYear ? rm.target(fy) : null;
+                g == null ? noGoal('wt', rm && fy === rm.baseYear ? '기준연도' : '목표 없음') : mark('wt', S[fy].wTon, g, true); }
+    siteVerdicts('y-', vd, false, fy);
+    const naNote = $('h-sum-na');
+    naNote.innerHTML = NONE.length ? `<b>자료 없음</b> ${esc(NONE.map(c => String(c.label).replace(/^[^\p{L}\p{N}]+/u, '')).join(' · '))}` : '';
+    naNote.hidden = !NONE.length;
+    $('h-sum-note').innerHTML = `${esc(si || '전체 거점')} · ${yrShort(fy)}${isClosed(fy) ? ' 확정' : ''} 실적${py ? ` · ${yrShort(py)} 대비` : ' · 비교할 전년 없음'}` +
+      `<span class="hd-legend"> · 막대 = ${esc(yearsSpan(ys))}${T.ghg || T.re || T.wt ? ' · 주황 선 = 그 해 목표' : ''}</span>`;
   }
 
   // 에너지·자원 지표 추이: 지표마다 고른 연도 값 · 전년 대비 · 연도별 막대 (누르면 아래 월별 패턴으로)
@@ -7065,7 +7740,7 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
     const ys = years.filter(y => +y <= +fy).slice(-6);
     const TILES = [
       { label: '⚡ 전력', unit: 'kWh', na: '전력', calc: 'k-elec-co2', v: y => S[y].elec, co2: y => S[y].g.elec },
-      { label: '🔥 도시가스', unit: '천 Nm³', na: '도시가스', calc: 'k-gas-co2', v: y => divN(S[y].gas, 1000), co2: y => S[y].g.gas },
+      { label: '🔥 도시가스', unit: 'Nm³', na: '도시가스', calc: 'k-gas-co2', v: y => S[y].gas, co2: y => S[y].g.gas },
       { label: '♨ 지역난방', unit: 'GJ', na: '지역난방', calc: 'k-heat-co2', v: y => S[y].heat, co2: y => S[y].g.heat },
       { label: '⛽ 휘발유', unit: 'L', na: '휘발유', calc: 'k-gasoline-co2', v: y => S[y].gasoline, co2: y => S[y].g.gasoline },
       { label: '🚛 경유', unit: 'L', na: '경유', calc: 'k-diesel-co2', v: y => S[y].diesel, co2: y => S[y].g.diesel },
@@ -7075,10 +7750,15 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
       { label: '💧 용수', unit: '㎥', na: WATER, v2: true, calc: 'k-water', v: y => S[y].water },
       { label: '🔋 친환경차 전환율 (연말)', unit: '%', na: EV_ALL, pct: true, up: true, v2: true, calc: 'k-ev', v: y => S[y].evRate },
     ].filter(t => (v2 || !t.v2) && !(t.na && allNA(si, t.na)) && ys.some(y => t.v(y) != null));
+    // 배출 비중을 카드에 띠로 (어느 것이 큰지 한눈에) · 배출이 큰 것부터 · 회피·참고 항목(재생에너지 등)은 비중에서 뺌
+    const share = t => (!t.co2 || t.avoid) ? null : Math.max(0, t.co2(fy) ?? 0);
+    const tot = sumBy(TILES.map(t => ({ v: share(t) })).filter(x => x.v != null), x => x.v);
+    TILES.forEach(t => { const g = share(t); t.share = tot > 0 && g != null ? g / tot * 100 : null; });
+    TILES.sort((a, b) => (b.share ?? -1) - (a.share ?? -1));
     $('h-trend').innerHTML = TILES.length ? TILES.map(t => sumCard(t, ys, fy, py, true)).join('')
       : '<div class="hist-empty">에너지·자원 자료가 없어요</div>';
     $('h-trend').style.setProperty('--cols', colsFor(TILES.length, 5, 3));
-    $('h-trend-note').textContent = `${si || '전체 거점'} · ${yearsSpan(ys)} · 진한 막대 = ${yrShort(fy)} · 카드를 누르면 계산 근거를 봐요`;
+    $('h-trend-note').innerHTML = `${esc(si || '전체 거점')} · ${esc(yearsSpan(ys))}<span class="hd-legend"> · 진한 막대 = ${yrShort(fy)} · 카드를 누르면 계산 근거를 봐요</span>`;
   }
 
   // 온실가스 증감 요인: 고른 연도(fy) − 전년(py) 배출을 에너지원별(또는 거점별)로 → 합이 총배출 증감
@@ -7099,9 +7779,10 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
     const rows = py ? driverRows(si, fy, py, by).sort((a, b) => Math.abs(b.d) - Math.abs(a.d)) : [];
     const c = sumBy(rows, x => x.c), p = sumBy(rows, x => x.p), d = c - p, ok = !!py && p > 0;
     $('h-cwhy-empty').hidden = ok;
+    $('h-sec-why').hidden = !ok;   // 비교할 전년이 없는 해는 구역을 통째로 숨김 (빈 상자만 남지 않게)
     $('h-why-note').textContent = ok ? `${si || '전체 거점'} · ${yrShort(py)} → ${yrShort(fy)} · ${by === 'site' ? '거점' : '에너지원'}마다 늘거나 준 배출량 (tCO₂eq)`
                                      : `${yrShort(fy)}은 비교할 전년 자료가 없어요`;
-    const EPS = 0.0005, sign = v => v > EPS ? '+' : v < -EPS ? '−' : '±', arr = v => v > 0 ? '▲' : v < 0 ? '▼' : '→ ';
+    const EPS = 0.0005, sign = v => v > EPS ? '+' : v < -EPS ? '△' : '±', arr = v => v > 0 ? '▲' : v < 0 ? '▼' : '→ ';
     const tone = v => Math.abs(v) < EPS ? 'flat' : v > 0 ? 'bad' : 'good';
     const pct = (v, base) => base > 0 ? `${arr(v)}${fmt(Math.abs(v / base * 100), 1)}%` : '';
     // ① 한 문장 요약
@@ -7112,7 +7793,7 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
         : `<b class="${tone(d)}">${fq(Math.abs(d))} tCO₂eq (${pct(d, p)}) ${d > 0 ? '늘었어요' : '줄었어요'}</b>`) + '</p>' +
       `<p class="why-sub"><span>${yrShort(py)} <b>${fq(p)}</b> → ${yrShort(fy)} <b>${fq(c)}</b> tCO₂eq</span>` +
       (up ? `<span>가장 크게 늘린 요인 <b class="bad">${esc(up.k)} +${fq(up.d)}t</b></span>` : '') +
-      (dn ? `<span>가장 크게 줄인 요인 <b class="good">${esc(dn.k)} −${fq(-dn.d)}t</b></span>` : '') + '</p>';
+      (dn ? `<span>가장 크게 줄인 요인 <b class="good">${esc(dn.k)} △${fq(-dn.d)}t</b></span>` : '') + '</p>';
     // ② 요인 목록
     const usage = x => { if (by === 'site') return null; const kk = DRIVER_KEY[x.k], u = GHG[x.k].unit, a = S[py]?.[kk], b = S[fy]?.[kk];
       return a == null && b == null ? null : { a, b, u, pct: a > 0 && b != null ? (b - a) / a * 100 : null }; };
@@ -7158,8 +7839,9 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
       }
     }
     // ④ RE100 이행률 (대구본원·제주글로벌센터) — 정부 이행 목표는 26년부터
+    //  전체 합계에서도 대상 거점(대구+제주)만으로 — 화면 카드와 같은 셈 (서울이 섞여 숫자가 달라지지 않게)
     if (T.re) {
-      const re = re100Of(cur), pre = prev ? re100Of(prev) : null, g = reGoalOf(fy);
+      const re = re100Of(S.re[fy]), pre = py ? re100Of(S.re[py]) : null, g = reGoalOf(fy);
       if (re != null) copy.push(`· RE100 이행률: ${pre != null ? `${pS} ${t1(pre)}% → ` : ''}${fS} ${t1(re)}%${pre != null ? ` (${rep(re - pre, '%p')})` : ''}` +
         (g != null ? ` / 정부 이행 목표 ${g}% (${re >= g ? '달성' : '미달성'})` : ''));
     }
@@ -7861,6 +8543,7 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
     // 비교 연도: [최근 4년] [전체] 바로가기 + 기간(시작 ~ 끝) 선택 — 연도마다 버튼을 두지 않아 한 줄로 끝남
     const opt = sel => avail.map(yy => `<option value="${yy}"${yy === sel ? ' selected' : ''}>${yrShort(yy)}</option>`).join('');
     const outside = +fy < +rng.from || +fy > +rng.to;
+    $('h-mon-now').textContent = `비교 연도 ${ys.map(yrShort).join(' · ')}`;
     $('h-mon-yrs').innerHTML = '<span class="yc-lbl">비교 연도</span>' +
       `<button type="button" data-preset="recent" aria-pressed="${!histMonYrs}">최근 4년</button>` +
       `<button type="button" data-preset="all" aria-pressed="${isAll}">전체 (${avail.length}개년)</button><span class="yc-sep"></span>` +
@@ -7868,7 +8551,7 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
       `<select data-end="to" aria-label="비교 끝 연도">${opt(rng.to)}</select></span>` +
       (outside ? `<span class="yc-hint">+ 고른 연도 ${yrShort(fy)}</span>` : '');
     $('h-ce-title').textContent = `월별 ${isGhg ? '온실가스 배출' : `${t} 사용량`}${histCum ? ' (누적)' : ''} 연도별 비교 (${unit})`;
-    $('h-mon-note').textContent = `${si || '전체 거점'} · ${ys.length}개 연도 비교 · 굵은 주황 선 = 고른 연도(${yrShort(fy)}) · 아래 기간(시작 ~ 끝)으로 비교할 해를 고를 수 있어요`;
+    $('h-mon-note').innerHTML = `${esc(si || '전체 거점')} · ${ys.length}개 연도 비교<span class="hd-legend"> · 굵은 주황 선 = 고른 연도(${yrShort(fy)})</span>`;
     if (chart) chart.options.scales.y.title.text = isGhg ? unit : `${unit} (${t})`;
     setChart(chart, 'h-chart-energy', 'h-ce-empty', ys.map((yy, i) => { const d = data[yy]; return {
       label: yy === fy ? `${yrShort(yy)} (고른 연도)` : yrShort(yy), data: histCum ? cum(d) : d, ...(({ c, shape }) => ({
@@ -7890,7 +8573,8 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
     const fi = years.indexOf(fy), { tick } = chartTheme();
     if (set.scope) {
       set.scope.data.labels = years.map(yrShort);
-      set.scope.options.plugins.colBand = { idx: fi, color: dark ? 'rgba(96,165,250,.13)' : 'rgba(27,58,107,.08)' };
+      set.scope.options.plugins.colBand = { idx: fi, color: null,
+                                            line: dark ? 'rgba(96,165,250,.9)' : 'rgba(27,58,107,.85)' };
       Object.assign(set.scope.options.scales.x.ticks, { color: c => c.index === fi ? (dark ? '#F1F5F9' : '#111827') : tick,
                                                          font: c => ({ size: 12, weight: c.index === fi ? '700' : '400' }) });
     }
@@ -7964,13 +8648,20 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
   // 폐기물 감축 로드맵 차트 (고른 청사): 실적(막대) vs 목표(선) — 로드맵이 없으면 실적만
   // 폐기물 감축 로드맵 (세 거점 합산): 거점별로 쌓은 실적 막대 + 합산 감축 목표(선) · 기준연도 막대는 연하게
   const WRM_COL = SITE_COL;
-  function renderWasteRoadmapChart(chart, years, sites) {
+  function renderWasteRoadmapChart(chart, years, sites, proj = null) {   // proj = 올해 연말 예측 (올해를 고를 때만)
     sites = Array.isArray(sites) ? sites : [sites];
     const rm = wasteRoadmap(sites), curYr = new Date().getFullYear(), wYears = years.filter(yy => wasteYearTon(yy, sites) != null);
     $('h-wrm-title').textContent = `폐기물 감축 로드맵 · ${sitesLabel(sites)} (ton)`;
-    let xs = wYears;
-    if (rm) { xs = []; for (let yy = Math.min(+rm.baseYear, ...wYears.map(Number)); yy <= rmEnd(); yy++) xs.push(String(yy)); }
-    $('h-wrm-note').textContent = !v2 ? 'DB 설정 후 목표선 표시' : rm ? `기준 ${yrShort(rm.baseYear)}${rm.baseTon != null ? ` ${fq(rm.baseTon)}t (합산)` : ''} · 막대 = 거점별 실적` : '로드맵 미설정 (데이터 관리에서 설정)';
+    // 가로축 = 기준연도(또는 첫 자료) ~ 목표를 정한 마지막 해 (올해까지는 늘) — 목표를 안 정한 뒤쪽 해는 빈칸만 남아 그리지 않음
+    let xs = wYears, lastT = null;
+    if (rm) {
+      const tYears = Object.keys(rm.rates).filter(y => rm.target(y) != null).map(Number);
+      lastT = tYears.length ? Math.max(...tYears) : null;
+      xs = []; for (let yy = Math.min(+rm.baseYear, ...wYears.map(Number)); yy <= Math.max(curYr, lastT || 0); yy++) xs.push(String(yy));
+    }
+    $('h-wrm-note').textContent = !v2 ? 'DB 설정 후 목표선 표시' : !rm ? '로드맵 미설정 (데이터 관리에서 설정)'
+      : `기준 ${yrShort(rm.baseYear)}${rm.baseTon != null ? ` ${fq(rm.baseTon)}t (합산)` : ''} · 막대 = 거점별 실적` + (proj > 0 ? ` · 연한 막대 = ${yrShort(curYr)} 연말 예측` : '') +
+        ((lastT || 0) < rmEnd() ? ` · ${yrShort(Math.max(curYr, lastT || 0) + 1)}부터 목표는 아직 정하지 않았어요` : '');
     if (chart) {
       chart.data.labels = xs.map(yrShort);
       chart.options.scales.x.stacked = true; chart.options.scales.y.stacked = true;   // 거점별로 쌓아 합계가 막대 높이
@@ -7980,6 +8671,8 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
       ...sites.map(st => ({ type: 'bar', label: st, $site: st, stack: 'w', order: 2, borderRadius: 2, maxBarThickness: 40, legendColor: WRM_COL[st],
         data: xs.map(yy => +yy < curYr ? wasteYearTon(yy, [st]) : null),
         backgroundColor: xs.map(yy => rm && yy === rm.baseYear ? hexA(WRM_COL[st], .45) : WRM_COL[st]) })),
+      ...(proj > 0 ? [{ type: 'bar', label: '올해 연말 예측', stack: 'w', order: 2, borderRadius: 2, maxBarThickness: 40, legendColor: 'rgba(96,165,250,0.45)',
+        data: xs.map(yy => +yy === curYr ? proj : null), backgroundColor: 'rgba(96,165,250,0.28)', borderColor: 'rgba(96,165,250,0.95)', borderWidth: 1.5 }] : []),
       ...(rm ? [{ type: 'line', label: '감축 목표 (합산)', stack: 'tgt', order: 1, data: xs.map(yy => yy === rm.baseYear ? rm.baseTon : rm.target(yy)),
         borderColor: '#0F766E', backgroundColor: '#0F766E', borderWidth: 2, pointRadius: 3, spanGaps: true }] : []),
     ]);
@@ -8005,7 +8698,7 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
       { label: '자체목표 대비 배출', unit: '%', d: 1, good: 'down', pp: true, ghg: true, target: 'own', v: (s, y) => vsT(s, y, 'own') },
       { label: '법적목표 대비 배출', unit: '%', d: 1, good: 'down', pp: true, ghg: true, target: 'law', v: (s, y) => vsT(s, y, 'law') },
       { label: '전력', unit: 'kWh', d: DQ, good: 'down', na: '전력', co2: s => s.g.elec, v: s => s.elec },
-      { label: '도시가스', unit: '천Nm³', d: DQ, good: 'down', na: '도시가스', co2: s => s.g.gas, v: s => divN(s.gas, 1000) },
+      { label: '도시가스', unit: 'Nm³', d: DQ, good: 'down', na: '도시가스', co2: s => s.g.gas, v: s => s.gas },
       { label: '지역난방', unit: 'GJ', d: DQ, good: 'down', na: '지역난방', co2: s => s.g.heat, v: s => s.heat },
       { label: '차량연료 (휘발유+경유)', unit: 'L', d: DQ, good: 'down', na: '휘발유', co2: s => s.g.fuel, v: s => s.fuel },
       { label: 'RE100 이행률', unit: '%', d: 1, good: 'up', pp: true, re: true, v: s => re100Of(s) },
@@ -8053,7 +8746,7 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
       { label: 'Scope 2 (전력·지역난방)', unit: 'tCO₂eq', d: DQ, v: s => s.months ? s.s2 : null },
       { label: 'Scope 3', unit: 'tCO₂eq', d: DQ, v: s => s.s3 },
       { label: '전력', unit: 'kWh', d: DQ, co2: s => s.g.elec, v: s => s.elec },
-      { label: '도시가스', unit: '천Nm³', d: DQ, co2: s => s.g.gas, v: s => divN(s.gas, 1000) },
+      { label: '도시가스', unit: 'Nm³', d: DQ, co2: s => s.g.gas, v: s => s.gas },
       { label: '지역난방', unit: 'GJ', d: DQ, co2: s => s.g.heat, v: s => s.heat },
       { label: '휘발유', unit: 'L', d: DQ, co2: s => s.g.gasoline, v: s => s.gasoline },
       { label: '경유', unit: 'L', d: DQ, co2: s => s.g.diesel, v: s => s.diesel },
@@ -10326,6 +11019,7 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
   });
   document.addEventListener('keydown', e => {
     if (e.key !== 'Enter' && e.key !== ' ') return;
+    if (e.target.closest?.('button:not(.kpi-click)')) return;   // 카드 안 단추(목표 열쇠 등)는 단추 자기 동작으로 (Enter가 click이 됨)
     const card = e.target.closest?.('.kpi-click, .sum-click, .gs-card[data-calc], .ev-card[data-calc]');
     if (card) { e.preventDefault(); openCalc(card); }
   });
@@ -10401,12 +11095,12 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
       (multi ? `<th${tdA('dc-sum', 'sum')}>합계</th>` + sites.map((s, i) => `<th${tdA('dc-g dc-gsite', i)}>온실가스<small>tCO₂eq</small></th>`).join('') : '') +
       `<th${tdA('dc-g dc-gsum', gk)}>온실가스<small>tCO₂eq</small></th></tr>`;
     const body = all.map(t => { const rc = [focus.includes(t) && 'dr-focus', empty.has(t) && 'x-empty'].filter(Boolean).join(' ');
-      return `<tr data-t="${esc(t)}"${rc ? ` class="${rc}"` : ''}><td class="dc-name">${typeHead(t)}</td><td class="dc-unit">${GHG[t].unit}</td>` +
+      return `<tr data-t="${esc(t)}"${rc ? ` class="${rc}"` : ''}><td class="dc-name" data-u="${esc(GHG[t].unit)}">${typeHead(t)}</td><td class="dc-unit">${GHG[t].unit}</td>` +
       sites.map((s, i) => edit ? drInput(ym, s, t, 'dc-site', K(i)) : drView(ym, s, t, 'dc-site', K(i))).join('') +
       (multi ? `<td${tdA('dc-sum', 'sum')} data-sum-t="${esc(t)}"></td>` + sites.map((s, i) => `<td${tdA('dc-g dc-gsite', i)} data-g-t="${esc(t)}" data-g-site="${esc(s)}"></td>`).join('') : '') +
       `<td${tdA('dc-g dc-gsum', gk)} data-g-t="${esc(t)}"></td></tr>`; }).join('');
     const picks = !multi ? null : [...(edit ? [] : [['sum', '합계']]), ...sites.map((s, i) => [String(i), SITE_SHORT[s] || s])];
-    return { html: `<table class="dr-tbl dr-month ${edit ? 'edit' : 'view'}${drillAll ? ' all' : ''}"><thead>${head}</thead><tbody>${body}</tbody></table>`, nEmpty: empty.size, picks, pickLabel: '보는 거점' };
+    return { html: `<table class="dr-tbl dr-month ${edit ? 'edit' : 'view'}${drillAll ? ' all' : ''}${multi ? '' : ' one'}"><thead>${head}</thead><tbody>${body}</tbody></table>`, nEmpty: empty.size, picks, pickLabel: '보는 거점' };
   }
   // 그 해 한 거점: 줄 = 월 · 열 = 온실가스(막대 + 값) | 에너지원별 사용량 · 맨 아래 = 합계 · 온실가스 환산
   //  보기 화면은 한 해 내내 값이 없는 에너지원 열을 접어 둠 · 좁은 화면은 에너지원 하나만
@@ -10740,7 +11434,8 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
     ['', 'y-'].forEach(P => {
       const s = CHARTS[P] || {};
       const month = (i, e, c) => { const t = dsAt(c, e)?.$type; return { kind: 'month', year: yvYear[P], month: i + 1, sites: viewSites(), focus: t ? [t] : [] }; };
-      [s.energy, s.fuel, s.ghg].forEach(c => on(c, month));
+      [s.fuel, s.ghg].forEach(c => on(c, month));
+      (s.em || []).forEach((c, k) => on(c, i => ({ kind: 'month', year: yvYear[P], month: i + 1, sites: viewSites(), focus: [ETYPES[k]] })));   // 그 에너지원 줄을 강조
       on(s.regen, i => ({ kind: 'month', year: yvYear[P], month: i + 1, sites: ['대구본원'], focus: [SAVE_REGEN] }));   // 누르면 그 달 자료
       on(s.ws, (i, e, c) => ({ kind: 'waste', year: yvYear[P], site: curSite || dsAt(c, e)?.$site || '대구본원' }));   // 누르면 그 거점의 봉투 입력표
     });
@@ -10766,7 +11461,7 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
   let autoTimer = null;
   function startAutoRefresh() {
     if (autoTimer) return; // 중복 실행 방지
-    autoTimer = setInterval(() => syncRole().then(ok => ok && refresh().then(() => { if (isAdmin()) loadUsers(true); }))
+    autoTimer = setInterval(() => syncRole().then(ok => ok && refresh({ auto: true }).then(() => { if (isAdmin()) loadUsers(true); }))
       .catch(e => console.warn('[자동 새로고침 실패]', e)), 60000);
   }
   function stopAutoRefresh() { clearInterval(autoTimer); autoTimer = null; }
@@ -11061,13 +11756,39 @@ body:not([data-role="admin"]) [data-need="admin"]{display:none!important}
   // 접고 펼치는 카드(감축 로드맵): 화면마다 접힘 상태를 이 브라우저에 기억 (저장소를 못 쓰면 매번 펼친 채로)
   const FOLD_KEY = 'nia-env.fold';
   const foldState = () => { try { return JSON.parse(localStorage.getItem(FOLD_KEY) || '{}') || {}; } catch { return {}; } };
-  document.querySelectorAll('details.fold[id], details.fold-sec[id]').forEach(d => {
+  document.querySelectorAll('details.fold[id], details.fold-sec[id], details.hist-details[id]').forEach(d => {   // 보고서용 표도
     const v = foldState()[d.id];
     if (v === false) d.open = false; else if (v === true) d.open = true;
     d.addEventListener('toggle', () => {
       try { localStorage.setItem(FOLD_KEY, JSON.stringify({ ...foldState(), [d.id]: d.open })); } catch { /* 저장 못 해도 동작은 그대로 */ }
     });
   });
+
+  // 탭 위 설명 띠: [접기]를 누르면 모든 탭의 설명이 한 줄로 (자주 보는 사람용 · 이 브라우저에 기억) · [설명 ▾]로 다시 펼침
+  const INTRO_KEY = 'nia-env.intro';
+  const setIntro = min => {
+    document.body.classList.toggle('intro-min', min);
+    document.querySelectorAll('.intro-x').forEach(b => {
+      b.textContent = min ? '설명 ▾' : '접기 ▴';
+      b.setAttribute('aria-expanded', String(!min));
+      b.title = min ? '이 화면 설명 펼치기' : '설명을 한 줄로 접기 (모든 탭 같이)';
+    });
+  };
+  document.querySelectorAll('.welcome-banner, .tab-banner').forEach(bn => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'intro-x';
+    b.addEventListener('click', () => {
+      const min = !document.body.classList.contains('intro-min');
+      setIntro(min);
+      try { localStorage.setItem(INTRO_KEY, min ? 'min' : 'full'); } catch { /* 기억 못 해도 동작은 그대로 */ }
+    });
+    bn.append(b);
+  });
+  // 처음 여는 휴대폰(좁은 화면)은 접은 채로 시작 — 첫 화면에 숫자가 보이게 · 한 번 펼치거나 접으면 그 선택을 기억
+  const narrow = () => matchMedia('(max-width:600px)').matches;
+  let introMin = narrow();
+  try { const v = localStorage.getItem(INTRO_KEY); if (v === 'min' || v === 'full') introMin = v === 'min'; } catch { /* 저장소를 못 쓰면 화면 폭으로 */ }
+  setIntro(introMin);
 
   // 큰 숫자 칸(카드 값·이정표)의 소수 부분을 작게 — 화면이 바뀔 때마다 자동으로 (값은 그대로)
   const DEC_SEL = '.kpi-value, .sum-v, .rm-ms b';
