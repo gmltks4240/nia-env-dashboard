@@ -780,6 +780,7 @@ table.main-tbl.gs-tbl tr:hover td:first-child{background:var(--surface2)}
 .hist-details[open]>summary{margin-bottom:14px}
 .det-hd{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .det-hd .btn-export{margin-left:auto;padding:4px 10px;font-size:12px;text-transform:none;letter-spacing:0}
+.chart-tools .btn-export{padding:4px 10px;font-size:12px}
 /* 접고 펼치는 카드 (감축 로드맵) — 머리글 전체가 버튼, 접으면 요약 한 줄 */
 .fold>summary{list-style:none;cursor:pointer;border-radius:6px}
 .fold>summary::-webkit-details-marker{display:none}
@@ -906,6 +907,22 @@ table.main-tbl.gs-tbl tr:hover td:first-child{background:var(--surface2)}
 .mini-seg button{padding:2px 10px;border-radius:12px;font-size:12px;font-weight:600;color:var(--text2)}
 .mini-seg button[aria-pressed="true"]{background:var(--primary);color:var(--bg)}
 .mini-seg button:focus-visible{outline:2px solid var(--primary);outline-offset:1px}
+#fl-now .fl-f{font-family:var(--fdata,monospace);font-size:12.5px;color:var(--text)}
+#fl-now .fl-src{font-size:11.5px;color:var(--text2);line-height:1.45;max-width:340px}
+#fl-tbl th:last-child{min-width:200px}
+.fl-footnote{margin:9px 0 0;font-size:11.5px;color:var(--muted);line-height:1.5}
+.fl-list{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
+.fl-list li{font-size:13px;color:var(--text);background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 11px}
+.fl-list li b{color:var(--primary);font-variant-numeric:tabular-nums;margin-right:6px}
+.fl-list .fl-empty{color:var(--muted);background:transparent;border-style:dashed}
+.fl-by{color:var(--muted);font-size:12px}
+.fl-form{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.fl-in{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:7px 10px;font-size:13px;color:var(--text);font-family:var(--font)}
+.fl-note-in{flex:1;min-width:220px}
+#og-tbody .og-total{width:110px}
+#og-tbody .og-date{width:130px}
+#og-tbody .og-note{width:100%;min-width:140px}
+#og-tbody input{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:5px 8px;font-size:12.5px;color:var(--text);font-family:var(--font)}
 .chart-tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 /* 월별 패턴: 비교할 연도 고르기 (켜진 연도 = 그 선의 색) */
 .yr-chips{display:flex;flex-wrap:wrap;align-items:center;gap:4px 6px;margin:-4px 0 12px}
@@ -2829,6 +2846,7 @@ body.intro-min .site-info .si-head{grid-row:auto}
             <div class="mini-seg" id="h-cum-seg" role="group" aria-label="보기 방식">
               <button type="button" data-cum="0" aria-pressed="true">월별</button><button type="button" data-cum="1" aria-pressed="false">누적</button>
             </div>
+            <button class="btn-export" id="h-mon-export" type="button" title="지금 보는 거점·항목·비교 연도를 월 × 연도 표로 내려받아요">📥 CSV</button>
           </div>
         </div>
         <details class="yr-fold" id="h-mon-fold">
@@ -2879,7 +2897,7 @@ body.intro-min .site-info .si-head{grid-row:auto}
     <details class="hist-details" id="h-details">
       <summary>📋 폐기물 상세 표 <span class="hd-note">청사별·연도별 발생량 — 보고서용 숫자 · 감축 로드맵은 '목표·로드맵' 탭</span></summary>
       <div class="kpi-section">
-        <div class="kpi-section-hd">폐기물 발생량 청사별·연도별 <span class="hd-note">종량제 봉투 구입량 기준 추정 · 배출량은 소각 기준 0.474 tCO₂eq/t</span></div>
+        <div class="kpi-section-hd">폐기물 발생량 청사별·연도별 <span class="hd-note">종량제 봉투 구입량 기준 추정 · 배출량은 사업장별 유효계수 (대구 0.477 · 제주 1.138 · 서울 미산정)</span></div>
         <div class="table-wrap cmp-wrap"><table class="main-tbl cmp-tbl" id="h-waste-tbl"></table></div>
       </div>
     </details>
@@ -3171,7 +3189,7 @@ body.intro-min .site-info .si-head{grid-row:auto}
         </div>
         <div class="cfg-group" style="justify-content:flex-end">
           <label>&nbsp;</label>
-          <span style="font-size:11px;color:var(--muted);padding:8px 0;line-height:1.5">발생량(ton) = 봉투 용량(L) × 수량 × 0.174 kg/L ÷ 1,000 · 배출량 = 발생량 × 0.474 tCO₂eq/t (소각 기준)<br>※ 구입한 봉투 기준 추정치예요. 위탁처리 실적 등 실제 처리량 자료가 있으면 그 값이 더 정확해요.</span>
+          <span style="font-size:11px;color:var(--muted);padding:8px 0;line-height:1.5">발생량(ton) = 봉투 용량(L) × 수량 × 0.174 kg/L ÷ 1,000 · 배출량 = 발생량 × 사업장별 유효계수 (대구 0.477 · 제주 1.138 · 서울 미산정) tCO₂eq/t (소각 기준)<br>※ 구입한 봉투 기준 추정치예요. 위탁처리 실적 등 실제 처리량 자료가 있으면 그 값이 더 정확해요.</span>
         </div>
       </div>
       <p class="wg-hint">머리글에 봉투 규격(L)을 적고 달마다 산 수량을 입력해요 · 다른 규격은 <b>+ 규격</b>으로 열 추가 · 안 산 규격은 비워 두기 · 그 달 봉투를 하나도 안 샀으면 아무 칸에 '-'(해당없음) · 모두 비워 두면 누락으로 표시돼요 · 머리글 L값을 고치면 그 열의 올해 자료 규격이 바뀌어요</p>
@@ -3417,6 +3435,7 @@ body.intro-min .site-info .si-head{grid-row:auto}
         <option value="waste">폐기물</option>
         <option value="metric">기타 지표</option>
       </select>
+      <select id="m-item" aria-label="항목"><option value="">항목 전체</option></select>
       <select id="m-who" aria-label="입력·수정한 사람" hidden><option value="">입력·수정한 사람 전체</option></select>
     </div>
     <button class="btn-export" id="btn-export">📥 CSV 내보내기</button>
@@ -3512,6 +3531,42 @@ body.intro-min .site-info .si-head{grid-row:auto}
           <button class="btn-primary" id="solar-save" type="button">태양광 설비 저장</button>
           <button class="btn-sm btn-edit" id="solar-add" type="button">＋ 설비·증설 줄 더하기</button>
           <span class="save-info" id="solar-save-info">전망의 태양광 증설분에 바로 쓰여요</span>
+        </div>
+      </div>
+      <div class="input-card" id="factorlog-card">
+        <h3>🧮 배출계수 이력</h3>
+        <p class="who-line" data-who="ghg_factor_log" hidden></p>
+        <p class="set-desc">온실가스 배출계수를 개정했을 때 <b>적용 시점</b>과 내용을 기록해 둬요(경영평가 증빙). 지금 적용 중인 계수는 아래 표와 같고, 계수를 바꾼 뒤 <b>적용일·변경 내용</b>을 적어 이력을 남기면 그때의 계수가 함께 보관돼요. 화면의 배출량은 늘 <b>현재 계수</b>로 전 연도를 같은 기준으로 재산정하고, ‘공식 저장값’ 토글로 저장 당시 값과 견줄 수 있어요.</p>
+        <div class="mtbl-wrap">
+          <table class="mtbl" id="fl-tbl">
+            <thead><tr><th>구분</th><th>단위</th><th>지금 적용 계수 <span class="toe-u">(tCO₂eq)</span></th><th>근거 · 출처</th></tr></thead>
+            <tbody id="fl-now"></tbody>
+          </table>
+        </div>
+        <p class="fl-footnote">※ Scope 1·2 계수는 2026년 국가 온실가스 종합관리시스템(NGMS) 산정 실적을 활용해 사용량 대비 배출량을 역산한 유효 배출계수입니다.</p>
+        <ul class="fl-list" id="fl-list"></ul>
+        <div class="fl-form">
+          <input type="month" id="fl-date" class="fl-in" aria-label="적용일">
+          <input type="text" id="fl-note" class="fl-in fl-note-in" maxlength="120" placeholder="예: NGMS 유효계수로 개정 (전력·도시가스·지역난방·휘발유·경유)" aria-label="변경 내용">
+        </div>
+        <div class="save-row">
+          <button class="btn-primary" id="fl-add" type="button">＋ 이력 추가</button>
+          <span class="save-info">계수를 바꾼 뒤 적용일·변경 내용을 적어 저장하세요</span>
+        </div>
+      </div>
+      <div class="input-card" id="official-card">
+        <h3>📑 연도별 공식 확정 배출량 (NGMS)</h3>
+        <p class="who-line" data-who="official_ghg" hidden></p>
+        <p class="set-desc">NGMS 명세서 등으로 <b>외부 확정</b>된 연도별 온실가스 총배출량(Scope 1+2 · 세 거점 합)을 기록해 둬요. 대시보드의 <b>현재계수 산정값</b>과 나란히 보여, 경영평가에서 산정값과 확정값을 함께 증빙할 수 있어요. <b>값이 들어간 연도만</b> 저장돼요(비우면 미기록). 확정 수치가 아직 없으면 비워 두세요 — 임의값을 넣지 마세요.</p>
+        <div class="mtbl-wrap">
+          <table class="mtbl" id="og-tbl">
+            <thead><tr><th>연도</th><th>공식 확정 <span class="toe-u">(tCO₂eq)</span></th><th>확정일</th><th>비고</th><th>현재계수 산정</th><th>차이 <span class="toe-u">(확정−산정)</span></th></tr></thead>
+            <tbody id="og-tbody"></tbody>
+          </table>
+        </div>
+        <div class="save-row">
+          <button class="btn-primary" id="og-save" type="button">공식 확정값 저장</button>
+          <span class="save-info">NGMS 확정 수치가 나오면 연도별로 입력하세요</span>
         </div>
       </div>
       <div class="set-col">
@@ -3707,11 +3762,11 @@ body.intro-min .site-info .si-head{grid-row:auto}
   // scope = 배출 구분. 화면·집계는 DB에 저장된 값이 아니라 이 표를 기준으로 분류함
   // factor 0 = 온실가스 배출원이 아님 (재생에너지)
   const GHG = {
-    '전력':     { unit:'kWh', scope:'Scope 2', factor:0.0004594106, div:1, desc:'0.0004594106 tCO₂eq/kWh (= 0.4594106 tCO₂eq/MWh)' },
-    '도시가스': { unit:'Nm³', scope:'Scope 1', factor:2.176,    div:1000, desc:'2.176 tCO₂eq/1,000Nm³ (보일러 등 고정연소 = 직접배출)' },
-    '지역난방': { unit:'GJ',  scope:'Scope 2', factor:0.048027, div:1,    desc:'0.048027 tCO₂eq/GJ (NGMS 스팀 계수)' },
-    '휘발유':   { unit:'L',   scope:'Scope 1', factor:0.002177, div:1,    desc:'2.177 tCO₂eq/kL (차량 이동연소)' },
-    '경유':     { unit:'L',   scope:'Scope 1', factor:0.002661, div:1,    desc:'2.661 tCO₂eq/kL (차량 이동연소)' },
+    '전력':     { unit:'kWh', scope:'Scope 2', factor:0.0004594106, div:1, desc:'0.0004594106 tCO₂eq/kWh (= 0.4594106 tCO₂eq/MWh)', src:'2026년 NGMS 산정 실적 기반 역산 유효계수 · 전력 간접배출 (Scope 2)' },
+    '도시가스': { unit:'Nm³', scope:'Scope 1', factor:0.0021649672212, div:1, desc:'0.0021649672212 tCO₂eq/m³ (NGMS 유효계수 · 보일러 등 고정연소 = 직접배출)', src:'2026년 NGMS 산정 실적 기반 역산 유효계수 · 고정연소 직접배출 (Scope 1)' },
+    '지역난방': { unit:'GJ',  scope:'Scope 2', factor:0.0481938763, div:1, desc:'0.0481938763 tCO₂eq/GJ (NGMS 유효계수 · CO₂·CH₄·N₂O × GWP 1·21·310 합산)', src:'2026년 NGMS 산정 실적 기반 역산 유효계수 · 열 간접배출 (Scope 2)' },
+    '휘발유':   { unit:'L',   scope:'Scope 1', factor:0.002176470768, div:1, desc:'0.002176470768 tCO₂eq/L (NGMS 유효계수 · 차량 이동연소)', src:'2026년 NGMS 산정 실적 기반 역산 유효계수 · 차량 이동연소 (Scope 1)' },
+    '경유':     { unit:'L',   scope:'Scope 1', factor:0.0026613886511, div:1, desc:'0.0026613886511 tCO₂eq/L (NGMS 유효계수 · 차량 이동연소)', src:'2026년 NGMS 산정 실적 기반 역산 유효계수 · 차량 이동연소 (Scope 1)' },
     [RE_SELF]:  { unit:'kWh', scope:'Scope 2', factor:0,        div:1,    desc:'태양광 등 자가발전량 — RE100 이행률에 반영' },
     [RE_BUY]:   { unit:'kWh', scope:'Scope 2', factor:0,        div:1,    desc:'녹색프리미엄·REC·PPA 구매량 — RE100 이행률에만 반영 (온실가스 감축에는 미반영)' },
     [SAVE_REGEN]: { unit:'kWh', scope:'Scope 2', factor:0,      div:1,    desc:'승강기 회생제동장치가 되돌려준 전력 — 절감 실적(참고). 한전 계량에 이미 반영돼 배출량·RE100에서 다시 빼지 않음' },
@@ -3823,8 +3878,11 @@ body.intro-min .site-info .si-head{grid-row:auto}
   const allNA = (si, item) => (si ? [si] : SITES).every(s => itemNA(s, item));   // 고른 거점(또는 전체)에서 모두 해당 없음
   const PAGE_SIZE = 25;
   // 폐기물(종량제 봉투) 환산
-  const WASTE_KG_PER_L = 0.174; // 봉투 1L당 무게(kg) — 기존 기준값 (출처 확인 필요)
-  const WASTE_EF = 0.474;       // tCO₂eq/t — 생활폐기물 소각 기준. US EPA GHG Emission Factors Hub 2025 'Mixed MSW' 0.43 t/short ton을 미터톤으로 환산 (매립이면 0.639)
+  const WASTE_KG_PER_L = 0.174; // 봉투 1L당 무게(kg) — 환경정보공개시스템 비가정부문 환산기준
+  // 폐기물 소각·매립 혼합 유효 배출계수 (tCO₂eq/ton) — 2024 시·도 폐기물 처리통계 기반 사업장별 추정계수
+  //  기본계수: 소각 1.182 · 매립 0.45515 (에너지회수 미산정) · 대구본원 0.477114(소각 21.19%+매립 49.79%, 에너지회수 29.02%는 산정 제외) · 제주 1.138357(소각 94%+매립 6%) · 서울 미산정
+  const WASTE_EF = { '대구본원': 0.477114, '제주글로벌센터': 1.138357 };   // 그 밖(서울 등): 미산정(null)
+  const WASTE_EF_TXT = '사업장별 유효계수 (대구 0.477114 · 제주 1.138357 · 서울 미산정) tCO₂eq/ton';
   const TRAIN_N = 2;            // 예측 학습에 쓰는 직전 연도 수 (매년 자동으로 바뀜)
   // 기타 환경지표 (env_metrics 테이블) — month: 월별 'YYYY-MM' / year: 연도별 'YYYY'(연말 기준)
   const WATER = '용수', EV_ALL = '업무용 차량', EV_GREEN = '친환경차';
@@ -3854,7 +3912,8 @@ body.intro-min .site-info .si-head{grid-row:auto}
   const calcGHG  = (t, a) => { const f = GHG[t]; return f ? a * f.factor / f.div : 0; };
   const calcKg   = (s, q) => s * q * WASTE_KG_PER_L;
   const calcTon  = (s, q) => calcKg(s, q) / 1000;
-  const wasteGhg = ton => ton * WASTE_EF;
+  const wasteEF  = site => (WASTE_EF[site] ?? null);
+  const wasteGhg = (ton, site) => { if (ton == null) return null; const ef = wasteEF(site); return ef == null ? null : ton * ef; };
   const targetsFor = si => ({ ghg: TARGET_SITES.ghg.includes(si), re: TARGET_SITES.re.includes(si), wt: v2 && TARGET_SITES.waste.includes(si) });
   const josa = (w, a, b) => { const c = String(w).charCodeAt(String(w).length - 1) - 0xAC00; return c >= 0 && c <= 11171 && c % 28 ? a : b; }; // 은/는 등
   const near     = (x, y) => Math.abs(x - y) <= 1e-6 * Math.max(1, Math.abs(y)); // 저장값 비교 (DB 반올림 오차 허용)
@@ -4101,6 +4160,7 @@ body.intro-min .site-info .si-head{grid-row:auto}
                         createdAt: r.created_at ? +new Date(r.created_at) : null });
   const normW = r => ({
     ...r, bagSize: r.bag_size, weightKg: r.weight_kg, weightTon: r.weight_ton,
+    ghg: wasteGhg(+r.weight_ton || 0, r.site), ghgStored: r.ghg,
     createdAt: r.created_at ? +new Date(r.created_at) : null
   });
   const normM = r => ({ ...r, value: +r.value, createdAt: r.created_at ? +new Date(r.created_at) : null,
@@ -4110,7 +4170,9 @@ body.intro-min .site-info .si-head{grid-row:auto}
   let managePage = 0;
   // 2단계(phase2.sql) 테이블이 있으면 true — 없으면 기타 지표·연도 마감·로드맵·변경 이력만 꺼지고 나머지는 그대로 동작
   let v2 = false;
-  let settings = { closed_years: [], waste_roadmap: null, ghg_base: null, ghg_own: null, ghg_law: null, ghg_law_tent: null, na_cells: new Set(), site_na: null, toe_factor: null, solar_plants: null };
+  let settings = { closed_years: [], waste_roadmap: null, ghg_base: null, ghg_own: null, ghg_law: null, ghg_law_tent: null, na_cells: new Set(), site_na: null, toe_factor: null, solar_plants: null, ghg_factor_log: [], official_ghg: {} };
+  let factorLog = [];   // 배출계수 변경 이력 (env_settings.ghg_factor_log = [{ date, note, by, at, factors }])
+  let officialGhg = {};   // 연도별 공식 확정 배출량 (env_settings.official_ghg = { 'YYYY': { total, date, note } })
   const isMissingTable = e => e?.status === 404 || ['PGRST205', '42P01'].includes(e?.code);
   const isClosed = y => v2 && settings.closed_years.includes(String(y).slice(0, 4));
   const lockMsg  = y => `🔒 ${y}년은 마감된 연도예요${isAdmin() ? ' · 고치려면 데이터 관리 → 연도 마감·로드맵에서 해제하세요' : canEdit() ? ' · 고치려면 관리자에게 마감 해제를 요청하세요' : ''}`;
@@ -4363,6 +4425,34 @@ body.intro-min .site-info .si-head{grid-row:auto}
     Object.entries(v.rates || {}).forEach(([y, r]) => { if (/^\d{4}$/.test(y) && Number.isFinite(+r) && +r >= 0 && +r <= 100) rates[y] = +r; });
     return { baseYear: String(v.baseYear), rates };
   }
+  // 배출계수 이력 (공개 키로 누구나 쓸 수 있으므로 화면에 넣기 전에 형식 확인) — date = 'YYYY-MM'(또는 YYYY·YYYY-MM-DD)
+  const FL_DATE = /^\d{4}(-\d{2}(-\d{2})?)?$/;
+  function cleanFactorLog(v) {
+    if (!Array.isArray(v)) return [];
+    return v.filter(e => e && typeof e === 'object' && FL_DATE.test(String(e.date)))
+      .map(e => ({ date: String(e.date), note: String(e.note || '').slice(0, 120),
+        by: e.by ? String(e.by).slice(0, 40) : '', at: e.at ? String(e.at).slice(0, 30) : '',
+        factors: (e.factors && typeof e.factors === 'object' && !Array.isArray(e.factors)) ? e.factors : {} }))
+      .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0))   // 최근 적용일이 위로
+      .slice(0, 50);
+  }
+  // 지금 적용 중인 배출계수 묶음 (이력에 스냅샷으로 함께 저장) — EMIT_TYPES는 아래에서 선언한 걸 그대로 씀
+  const factorStr = n => (n == null || !Number.isFinite(+n)) ? '-' : String(+n);
+  const currentFactors = () => ({
+    energy: Object.fromEntries(EMIT_TYPES.map(t => [t, GHG[t]?.factor ?? null])),
+    wasteKgPerL: WASTE_KG_PER_L, wasteEF: { ...WASTE_EF },
+  });
+  // 연도별 공식 확정 배출량 (공개 키 대비 형식 검증) — total = 전체 거점 Scope 1+2 tCO₂eq, date = 'YYYY-MM'
+  function cleanOfficialGhg(v) {
+    if (!v || typeof v !== 'object' || Array.isArray(v)) return {};
+    const out = {};
+    Object.entries(v).forEach(([y, o]) => {
+      if (!/^\d{4}$/.test(y) || !o || typeof o !== 'object') return;
+      const t = +o.total; if (!Number.isFinite(t) || t < 0 || t > 1e7) return;
+      out[y] = { total: t, date: /^\d{4}-\d{2}$/.test(String(o.date)) ? String(o.date) : '', note: String(o.note || '').slice(0, 80) };
+    });
+    return out;
+  }
 
   async function loadAll() {
     const wxTask = wxBySite ? null : fetchWeatherData(); // 날씨는 DB와 동시에 불러옴 (실패해도 예측은 같은 달 평균으로 동작)
@@ -4392,9 +4482,13 @@ body.intro-min .site-info .si-head{grid-row:auto}
       na_cells: cleanNa(st.na_cells),
       site_na: cleanSiteNa(st.site_na),
       toe_factor: cleanToe(st.toe_factor),
+      ghg_factor_log: cleanFactorLog(st.ghg_factor_log),
+      official_ghg: cleanOfficialGhg(st.official_ghg),
       solar_plants: cleanSolar(st.solar_plants),
     };
     toeF = { ...TOE_DEFAULT, ...(settings.toe_factor || {}) };   // TOE 환산계수 (고친 에너지원만 저장값)
+    factorLog = settings.ghg_factor_log || [];   // 배출계수 변경 이력
+    officialGhg = settings.official_ghg || {};   // 연도별 공식 확정 배출량
     solarRows = (settings.solar_plants ?? SOLAR_DEFAULT).map(r => ({ ...r }));   // 태양광 설비 (저장값 없으면 지금 설치된 설비)
     ghgBaseY = settings.ghg_base || GHG_BASE_DEFAULT;
     applyOwnTargets(settings.ghg_own);   // 자체 목표 (입력한 해만 기본값 대신)
@@ -4437,6 +4531,8 @@ body.intro-min .site-info .si-head{grid-row:auto}
       if (force || !naDirty)                             run('거점별 적용 항목', renderSiteNaForm);
       if (force || !isEditing('toe-tbody', false))       run('TOE 환산계수', renderToeTbl);
       if (force || !isEditing('solar-tbody', solarDirty)) run('태양광 설비', renderSolarTbl);
+      run('배출계수 이력', renderFactorLog);
+      if (force || !isEditing('og-tbody', false)) run('공식 확정 배출량', renderOfficialGhg);
     }
     run('누가 바꿨나', renderWhoLines);
     run('거점 목록', syncSiteSelects);
@@ -4762,7 +4858,7 @@ body.intro-min .site-info .si-head{grid-row:auto}
         options: {
           responsive: true, interaction: { mode: 'index', intersect: false },
           plugins: { legend, barLabels: { display: true, total: true },
-                     tooltip: { filter: c => c.raw != null, callbacks: { label: c => `${c.dataset.label}: ${fq(c.raw)} kg (${fq(wasteGhg((c.raw || 0) / 1000))} tCO₂eq)` } } },
+                     tooltip: { filter: c => c.raw != null, callbacks: { label: c => `${c.dataset.label}: ${fq(c.raw)} kg (${fq(wasteGhg((c.raw || 0) / 1000, curSite)) || '—'} tCO₂eq)` } } },
           scales: { x: { stacked: true, ticks: { color: tick }, grid: { color: grid } },
                     y: { stacked: true, ticks: { color: tick }, grid: { color: grid }, beginAtZero: true, grace: '12%', title: { display: true, text: 'kg', color: tick, font: { size: 11 } } } }
         }
@@ -5382,13 +5478,15 @@ body.intro-min .site-info .si-head{grid-row:auto}
     // ① 온실가스 (선택 거점) — Scope는 에너지원 기준으로 분류
     const isScope = sc => r => isEmit(r.type) && scopeOf(r.type) === sc;
     const s1 = sumBy(ey.filter(isScope('Scope 1')), r => r.ghg), s2 = sumBy(ey.filter(isScope('Scope 2')), r => r.ghg);
-    const wTon = sumBy(wy, r => r.weightTon), hasE = ey.some(r => isEmit(r.type));   // 에너지 입력이 없으면 0 대신 '—'
+    const wTon = sumBy(wy, r => r.weightTon), wGhg = sumBy(wy, r => r.ghg || 0),
+          wGhgNA = wy.length > 0 && !wy.some(r => r.ghg != null),   // 이 거점은 폐기물 계수 미산정(서울 등) — 0이 아니라 '미산정'
+          hasE = ey.some(r => isEmit(r.type));   // 에너지 입력이 없으면 0 대신 '—'
     // 정수 부분은 크게, 소수 부분은 작게 (값은 그대로)
     const bigNum = v => { const [i, d] = fq(v).split('.'); return d ? `${i}<small class="dec">.${d}</small>` : i; };
     $$('k-total').innerHTML = hasE ? bigNum(s1 + s2) : '—';
     $$('k-s1').innerHTML    = hasE ? bigNum(s1) : '—';
     $$('k-s2').innerHTML    = hasE ? bigNum(s2) : '—';
-    $$('k-waste').innerHTML = wy.length ? bigNum(wasteGhg(wTon)) : '—';
+    $$('k-waste').innerHTML = !wy.length ? '—' : wGhgNA ? '<span class="cmp-na">미산정</span>' : bigNum(wGhg);
     $$('k-waste-sub').textContent = wy.length ? `폐기물 ${fq(wTon)} ton · 소각 기준` : '-';
     if (hasE) {
       setYoy('k-total-yoy', yoy(r => isEmit(r.type)));
@@ -5402,12 +5500,12 @@ body.intro-min .site-info .si-head{grid-row:auto}
       (prevTot > 0 ? ` · ${pS} ${fq(prevTot)}t <span class="${estTot <= prevTot ? 'good' : 'bad'}">${arrow(estTot - prevTot)}${fmt(Math.abs(estTot - prevTot) / prevTot * 100, 1)}%</span>` : '');
     $$('k-total-est').title = estTot == null ? '' : '연말 예측 = 입력된 실적 + 아직 입력 안 된 거점·달의 기상연동 예측 · 전년은 연간 실적';
     // Scope 3(폐기물)은 지난 연도만 전년 대비 — 봉투는 매달 사지 않아 올해 누적끼리 비교하면 들쭉날쭉
-    const wPrev = wasteRecs.filter(r => r.date?.startsWith(prevYr) && inView(r)), wPrevGhg = wasteGhg(sumBy(wPrev, r => r.weightTon));
+    const wPrev = wasteRecs.filter(r => r.date?.startsWith(prevYr) && inView(r)), wPrevGhg = sumBy(wPrev, r => r.ghg || 0);
     if (isCur || !wy.length) $$('k-waste-yoy').textContent = '';
-    else setYoy('k-waste-yoy', wPrev.length && wPrevGhg > 0 ? { v: (wasteGhg(wTon) - wPrevGhg) / wPrevGhg * 100, p: wPrevGhg } : null);
+    else setYoy('k-waste-yoy', wPrev.length && wPrevGhg > 0 ? { v: (wGhg - wPrevGhg) / wPrevGhg * 100, p: wPrevGhg } : null);
     // 카드 아래 월별 막대: 그 해 실적 · 올해 아직 입력 안 된 칸의 예측(옅게) · 전년 같은 달(회색 눈금) — 숫자 하나로는 안 보이는 흐름
     {
-      const ghgMon = (rs, test) => monthlySum(rs.filter(test), r => r.ghg), wMon = rs => monthlySum(rs, r => wasteGhg(r.weightTon));
+      const ghgMon = (rs, test) => monthlySum(rs.filter(test), r => r.ghg), wMon = rs => monthlySum(rs, r => r.ghg || 0);
       const predOf = (...arrs) => fc ? m12(i => { const v = arrs.reduce((a, arr) => a + (arr?.[i] || 0), 0); return v > 0 ? v : null; }) : null;
       const emit = r => isEmit(r.type);
       const put = (id, act, pred, prev, name, o = {}) => { $$(id).innerHTML = monthBars(m12(i => ({ m: i + 1, a: act[i], p: pred?.[i] ?? null, q: prev?.[i] ?? null })), { name, pS, ...o }); };
@@ -5447,10 +5545,10 @@ body.intro-min .site-info .si-head{grid-row:auto}
       rows: typeRows(EMIT_TYPES.filter(t => scopeOf(t) === 'Scope 1')), sites: siteRows(isScope('Scope 1')), months: monthRows(isScope('Scope 1')), alert: alS1, note: EF_NOTE });
     calc('k-s2', { title: 'Scope 2 간접 배출', sub: '사서 쓴 전기·열', value: hasE ? s2 : null,
       rows: typeRows(EMIT_TYPES.filter(t => scopeOf(t) === 'Scope 2')), sites: siteRows(isScope('Scope 2')), months: monthRows(isScope('Scope 2')), alert: alS2, note: EF_NOTE });
-    calc('k-waste', { title: 'Scope 3 기타 간접 (폐기물)', sub: '종량제 봉투 기준', value: wy.length ? wasteGhg(wTon) : null,
-      rows: wy.length ? [{ k: '종량제 봉투', sub: '소각', amt: wTon, amtU: 'ton', factor: `${WASTE_EF} tCO₂eq/ton (소각 기준)`, ghg: wasteGhg(wTon) }] : [],
-      sites: siteRows(() => true, r => wasteGhg(r.weightTon), wy), months: monthRows(() => true, r => wasteGhg(r.weightTon), wy), alert: alWaste,
-      note: '발생량 = 봉투 용량(L) × 매수 × 0.174 kg/L · 배출량 = 발생량(ton) × ' + WASTE_EF + ' · 봉투를 한꺼번에 사는 달이 있어 전년·평년 비교는 하지 않아요' });
+    calc('k-waste', { title: 'Scope 3 기타 간접 (폐기물)', sub: '종량제 봉투 기준', value: wy.length && !wGhgNA ? wGhg : null,
+      rows: wy.length ? [{ k: '종량제 봉투', sub: '소각·매립', amt: wTon, amtU: 'ton', factor: WASTE_EF_TXT, ghg: wGhg }] : [],
+      sites: siteRows(() => true, r => r.ghg || 0, wy), months: monthRows(() => true, r => r.ghg || 0, wy), alert: alWaste,
+      note: '발생량 = 봉투 용량(L) × 매수 × 0.174 kg/L · 배출량 = 발생량(ton) × ' + WASTE_EF_TXT + ' · 봉투를 한꺼번에 사는 달이 있어 전년·평년 비교는 하지 않아요' });
 
     // ② 사용량
     const amt = t => sumBy(ey.filter(r => r.type === t), r => r.amount);
@@ -5468,7 +5566,7 @@ body.intro-min .site-info .si-head{grid-row:auto}
     const wVol = sumBy(wy, r => (+r.bagSize || 0) * (+r.qty || 0));
     $$('k-waste-vol').textContent = wVol > 0 ? fq(wVol) : '—';
     // 폐기물 카드: 큰 숫자 = tCO₂eq · 아래 = 용량(L)과 무게(= 용량 L × 0.174 kg/L · 입력표와 같은 환산)
-    $$('k-waste-vol-co2').textContent = wy.length ? fq(wasteGhg(wTon)) : '—';
+    $$('k-waste-vol-co2').textContent = !wy.length ? '—' : wGhgNA ? '미산정' : fq(wGhg);
     $$('k-waste-vol-amt').hidden = !wy.length;
     $$('k-waste-kg').textContent = wy.length ? `${fq(sumBy(wy, wKg))}\u00A0kg\u00A0(${fq(wTon)}\u00A0ton)` : '';
     // 사용량 카드: 큰 숫자 = 온실가스 환산값(tCO₂eq) · 아래 작은 줄 = 원래 단위의 사용량
@@ -6385,7 +6483,7 @@ body.intro-min .site-info .si-head{grid-row:auto}
     const g = { elec: co2('전력'), gas: co2('도시가스'), heat: co2('지역난방'), gasoline: co2('휘발유'), diesel: co2('경유'),
                 fuel: co2('휘발유', '경유'), reSelf: co2(RE_SELF), regen: co2(SAVE_REGEN) };
     return {
-      s1: ghg('Scope 1'), s2: ghg('Scope 2'), wTon, s3: wTon == null ? null : wasteGhg(wTon), g,
+      s1: ghg('Scope 1'), s2: ghg('Scope 2'), wTon, s3: w.length && w.some(r => r.ghg != null) ? sumBy(w, r => r.ghg || 0) : null, g,
       elec: amt('전력'), gas: amt('도시가스'), heat: amt('지역난방'), gasoline: amt('휘발유'), diesel: amt('경유'),
       fuel: amt('휘발유', '경유'), reSelf: amt(RE_SELF), reBuy: amt(RE_BUY), regen: amt(SAVE_REGEN),
       water: mx(WATER), evAll: ev?.all ?? null, evGreen: ev?.green ?? null, evRate: ev?.rate ?? null,
@@ -7559,8 +7657,8 @@ body.intro-min .site-info .si-head{grid-row:auto}
     put('k-waste-ton', { title: '폐기물 발생량', sub: 'Scope 3 · 종량제 봉투 기준', value: wTon, unit: 'ton', empty: `${yS} 폐기물 자료가 없어요`,
       amt: wy.length ? { v: wVol, u: 'L' } : null,
       sites: siteRows(() => true, r => r.weightTon, wy), months: monthRows(() => true, r => r.weightTon, wy),
-      facts: wy.length ? [{ k: '배출량 환산', v: `${fq(wasteGhg(wTon))} tCO₂eq` }] : [],
-      note: `발생량 = 봉투 용량(L) × 매수 × 0.174 kg/L · 배출량 = 발생량(ton) × ${WASTE_EF}` });
+      facts: wy.length ? [{ k: '배출량 환산', v: `${fq(sumBy(wy, r => r.ghg || 0))} tCO₂eq` }] : [],
+      note: `발생량 = 봉투 용량(L) × 매수 × 0.174 kg/L · 배출량 = 발생량(ton) × ${WASTE_EF_TXT}` });
     // 용수
     const mw = metricRecs.filter(r => r.item === WATER && r.period.startsWith(yr + '-') && sites.includes(r.site));
     const byKey = (rs, keyOf) => { const by = {}; rs.forEach(r => { const k = keyOf(r); by[k] = (by[k] || 0) + (+r.value || 0); }); return by; };
@@ -8550,7 +8648,16 @@ body.intro-min .site-info .si-head{grid-row:auto}
       `<span class="yc-range${histMonYrs && !isAll ? ' on' : ''}"><select data-end="from" aria-label="비교 시작 연도">${opt(rng.from)}</select> ~ ` +
       `<select data-end="to" aria-label="비교 끝 연도">${opt(rng.to)}</select></span>` +
       (outside ? `<span class="yc-hint">+ 고른 연도 ${yrShort(fy)}</span>` : '');
-    $('h-ce-title').textContent = `월별 ${isGhg ? '온실가스 배출' : `${t} 사용량`}${histCum ? ' (누적)' : ''} 연도별 비교 (${unit})`;
+    const qty = t === RE_SELF ? '발전량' : t === SAVE_REGEN ? '회생 전력량' : '사용량';   // 재생에너지는 쓰는 게 아니라 만든 양
+    $('h-ce-title').textContent = `월별 ${isGhg ? '온실가스 배출' : `${t} ${qty}`}${histCum ? ' (누적)' : ''} 연도별 비교 (${unit})`;
+    // CSV: 지금 차트에 보이는 그대로 (거점 · 항목 · 비교 연도 · 월별/누적) — 행 = 1~12월, 열 = 연도
+    const shown = Object.fromEntries(ys.map(yy => [yy, histCum ? cum(data[yy]) : data[yy]]));
+    const cell = v => v == null ? '' : +(+v).toFixed(isGhg ? 3 : 2);
+    const mRows = MONTHS.map((m, i) => [m, ...ys.map(yy => cell(shown[yy][i]))]);
+    if (!histCum) mRows.push(['합계', ...ys.map(yy => data[yy].some(v => v != null) ? cell(sumBy(data[yy].filter(v => v != null), v => v)) : '')]);
+    histExports.monthly = { prefix: '실적조회', head: ['월', ...ys.map(yy => `${yy}년 (${unit})`)], rows: mRows,
+      name: [si || '전체거점', isGhg ? '온실가스' : t, histCum ? '월별누적' : '월별', ys.length > 1 ? `${ys[0]}-${ys[ys.length - 1]}` : ys[0]]
+        .map(s => String(s).replace(/[\\/:*?"<>|\s]+/g, '')).join('_') };
     $('h-mon-note').innerHTML = `${esc(si || '전체 거점')} · ${ys.length}개 연도 비교<span class="hd-legend"> · 굵은 주황 선 = 고른 연도(${yrShort(fy)})</span>`;
     if (chart) chart.options.scales.y.title.text = isGhg ? unit : `${unit} (${t})`;
     setChart(chart, 'h-chart-energy', 'h-ce-empty', ys.map((yy, i) => { const d = data[yy]; return {
@@ -8775,8 +8882,8 @@ body.intro-min .site-info .si-head{grid-row:auto}
   function renderWasteMatrix(years) {
     const cell = (y, sites) => { const rs = wasteRecs.filter(r => r.date?.startsWith(y) && sites.includes(r.site));
       if (!rs.length) return '<span class="cmp-na">—</span>';
-      const t = sumBy(rs, r => r.weightTon);
-      return `<span class="num">${fq(t)}</span> t<div class="cmp-sub">${fq(wasteGhg(t))} tCO₂eq</div>`; };
+      const t = sumBy(rs, r => r.weightTon), tg = sumBy(rs, r => r.ghg || 0);
+      return `<span class="num">${fq(t)}</span> t<div class="cmp-sub">${fq(tg)} tCO₂eq</div>`; };
     $('h-waste-tbl').innerHTML = !years.length ? '<tbody><tr><td class="table-empty">지난 연도 데이터가 없습니다</td></tr></tbody>' :
       `<thead><tr><th>청사</th>${years.map(y => `<th class="cmp-val">${yrLock(y)}</th>`).join('')}</tr></thead><tbody>` +
       [...SITES.map(s => [s, [s]]), ['합계', SITES]].map(([n, sites]) =>
@@ -8884,6 +8991,7 @@ body.intro-min .site-info .si-head{grid-row:auto}
   }
   $('rmap-ghg-long').addEventListener('click', () => setRmgAll(!rmgAll));
   $('rmap-ghg-export').addEventListener('click', () => exportHistory('ghgRoadmap'));
+  $('h-mon-export').addEventListener('click', () => exportHistory('monthly'));
 
   // 실적 조회 표 CSV 내보내기 (엑셀 한글 호환)
   function exportHistory(kind) {
@@ -9028,7 +9136,7 @@ body.intro-min .site-info .si-head{grid-row:auto}
       const out = k => tr.querySelector(`[data-out="${k}"]`);
       out('vol').textContent = has ? `${fq(vol)} L` : dash ? '해당없음' : '';
       out('kg').textContent  = has ? fq(kg) : '';
-      out('ghg').textContent = has ? fq(wasteGhg(kg / 1000)) : '';
+      out('ghg').textContent = has ? fq(wasteGhg(kg / 1000, tbl.dataset.site)) : '';
       if (has) { tv += vol; tkg += kg; any = true; }
     });
     // 수량을 적었는데 규격이 없는 열은 머리글을 빨갛게
@@ -9039,7 +9147,7 @@ body.intro-min .site-info .si-head{grid-row:auto}
       heads.map(h => `<td class="m-ghg wq-sum">${qty[h.dataset.col] != null ? `${fmt(qty[h.dataset.col], 0)}매` : ''}</td>`).join('') + `<td></td>
       <td class="m-ghg" style="text-align:right;color:var(--indigo)">${fq(tv)} L</td>
       <td class="m-ghg" style="text-align:right">${fq(tkg)} kg<div class="wg-ton">${fq(tkg / 1000)} ton</div></td>
-      <td class="m-ghg" style="text-align:right">${fq(wasteGhg(tkg / 1000))} tCO₂eq</td><td colspan="2"></td></tr>`;
+      <td class="m-ghg" style="text-align:right">${fq(wasteGhg(tkg / 1000, tbl.dataset.site))} tCO₂eq</td><td colspan="2"></td></tr>`;
   }
   // 저장: 바꾼 칸만 → { n: 저장 칸 수, d: 삭제 칸 수 } | false
   //  빈칸 = 그 규격 삭제 · 같은 규격이 여러 건이면 하나로 합침 · 머리글 L값을 바꾼 열은 옛 규격 행을 지우고 새 규격으로 다시 저장
@@ -9116,6 +9224,7 @@ body.intro-min .site-info .si-head{grid-row:auto}
       return;
     }
     const g = wasteGridParts(yr, si, false), tbl = $('waste-mtbl');
+    tbl.dataset.site = si;
     th.innerHTML = g.head; tb.innerHTML = g.body; tf.innerHTML = '';
     tbl.dataset.ncol = g.ncol;
     wasteGridRecalc(tbl);
@@ -9776,8 +9885,19 @@ body.intro-min .site-info .si-head{grid-row:auto}
     sel.innerHTML = '<option value="">입력·수정한 사람 전체</option>' + opts.map(([e, n]) => `<option value="${esc(e)}">${esc(n)}${e === me?.email ? ' (나)' : ''}</option>`).join('');
     sel.value = opts.some(([e]) => e === keep) ? keep : '';
   }
+  // 항목 필터: 유형에 맞는 항목만 (에너지 = 에너지원 · 기타 지표 = 용수 등) · 폐기물은 항목이 하나라 숨김
+  function fillItemFilter() {
+    const sel = $('m-item'), ty = $('m-type').value, cur = sel.value;
+    const en = Object.keys(GHG), mt = v2 ? Object.keys(METRICS) : [];
+    const grp = (label, ks) => ks.length ? `<optgroup label="${label}">${ks.map(k => `<option value="${esc(k)}">${esc(k)}</option>`).join('')}</optgroup>` : '';
+    sel.hidden = ty === 'waste';
+    sel.innerHTML = '<option value="">항목 전체</option>' +
+      (ty === 'metric' ? grp('기타 지표', mt) : ty === 'energy' ? grp('에너지', en) : grp('에너지', en) + grp('기타 지표', mt));
+    sel.value = [...sel.options].some(o => o.value === cur) && !sel.hidden ? cur : '';
+  }
   function getManageRows() {
     const yr = $('m-year').value, si = $('m-site').value, ty = $('m-type').value, who = whoMap ? $('m-who').value : '';
+    const item = $('m-item').hidden ? '' : $('m-item').value;
     let rows = [];
     if (!ty || ty === 'energy') rows = rows.concat(energyRecs
       .filter(r => (!yr || r.date?.startsWith(yr)) && (!si || r.site === si))
@@ -9789,12 +9909,14 @@ body.intro-min .site-info .si-head{grid-row:auto}
       .filter(r => (!yr || r.period.startsWith(yr)) && (!si || r.site === si))
       .map(r => ({ ...r, date: r.period, _t: 'metric' })));
     if (who) rows = rows.filter(r => whoOf(recTable(r), r.id)?.by === who);
+    if (item) rows = rows.filter(r => (r._t === 'energy' && r.type === item) || (r._t === 'metric' && r.item === item));
     rows.sort((a, b) => (b.date || '').localeCompare(a.date || '') || (b.createdAt || 0) - (a.createdAt || 0));
     return rows;
   }
 
   function renderManage() {
     fillWhoFilter();
+    fillItemFilter();
     const rows = getManageRows();
     const total = rows.length;
     const pageCount = Math.ceil(total / PAGE_SIZE);
@@ -9824,7 +9946,7 @@ body.intro-min .site-info .si-head{grid-row:auto}
         : im ? `<span class="num">${mu === '대' ? fmt(r.value, 0) : fq(r.value)}</span> ${esc(mu)}`
         : `<span class="num">${esc(r.bagSize)}L×${esc(r.qty)}매</span> = <span class="num" style="color:var(--indigo)">${fq(r.bagSize*r.qty)}</span>L → <span class="num">${fq(r.weightTon)}</span>ton`;
       const ghg = im ? `<span style="color:var(--muted);font-size:11px">해당 없음</span>`
-        : !ie ? `<span class="num">${fq(wasteGhg(+r.weightTon || 0))}</span> tCO₂eq`
+        : !ie ? `<span class="num">${fq(r.ghg || 0)}</span> tCO₂eq`
         : !isEmit(r.type) ? `<span style="color:var(--muted);font-size:11px">배출 없음</span>`
         : `<span class="num">${fq(r.ghg)}</span> tCO₂eq`;
       const locked = isClosed((r.date || '').slice(0, 4)), dis = locked ? ' disabled title="마감된 연도라 고칠 수 없어요"' : '';
@@ -9876,7 +9998,8 @@ body.intro-min .site-info .si-head{grid-row:auto}
 
   /* ── CSV 내보내기 ────────────────────────────────────── */
   function exportCSV() {
-    const rows = getManageRows();
+    // 시계열로 쓰기 좋게 오래된 달부터 · 같은 달은 거점 순
+    const rows = getManageRows().slice().sort((a, b) => (a.date || '').localeCompare(b.date || '') || SITES.indexOf(a.site) - SITES.indexOf(b.site));
     if (!rows.length) { showToast('내보낼 데이터가 없습니다', 'err'); return; }
     const headers = ['기간', '거점', '유형', '에너지원/항목', '사용량', '단위', 'Scope', 'GHG(tCO2eq)', '폐기물(ton)', '비고', '등록일'];
     const csvRows = rows.map(r => {
@@ -9885,7 +10008,7 @@ body.intro-min .site-info .si-head{grid-row:auto}
       } else if (r._t === 'metric') {
         return [r.period, r.site, '기타 지표', r.item, r.value, METRICS[r.item]?.unit || r.unit || '', '', '', '', r.note || '', fmtTs(r.createdAt)];
       } else {
-        return [r.date, r.site, '폐기물', `종량제${r.bagSize}L×${r.qty}매`, r.qty, '매', 'Scope 3', wasteGhg(+r.weightTon || 0), r.weightTon, r.note || '', fmtTs(r.createdAt)];
+        return [r.date, r.site, '폐기물', `종량제${r.bagSize}L×${r.qty}매`, r.qty, '매', 'Scope 3', r.ghg || 0, r.weightTon, r.note || '', fmtTs(r.createdAt)];
       }
     });
     const BOM = '﻿';
@@ -9896,7 +10019,11 @@ body.intro-min .site-info .si-head{grid-row:auto}
     const url  = URL.createObjectURL(blob);
     const a    = document.createElement('a');
     a.href = url;
-    a.download = `NIA_환경경영_${new Date().toISOString().slice(0, 10)}.csv`;
+    // 파일 이름에 고른 조건을 넣음 — 예: NIA_환경경영_제주글로벌센터_재생에너지_2025_2026-11-06.csv
+    const item = $('m-item').hidden ? '' : $('m-item').value;
+    const tags = [$('m-site').value, item || ({ energy: '에너지', waste: '폐기물', metric: '기타지표' })[$('m-type').value], $('m-year').value]
+      .filter(Boolean).map(s => String(s).replace(/[\\/:*?"<>|\s]+/g, ''));
+    a.download = `NIA_환경경영_${tags.length ? tags.join('_') + '_' : ''}${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
     showToast(`📥 ${rows.length}건 CSV 내보내기 완료`);
@@ -10217,6 +10344,77 @@ body.intro-min .site-info .si-head{grid-row:auto}
     } catch (e) { showToast('저장 실패: ' + e.message, 'err'); }
     $('toe-save').disabled = false;
   });
+  /* ── 배출계수 이력 (env_settings.ghg_factor_log) ─────────────── */
+  function renderFactorLog() {
+    const now = $('fl-now'); if (!now) return;
+    const cf = currentFactors();
+    now.innerHTML = EMIT_TYPES.map(t => `<tr><td class="ct-nm">${esc(t)}</td><td>${esc(GHG[t]?.unit || '')}</td><td class="fl-f">${factorStr(cf.energy[t])}</td><td class="fl-src">${esc(GHG[t]?.src || GHG[t]?.desc || '')}</td></tr>`).join('')
+      + `<tr><td class="ct-nm">폐기물 · 대구본원</td><td>ton</td><td class="fl-f">${factorStr(WASTE_EF['대구본원'])}</td><td class="fl-src" rowspan="2">소각·매립 계수: 한국환경산업기술원 환경성적표지 평가계수(탄소발자국) · 처리비율: 2024년 전국 폐기물 발생·처리현황 p.72(대구)·p.86(제주) · 발생량 환산 0.174 kg/L: 환경정보공개시스템 비가정부문 환산기준</td></tr>`
+      + `<tr><td class="ct-nm">폐기물 · 제주글로벌센터</td><td>ton</td><td class="fl-f">${factorStr(WASTE_EF['제주글로벌센터'])}</td></tr>`;
+    $('fl-list').innerHTML = factorLog.length
+      ? factorLog.map(e => `<li><b>${esc(e.date)}</b> ${esc(e.note || '')}${e.by ? `<span class="fl-by"> · ${esc(e.by)}</span>` : ''}</li>`).join('')
+      : '<li class="fl-empty">아직 기록된 이력이 없어요 — 계수를 개정하면 적용일과 내용을 남겨 두세요.</li>';
+    $('fl-add').disabled = !canEdit();
+  }
+  $('fl-add')?.addEventListener('click', async () => {
+    const date = ($('fl-date').value || '').trim(), note = ($('fl-note').value || '').trim();
+    if (!FL_DATE.test(date)) { showToast('적용일(월)을 넣어 주세요', 'err'); $('fl-date').focus(); return; }
+    if (!note) { showToast('변경 내용을 간단히 적어 주세요', 'err'); $('fl-note').focus(); return; }
+    if (factorLog.some(e => e.date === date && e.note === note)) { showToast('같은 이력이 이미 있어요', 'err'); return; }
+    if (!(await confirmBox('배출계수 이력에 추가할까요?', '추가', `${date} · ${note}\n지금 적용 중인 계수가 함께 기록돼요.`, 'primary'))) return;
+    $('fl-add').disabled = true;
+    try {
+      const entry = { date, note, by: (me?.name || me?.email || ''), at: new Date().toISOString(), factors: currentFactors() };
+      const next = [entry, ...factorLog].slice(0, 50);
+      await sb('POST', 'env_settings', '?on_conflict=key', [{ key: 'ghg_factor_log', value: next }], 'resolution=merge-duplicates,return=minimal');
+      $('fl-date').value = ''; $('fl-note').value = '';
+      await refresh({ force: true });
+      showToast('✅ 배출계수 이력을 기록했어요');
+    } catch (e) { showToast('저장 실패: ' + e.message, 'err'); }
+    $('fl-add').disabled = false;
+  });
+  /* ── 연도별 공식 확정 배출량 (env_settings.official_ghg) ──────── */
+  const ogMonth = d => /^\d{4}-\d{2}$/.test(String(d)) ? String(d) : '';
+  const ogYears = () => [...new Set([...(settings.closed_years || []), ...energyRecs.map(r => (r.date || '').slice(0, 4)).filter(Boolean)])]
+    .filter(y => /^\d{4}$/.test(y)).sort().reverse().slice(0, 8);
+  const yearCalcTotal = y => sumBy(energyRecs.filter(r => r.date && r.date.slice(0, 4) === y && isEmit(r.type)), r => r.ghg || 0);
+  function renderOfficialGhg() {
+    const tb = $('og-tbody'); if (!tb) return;
+    const ed = canEdit();
+    tb.innerHTML = ogYears().map(y => {
+      const o = officialGhg[y] || {}, calc = yearCalcTotal(y);
+      const diff = (o.total != null) ? (+o.total - calc) : null;
+      const diffTxt = diff == null ? '-' : (diff >= 0 ? '+' + fq(diff) : '△' + fq(Math.abs(diff)));
+      return `<tr data-y="${y}"><td class="ct-nm">${esc(yrShort(y))}</td>` +
+        `<td><input type="number" class="og-total" data-y="${y}" step="any" min="0" value="${o.total != null ? o.total : ''}" placeholder="미기록" ${ed ? '' : 'disabled'} aria-label="${y} 공식 확정"></td>` +
+        `<td><input type="month" class="og-date" data-y="${y}" value="${esc(ogMonth(o.date))}" ${ed ? '' : 'disabled'} aria-label="${y} 확정일"></td>` +
+        `<td><input type="text" class="og-note" data-y="${y}" maxlength="80" value="${esc(o.note || '')}" placeholder="예: NGMS 명세서 확정" ${ed ? '' : 'disabled'} aria-label="${y} 비고"></td>` +
+        `<td class="fl-f">${calc > 0 ? fq(calc) : '-'}</td><td class="fl-f">${diffTxt}</td></tr>`;
+    }).join('');
+    $('og-save').disabled = !ed;
+  }
+  $('og-save')?.addEventListener('click', async () => {
+    const next = {};
+    document.querySelectorAll('.og-total').forEach(inp => {
+      const y = inp.dataset.y, t = (inp.value || '').trim();
+      if (t === '' || !Number.isFinite(+t) || +t < 0) return;
+      const date = document.querySelector(`.og-date[data-y="${y}"]`)?.value || '';
+      const note = (document.querySelector(`.og-note[data-y="${y}"]`)?.value || '').trim();
+      next[y] = { total: +t, date: /^\d{4}-\d{2}$/.test(date) ? date : '', note };
+    });
+    if (JSON.stringify(next) === JSON.stringify(officialGhg)) { showToast('바뀐 값이 없습니다', 'err'); return; }
+    const ys = Object.keys(next).sort();
+    if (!(await confirmBox('공식 확정 배출량을 저장할까요?', '저장',
+      (ys.length ? ys.map(y => `${yrShort(y)}: ${fq(next[y].total)} tCO₂eq`).join('\n') : '모든 연도 비움') +
+      '\n대시보드 산정값과 나란히 비교에 쓰여요.', 'primary'))) return;
+    $('og-save').disabled = true;
+    try {
+      await sb('POST', 'env_settings', '?on_conflict=key', [{ key: 'official_ghg', value: next }], 'resolution=merge-duplicates,return=minimal');
+      await refresh({ force: true });
+      showToast('✅ 공식 확정 배출량을 저장했어요');
+    } catch (e) { showToast('저장 실패: ' + e.message, 'err'); }
+    $('og-save').disabled = false;
+  });
   /* ── 태양광 설비·증설 계획 설정 (env_settings.solar_plants) ──── */
   let solarDraft = [], solarDirty = false;
   function renderSolarTbl() {
@@ -10401,7 +10599,7 @@ body.intro-min .site-info .si-head{grid-row:auto}
     const d = r.new_data || r.old_data || {};
     if (r.table_name === 'app_users') return [d.name, d.email].filter(Boolean).join(' · ');
     if (r.table_name === 'env_settings') return d.key === 'closed_years' ? '연도 마감' : d.key === 'waste_roadmap' ? '폐기물 감축 로드맵'
-      : d.key === 'ghg_base' ? '온실가스 기준배출량' : d.key === 'ghg_own' ? '온실가스 자체 목표' : d.key === 'ghg_law' ? '법적 목표(권장감축률)' : d.key === 'ghg_law_tent' ? '법적 목표 미확정 참고값' : d.key === 'it_metrics' ? 'PUE·클라우드 전환률' : d.key === 'na_cells' ? "해당없음('-') 칸" : d.key === 'site_na' ? '거점별 적용 항목' : d.key === 'toe_factor' ? 'TOE 환산계수' : d.key === 'solar_plants' ? '태양광 설비·증설 계획' : d.key || '';
+      : d.key === 'ghg_base' ? '온실가스 기준배출량' : d.key === 'ghg_own' ? '온실가스 자체 목표' : d.key === 'ghg_law' ? '법적 목표(권장감축률)' : d.key === 'ghg_law_tent' ? '법적 목표 미확정 참고값' : d.key === 'it_metrics' ? 'PUE·클라우드 전환률' : d.key === 'na_cells' ? "해당없음('-') 칸" : d.key === 'site_na' ? '거점별 적용 항목' : d.key === 'toe_factor' ? 'TOE 환산계수' : d.key === 'solar_plants' ? '태양광 설비·증설 계획' : d.key === 'ghg_factor_log' ? '배출계수 이력' : d.key === 'official_ghg' ? '공식 확정 배출량' : d.key || '';
     const what = r.table_name === 'waste' ? '종량제 봉투' : (d.type || d.item || '');
     return [fmtYM(d.date || d.period), d.site, what].filter(Boolean).join(' · ');
   }
@@ -10670,7 +10868,7 @@ body.intro-min .site-info .si-head{grid-row:auto}
     if (b) gotoInput(b.dataset.site, b.dataset.item, b.dataset.year);
   });
   $('status-year').addEventListener('change', renderStatusBoard);
-  ['m-year', 'm-site', 'm-type', 'm-who'].forEach(id => $(id).addEventListener('change', () => { managePage = 0; renderManage(); }));
+  ['m-year', 'm-site', 'm-type', 'm-item', 'm-who'].forEach(id => $(id).addEventListener('change', () => { managePage = 0; renderManage(); }));
 
   /* ── 수정/삭제 ───────────────────────────────────────── */
   let editState = null;
@@ -11133,12 +11331,12 @@ body.intro-min .site-info .si-head{grid-row:auto}
       const kg = sumBy(rs, wKg); tk += kg;
       return `<tr data-month="${m}"><td class="dc-name">${i + 1}월</td>` +
         `<td class="dr-cell dr-bags">${Object.entries(by).sort((x, y) => x[0] - y[0]).map(([sz, q]) => bag(sz, q)).join('')}</td>` +
-        `<td class="dr-cell"><span class="dr-v">${fq(kg)}</span></td><td class="dr-cell dc-wg"><span class="dr-v">${fq(wasteGhg(kg / 1000))}</span></td>` +
+        `<td class="dr-cell"><span class="dr-v">${fq(kg)}</span></td><td class="dr-cell dc-wg"><span class="dr-v">${fq(wasteGhg(kg / 1000, si))}</span></td>` +
         (noteCol ? `<td class="dr-cell dr-note dc-wn">${esc(rs.map(r => r.note || '').find(Boolean) || '')}</td>` : '') + '</tr>';
     }).join('');
     return `<table class="dr-tbl dr-waste view"><thead><tr><th class="dc-name">월</th><th>산 봉투<small>규격 × 매수</small></th><th>발생량<small>kg</small></th><th class="dc-wg">배출량<small>tCO₂eq</small></th>${noteCol ? '<th class="dc-wn">비고</th>' : ''}</tr></thead>` +
       `<tbody>${body}</tbody>` + (any ? `<tfoot><tr class="dr-tot"><td class="dc-name">합계</td><td class="dr-bags">${Object.entries(tq).sort((x, y) => x[0] - y[0]).map(([sz, q]) => bag(sz, q, '')).join('')}</td>` +
-        `<td><span class="dr-v">${fq(tk)}</span></td><td class="dc-wg"><span class="dr-v">${fq(wasteGhg(tk / 1000))}</span></td>${noteCol ? '<td class="dc-wn"></td>' : ''}</tr></tfoot>` : '') + '</table>';
+        `<td><span class="dr-v">${fq(tk)}</span></td><td class="dc-wg"><span class="dr-v">${fq(wasteGhg(tk / 1000, si))}</span></td>${noteCol ? '<td class="dc-wn"></td>' : ''}</tr></tfoot>` : '') + '</table>';
   }
   // 전년 같은 칸(거점|에너지원|월)의 온실가스 — 요약의 전년 비교용 (팝업을 그릴 때 한 번 모아 둠)
   function drillPrevMap(c) {
@@ -11159,7 +11357,7 @@ body.intro-min .site-info .si-head{grid-row:auto}
     const kg = sumBy(rs, wKg), ms = new Set(rs.map(r => r.date.slice(5, 7)));
     const prs = wasteRecs.filter(r => r.date?.startsWith(String(+yr - 1)) && r.site === si && ms.has(r.date.slice(5, 7))), pkg = sumBy(prs, wKg);
     return dsMain(`${yrShort(yr)} 폐기물 발생량`, `${ms.size}개월`, kg / 1000, 'ton', prs.length && pkg > 0 ? (kg - pkg) / pkg * 100 : null, ms.size < 12 ? `전년 같은 ${ms.size}개월 대비` : '전년 대비') +
-      `<div class="ds-sites"><div class="ds-site"><span>배출량 (Scope 3)</span><b>${fq(wasteGhg(kg / 1000))}<small>tCO₂eq</small></b></div></div>`;
+      `<div class="ds-sites"><div class="ds-site"><span>배출량 (Scope 3)</span><b>${fq(wasteGhg(kg / 1000, si))}<small>tCO₂eq</small></b></div></div>`;
   }
   // 값이 바뀔 때마다 (보기 화면은 그릴 때 한 번): 합계 · 온실가스 열 · 달마다 온실가스 · 요약 카드 · 바뀐 칸 표시
   function drillRecalc() {
@@ -11275,7 +11473,7 @@ body.intro-min .site-info .si-head{grid-row:auto}
     $('drill-pick').classList.toggle('all', drillAll);
     drillApplyPick();
     drillMoreBtn();
-    $('drill-note').textContent = c.kind === 'waste' ? '발생량 = 봉투 용량(L) × 매수 × 0.174 kg/L · 배출량 = 발생량(t) × 0.474 tCO₂eq/t'
+    $('drill-note').textContent = c.kind === 'waste' ? '발생량 = 봉투 용량(L) × 매수 × 0.174 kg/L · 배출량 = 발생량(t) × 사업장별 유효계수(대구 0.477 · 제주 1.138 · 서울 미산정)'
       : c.kind === 'month' ? '' : '온실가스 = 그 달 Scope 1+2 합계 · 막대 = 가장 많은 달 대비';
     $('drill-save').hidden = !edit;
     $('drill-edit').hidden = locked || edit;
