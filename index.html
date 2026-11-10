@@ -5144,9 +5144,17 @@ body.intro-min .site-info .si-head{grid-row:auto}
         return { ...l, lineDash: [], ...(lc ? { fillStyle: lc, strokeStyle: lc } : {}) };
       }),
       sort: (a, b) => a.datasetIndex - b.datasetIndex } };
+    // 격자·축 — 꾸밈은 한 겹만. 값을 읽는 데 필요한 가로 격자만 남기고,
+    //  세로 격자는 끈다 (막대와 x 눈금이 이미 구간을 나누고 있어 겹친다).
+    //  축선과 눈금 돌기도 뺀다 — 격자가 있는데 테두리까지 그으면 상자 안에 갇혀 보인다.
+    //  세로 격자가 필요한 차트는 xGrid 로 다시 켤 수 있다.
     const scales = (stacked = false, yTitle = '', grace = 0, xTicks = {}, xGrid = {}) => ({
-      x: { stacked, ticks: { color: tick, ...xTicks }, grid: { color: grid, ...xGrid } },
-      y: { stacked, ticks: { color: tick }, grid: { color: grid }, beginAtZero: true, grace,
+      x: { stacked, border: { display: false },
+           ticks: { color: tick, font: { size: 11 }, padding: 6, ...xTicks },
+           grid: { display: false, ...xGrid } },
+      y: { stacked, border: { display: false },
+           ticks: { color: tick, font: { size: 11 }, padding: 8 },
+           grid: { color: grid, drawTicks: false }, beginAtZero: true, grace,
            title: { display: !!yTitle, text: yTitle, color: tick, font: { size: 11 } } } });
     const tip = unit => ({ callbacks: { label: c => c.raw == null ? null : `${c.dataset.label}: ${fq(c.raw)} ${unit}` } });
     // 올해 연말 예측·전망 막대에 올리면 '누르면 계산 근거' 한 줄
@@ -6464,7 +6472,7 @@ body.intro-min .site-info .si-head{grid-row:auto}
 
     // ② 차량연료 (L) — 이제 위 에너지원별 작은 그래프의 휘발유·경유 칸(실적·예측·전년 같은 달)으로 봄 · 예전 그래프는 숨김
     setChart(set.fuel, P + 'chart-fuel', P + 'cf-empty', ['휘발유', '경유'].map(t => ({
-      label: `${t} (L)`, $type: t, data: monthlySum(ey.filter(r => r.type === t), r => r.amount), backgroundColor: hexA(typeCol(t), .8), borderRadius: 3 })));
+      label: `${t} (L)`, $type: t, data: monthlySum(ey.filter(r => r.type === t), r => r.amount), backgroundColor: hexA(typeCol(t), .8), borderRadius: 4 })));
     $$('cf-card').hidden = true;
 
     // ③ 월별 온실가스: 입력된 실적(Scope 1·2 또는 에너지원별) 위에 아직 입력 안 된 거점·항목의 예측 막대를 쌓음
@@ -6473,9 +6481,9 @@ body.intro-min .site-info .si-head{grid-row:auto}
     const ghgM = test => monthlySum(ey.filter(r => isEmit(r.type) && test(r)), r => r.ghg);
     const actual = byType
       ? EMIT_TYPES.filter(t => !itemNA(si, t)).map(t => ({ label: t, $type: t, data: ghgM(r => r.type === t),
-          $amt: monthlySum(ey.filter(r => r.type === t), r => r.amount), backgroundColor: hexA(typeCol(t), .85), borderRadius: 3 }))
-      : [{ label: 'Scope 1 실적', data: ghgM(r => scopeOf(r.type) === 'Scope 1'), backgroundColor: `rgba(${S1C},0.82)`, borderRadius: 3 },
-         { label: 'Scope 2 실적', data: ghgM(r => scopeOf(r.type) === 'Scope 2'), backgroundColor: `rgba(${S2C},0.85)`, borderRadius: 3 }];
+          $amt: monthlySum(ey.filter(r => r.type === t), r => r.amount), backgroundColor: hexA(typeCol(t), .85), borderRadius: 4 }))
+      : [{ label: 'Scope 1 실적', data: ghgM(r => scopeOf(r.type) === 'Scope 1'), backgroundColor: `rgba(${S1C},0.82)`, borderRadius: 4 },
+         { label: 'Scope 2 실적', data: ghgM(r => scopeOf(r.type) === 'Scope 2'), backgroundColor: `rgba(${S2C},0.85)`, borderRadius: 4 }];
     const hasAct  = m12(i => actual.some(d => d.data[i] != null));
     const predAll = m12(i => showPred ? (fc.predGhgS1[i] ?? 0) + (fc.predGhgS2[i] ?? 0) : 0);
     const partial = m12(i => hasAct[i] && predAll[i] > 0);
@@ -6495,7 +6503,7 @@ body.intro-min .site-info .si-head{grid-row:auto}
     setChart(set.ghg, P + 'chart-ghg-monthly', P + 'cgm-empty', [
       ...actual,
       { label: '예측 (미입력분)', data: m12(i => predAll[i] > 0 ? predAll[i] : null),
-        backgroundColor: 'rgba(96,165,250,0.28)', borderColor: 'rgba(96,165,250,0.95)', borderWidth: 1.5, borderRadius: 3 },
+        backgroundColor: 'rgba(96,165,250,0.28)', borderColor: 'rgba(96,165,250,0.95)', borderWidth: 1.5, borderRadius: 4 },
     ]);
 
     // ④-1 월별 승강기 회생제동 발전량 (kWh) — 대구본원(또는 전체 합계)일 때만 · 폐기물 그래프 왼쪽 · 전년 같은 달은 점선
@@ -6507,7 +6515,7 @@ body.intro-min .site-info .si-head{grid-row:auto}
       if (set.regen) { set.regen.data.labels = MONTHS; set.regen.options.plugins.legend.display = prev.length > 0;
                        const rv = rgMon(cur); set.regen.options.plugins.barLabels.only = labelPicks(rv, rv.map(v => v != null)); }
       setChart(set.regen, P + 'chart-regen', P + 'crg-empty', !cur.length ? [] : [
-        { type: 'bar', label: `${yrShort(year)} 발전량`, data: rgMon(cur), order: 2, backgroundColor: '#0D9488', borderRadius: 3, maxBarThickness: 36 },
+        { type: 'bar', label: `${yrShort(year)} 발전량`, data: rgMon(cur), order: 2, backgroundColor: '#0D9488', borderRadius: 4, maxBarThickness: 36 },
         ...(prev.length ? [{ type: 'line', label: `${yrShort(year - 1)} (전년)`, data: rgMon(prev), order: 1, borderColor: '#94A3B8', backgroundColor: '#94A3B8',
           borderDash: [5, 4], borderWidth: 1.5, pointRadius: 2.5, tension: .3, spanGaps: true }] : []),
       ]);
@@ -6523,7 +6531,7 @@ body.intro-min .site-info .si-head{grid-row:auto}
                   const wt = m12(i => wSites.reduce((a, s) => a + (wMon(wy, s)[i] || 0), 0)); set.ws.options.plugins.barLabels.only = labelPicks(wt, wt.map(v => v > 0)); }
     setChart(set.ws, P + 'chart-ws', P + 'cw-empty', !wy.length ? [] : [
       ...wSites.map(s => ({ type: 'bar', label: si ? `${yrShort(year)} 발생량` : s, $site: s, data: wMon(wy, s), stack: 'w', order: 2,
-        backgroundColor: SITE_COL[s], borderRadius: 3, maxBarThickness: 36 })),
+        backgroundColor: SITE_COL[s], borderRadius: 4, maxBarThickness: 36 })),
       ...(prevW.length ? [{ type: 'line', label: `${yrShort(year - 1)} (전년)`, data: prevMon, order: 1, borderColor: '#94A3B8', backgroundColor: '#94A3B8',
         borderDash: [5, 4], borderWidth: 1.5, pointRadius: 2.5, tension: .3, spanGaps: true, stack: 'prev' }] : []),
     ]);
@@ -8828,7 +8836,7 @@ body.intro-min .site-info .si-head{grid-row:auto}
     if (path50) path50.data.labels = ys.map(yrShort);
     setChart(path50, path50Id, path50Empty, [
       base(ys),
-      { type: 'bar', label: '배출 실적', order: 2, grouped: false, borderRadius: 3, maxBarThickness: 14, legendColor: navy, data: ys.map(act), backgroundColor: navy },
+      { type: 'bar', label: '배출 실적', order: 2, grouped: false, borderRadius: 4, maxBarThickness: 14, legendColor: navy, data: ys.map(act), backgroundColor: navy },
       ...predBar(ys, 14),
       { type: 'line', label: '자체 배출목표', order: 1, data: ys.map(yy => ROADMAP[yy]?.target ?? null), legendColor: TEAL,
         markIdx: ys.map((yy, i) => MS.has(yy) ? i : -1).filter(i => i >= 0),
@@ -8879,7 +8887,7 @@ body.intro-min .site-info .si-head{grid-row:auto}
     // 2050 장기: 목표 경로(면) + 연도별 이행률 · 30·50년 목표 값 표시
     if (re50) re50.data.labels = ys.map(yrShort);
     setChart(re50, path50Id, path50Empty, [
-      { type: 'bar', label: 'RE100 이행률', order: 2, grouped: false, borderRadius: 3, maxBarThickness: 14, legendColor: G, data: ys.map(act), valueLabels: ys.map(yy => pctL(act(yy))), backgroundColor: G },
+      { type: 'bar', label: 'RE100 이행률', order: 2, grouped: false, borderRadius: 4, maxBarThickness: 14, legendColor: G, data: ys.map(act), valueLabels: ys.map(yy => pctL(act(yy))), backgroundColor: G },
       ...predBar(ys, 14),
       goal(ys, { fill: 'origin', backgroundColor: hexA(AMBER, .06), pointBackgroundColor: AMBER,
                  markIdx: ys.map((yy, i) => yy === '2030' || yy === '2050' ? i : -1).filter(i => i >= 0) }),
@@ -8986,7 +8994,7 @@ body.intro-min .site-info .si-head{grid-row:auto}
       Object.assign(set.scope.options.scales.x.ticks, { color: c => c.index === fi ? '#F1F5F9' : tick,
                                                          font: c => ({ size: 12, weight: c.index === fi ? '700' : '400' }) });
     }
-    const bar = (label, data, c, extra = {}) => ({ label, data, backgroundColor: c, legendColor: c, borderRadius: 3, maxBarThickness: 56, ...extra });
+    const bar = (label, data, c, extra = {}) => ({ label, data, backgroundColor: c, legendColor: c, borderRadius: 4, maxBarThickness: 56, ...extra });
     const GK = { '전력': 'elec', '도시가스': 'gas', '지역난방': 'heat', '휘발유': 'gasoline', '경유': 'diesel' };
     const s3 = bar(by === 'scope' ? 'Scope 3' : '폐기물 (Scope 3)', years.map(yy => S[yy].s3), S3C);   // 쌓은 합계는 나눠 보는 방식과 관계없이 같음
     setChart(set.scope, 'h-chart-scope', 'h-cs-empty',
