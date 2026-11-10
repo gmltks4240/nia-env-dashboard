@@ -1871,6 +1871,44 @@ body:has(#tab-home.active) .btn-login{border-color:var(--h-line);color:var(--h-p
 #tab-home .evq-op{color:var(--h-line)}
 #tab-home .td-go,#tab-home .nc-go{color:var(--h-accent)}
 #tab-home .td-i{color:var(--h-muted)}
+/* ── 메인 조판 ──
+   굵기로 위계를 만들지 못하고 있었다. 제목 800·라벨 800·값 700이라 전부 굵으니
+   무엇이 중요한지 굵기가 말해 주지 못하고 화면만 둔탁해진다.
+   굵기는 400(본문) / 500(라벨) / 600(제목·값) 세 단계만 쓰고,
+   강조는 굵기 대신 크기와 색으로 준다. 큰 숫자는 자간을 좁혀야 덩어리로 읽힌다. */
+#tab-home{font-weight:400;letter-spacing:-.005em}
+#tab-home h2,#tab-home h3,#tab-home b,#tab-home strong{font-weight:600}
+#tab-home .home-sec-hd h3{font-size:17px;letter-spacing:-.015em}
+#tab-home .hs-note{font-weight:400}
+#tab-home .ev-lbl b{font-weight:500;letter-spacing:.02em}
+
+/* 큰 숫자 — 이 화면의 주인공. 크게, 자간은 좁게, 자릿수는 흔들리지 않게 */
+#tab-home .evq-tot .et-v{font-size:44px;font-weight:600;letter-spacing:-.035em;
+  font-variant-numeric:tabular-nums lining-nums}
+#tab-home .evq-tot .et-v small{font-size:15px;font-weight:400;letter-spacing:0;color:var(--h-muted)}
+#tab-home .kpi-value,#tab-home .ev-v{font-weight:600;letter-spacing:-.025em;
+  font-variant-numeric:tabular-nums lining-nums}
+#tab-home .et-k{font-weight:500;letter-spacing:.01em}
+
+/* 본문·라벨 — 덜 굵게, 줄간은 조금 좁게 */
+#tab-home .et-say,#tab-home .nc-d,#tab-home .td-t{font-weight:400;line-height:1.55}
+#tab-home .nc-k{font-weight:600;letter-spacing:-.01em}
+#tab-home .nc-go{font-weight:500}
+
+/* 카드 — 선을 줄이고 여백으로 나눈다. 선이 많으면 빽빽해 보인다. */
+#tab-home .ev-block{padding:22px 22px 20px;border-radius:16px}
+#tab-home .kpi-card{border:0;border-radius:12px;padding:18px 18px 16px}
+#tab-home .evq{gap:10px}
+#tab-home .evq-op{font-weight:400;opacity:.5}
+
+/* 진행 막대 — 얇고 둥글게 */
+#tab-home .et-bar,#tab-home .gs-bar{height:4px;border-radius:999px;overflow:hidden}
+#tab-home .et-bar i,#tab-home .gs-bar i{border-radius:999px}
+
+/* 숨 쉴 자리 */
+#tab-home .home-sec{margin-bottom:34px}
+#tab-home .home-sec-hd{margin-bottom:14px}
+
 /* 신호색 — 달성/미달 */
 #tab-home .ok,#tab-home .good{color:var(--h-ok)}
 #tab-home .bad,#tab-home .warn{color:var(--h-over)}
