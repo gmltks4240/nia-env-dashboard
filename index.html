@@ -1821,8 +1821,7 @@ table.main-tbl tr:hover td{background:var(--surface2)}
    바탕에 옅은 초록 기운을 넣어 환경 주제에 맞췄다. 모든 글자색은 세 바탕 모두에서 4.5:1 이상.
    색만으로 뜻을 나르지 않는다 — 미달에는 ✕ 과 '미달 전망' 글자가 늘 함께 간다.
    적용 범위는 #tab-home 뿐이라, 마음에 안 들면 이 블록만 지우면 원래대로 돌아간다. */
-body:has(#tab-home.active){--h-ink:#0E1714;--h-panel:#16211D;--h-panel-2:#1D2A25;--h-line:#2B3A34;
-  --h-paper:#E7EDE9;--h-muted:#94A79D;--h-accent:#7FB3A8;--h-ok:#46C98C;--h-over:#FF6B5E;
+body:has(#tab-home.active){--h-ink:#0F172A;--h-panel:#1E293B;--h-panel-2:#273549;--h-line:#334155;--h-paper:#F1F5F9;--h-muted:#94A3B8;--h-accent:#60A5FA;--h-ok:#4ADE80;--h-over:#FCA5A5;
   background:var(--h-ink)}
 body:has(#tab-home.active) .tab-nav{background:var(--h-panel);border-bottom-color:var(--h-line)}
 body:has(#tab-home.active) .tab-btn{color:var(--h-muted)}
@@ -6705,7 +6704,7 @@ body.intro-min .site-info .si-head{grid-row:auto}
   function yearStat(y, sites) {
     const e = energyRecs.filter(r => r.date?.startsWith(y) && sites.includes(r.site));
     const w = wasteRecs.filter(r => r.date?.startsWith(y) && sites.includes(r.site));
-    const m = metricRecs.filter(r => r.period.slice(0, 4) === y && sites.includes(r.site));
+    const m = metricRecs.filter(r => r.period?.slice(0, 4) === y && sites.includes(r.site));
     const ghg = sc => sumBy(e.filter(r => isEmit(r.type) && scopeOf(r.type) === sc), r => r.ghg);
     const amt = (...ts) => { const rs = e.filter(r => ts.includes(r.type)); return rs.length ? sumBy(rs, r => r.amount) : null; };
     const mx  = item => { const rs = m.filter(r => r.item === item); return rs.length ? sumBy(rs, r => r.value) : null; };
@@ -6855,7 +6854,11 @@ body.intro-min .site-info .si-head{grid-row:auto}
   // 그 해 계량 점수 묶음 — ready가 false면 '판단 전'
   function evalScore(y, ghgPred) {
     const g = evalGhg(y, ghgPred), e = evalEnergy(y);
-    return { y, g, e, got: (g?.pt || 0) + (e?.pt || 0), full: EVAL.ghgPt + EVAL.enPt, ready: !!g && !!e };
+    // judged = 지금 판단할 수 있는 만점. 자료가 없어 못 재는 항목은 분모에서 뺀다 —
+    // 그래야 '0.0 / 100점'이 '0점을 받았다'로 잘못 읽히지 않는다 (full = 원래 만점, 참고용)
+    const judged = (g ? EVAL.ghgPt : 0) + (e ? EVAL.enPt : 0);
+    return { y, g, e, got: (g?.pt || 0) + (e?.pt || 0), full: EVAL.ghgPt + EVAL.enPt,
+             judged: judged || EVAL.ghgPt + EVAL.enPt, ready: !!g && !!e };
   }
   /* ── 경영평가 비계량 — 3대 분야 이행실적 ────────────────────────────────
      Green Infra   : 자체 배출목표 달성률 · RE100 이행률 · 친환경차 전환율
@@ -7127,7 +7130,7 @@ body.intro-min .site-info .si-head{grid-row:auto}
     });
     // 계량 점수 — 올해(연말 예측)가 주, 지난 해(확정 실적)는 참고
     const EV = evalScore(curYr, ghgPred), EVP = evalScore(curYr - 1, null);
-    const pct = EV.full ? EV.got / EV.full * 100 : 0;
+    const pct = EV.judged ? EV.got / EV.judged * 100 : 0;   // 막대도 '판단 가능한 만점' 대비
     const tone = !EV.ready ? '' : pct >= 100 ? '' : pct >= 70 ? ' warn' : ' bad';
     homeEvalCalcs(EV, EVP);
     const has = buildHasMap(), st = statusOf(curYr, has);
@@ -7139,9 +7142,9 @@ body.intro-min .site-info .si-head{grid-row:auto}
     $('home-quant').innerHTML =
       `<div class="evq"><div class="evq-tot${tone || (EV.ready ? '' : ' na')}">` +
         `<div class="et-k"><i>${icn('award')}</i>계량 합계</div>` +
-        `<div class="et-v">${EV.g || EV.e ? fmt(EV.got, 1) : '—'}<small>/ ${EV.full}점</small></div>` +
+        `<div class="et-v">${EV.g || EV.e ? fmt(EV.got, 1) : '—'}<small>/ ${EV.judged}점</small></div>` +
         `<div class="et-bar"><i style="width:${Math.min(100, pct).toFixed(0)}%"></i></div>` +
-        `<div class="et-say">${miss.length ? `${esc(miss.join('·'))} 자료가 없어 <b>아직 일부만</b> 계산됐어요`
+        `<div class="et-say">${miss.length ? `${esc(miss.join('·'))} 자료가 없어 <b>${EV.full - EV.judged}점은 판단 전</b>이에요`
           : pct >= 100 ? `지금 추세면 <b>만점</b>이에요` : `만점까지 <b>${fmt(EV.full - EV.got, 1)}점</b> 남았어요`}</div>` +
       `</div><span class="evq-op">=</span>` +
       EV_PARTS.map((p, i) => (i ? '<span class="evq-op">+</span>' : '') + evCard(EV[p.k], p)).join('') +
