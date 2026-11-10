@@ -13,6 +13,8 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"></noscript>
 <script src="vendor/chart.umd.min.js"></script>
+<script src="vendor/anime.min.js"></script>
+<script>window.anime || document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.2/anime.min.js"><\/script>');</script>
 <script>window.Chart || document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"><\/script>');</script>
 <style>
 /* ── 토큰 ─────────────────────────────────────────────── */
@@ -7180,7 +7182,7 @@ body.intro-min .site-info .si-head{grid-row:auto}
     $('home-quant').innerHTML =
       `<div class="evq"><div class="evq-tot${tone || (EV.ready ? '' : ' na')}">` +
         `<div class="et-k"><i>${icn('award')}</i>계량 합계</div>` +
-        `<div class="et-v">${EV.g || EV.e ? fmt(EV.got, 1) : '—'}<small>/ ${EV.judged}점</small></div>` +
+        `<div class="et-v"><span class="et-n">${EV.g || EV.e ? fmt(EV.got, 1) : '—'}</span><small>/ ${EV.judged}점</small></div>` +
         `<div class="et-bar"><i style="width:${Math.min(100, pct).toFixed(0)}%"></i></div>` +
         `<div class="et-say">${miss.length ? `${esc(miss.join('·'))} 자료가 없어 <b>${EV.full - EV.judged}점은 판단 전</b>이에요`
           : pct >= 100 ? `지금 추세면 <b>만점</b>이에요` : `만점까지 <b>${fmt(EV.full - EV.got, 1)}점</b> 남았어요`}</div>` +
@@ -7193,6 +7195,7 @@ body.intro-min .site-info .si-head{grid-row:auto}
     renderQual(items, num, curYr);
     // 30년 전망 한 줄 (자체 목표 · RE100 60%) — 누르면 📈 전망 탭
     renderHomeOutlook();
+    requestAnimationFrame(playHomeIntro);   // 진입 연출 (한 번만)
     // 목표·로드맵 탭이 아직 안 그려졌을 수 있어 메인에서도 목표 카드 계산 근거를 채워 둠 (지금 해야 할 일에서 씀)
     if (!calcStore['g-']) renderGoalStatusCalcOnly(curYr, ghgPred, rePred, wtPred);
 
@@ -7218,6 +7221,31 @@ body.intro-min .site-info .si-head{grid-row:auto}
       `<span class="nc-d">${esc(n.d)}</span><span class="nc-go">${esc(n.go)}</span></button>`).join('');
     $('home-nav').style.setProperty('--cols', colsFor(navs.length, 4, 2));   // 6개 → 3+3 · 4개 → 한 줄 (혼자 남는 칸 없게)
   }
+  /* ── 메인 진입 연출 (anime.js) ──────────────────────────────
+     움직임은 한 번만, 한 곳에서. 점수가 0에서 실제 값까지 올라가고 막대가 뒤따라 차오른다.
+     섹션마다 떠오르거나 카드마다 반응하는 건 일부러 넣지 않았다 — 흔한 연출이라
+     오히려 만들다 만 티가 나고, 숫자를 읽는 화면에서는 방해가 된다.
+     움직임을 줄여 달라고 설정했거나 라이브러리를 못 받았으면 조용히 건너뛴다 (값은 이미 DOM 에 있음). */
+  let homeIntroDone = false;
+  function playHomeIntro() {
+    if (homeIntroDone) return;
+    const root = $('home-quant'); if (!root) return;
+    const num = root.querySelector('.et-n'), bars = [...root.querySelectorAll('.et-bar i')];
+    if (!num) return;
+    homeIntroDone = true;
+    const end = parseFloat(num.textContent);
+    if (reduceMotion() || typeof anime !== 'function' || !isFinite(end)) return;   // 값은 그대로 둔다
+    const o = { v: 0 };
+    anime({ targets: o, v: end, duration: 520, easing: 'easeOutCubic',
+            update: () => { num.textContent = fmt(o.v, 1); },
+            complete: () => { num.textContent = fmt(end, 1); } });   // 끝나면 정확한 값으로
+    bars.forEach(b => {
+      const w = b.style.width; if (!w) return;
+      b.style.width = '0%';
+      anime({ targets: b, width: w, duration: 520, delay: 80, easing: 'easeOutCubic' });
+    });
+  }
+
   // 메인에서 목표 카드를 눌렀을 때 쓸 계산 근거만 만들어 둠 (목표·로드맵 탭을 아직 안 열었을 때)
   function renderGoalStatusCalcOnly(y, ghgPred, rePred, wtPred) {
     const keep = $('gs-cards').innerHTML;
