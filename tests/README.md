@@ -29,6 +29,7 @@ python tests/test_ghg_factors.py
 | `test_export.py` | CSV 다운로드 (실적 조회, 데이터 관리), 항목 필터 |
 | `test_ux_icons.py` | SVG 아이콘 적용, 이모지 제거, 스프라이트 심볼 |
 | `test_ux_behavior.py` | 인라인 오류, 저장 버튼 로딩, 오프라인 배너 |
+| `test_forecast.py` | 기상연동 예측 모델 (같은 달 평균·기온 민감도 복원·추세 보정·추세 상한·학습연도 1개) — 화면 없이 모델 함수만 검증 |
 | `test_skeleton_rings.py` | 스켈레톤 로딩, RE100/EV 링, 삭제·되돌리기·확정 |
 
 ## 종료 코드
