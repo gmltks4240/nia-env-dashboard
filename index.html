@@ -1814,6 +1814,71 @@ table.main-tbl tr:hover td{background:var(--surface2)}
 .mt-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:1px}
 .cmp-co2{font-size:10px}
 
+/* ══ 메인 화면 시범 디자인 ═══════════════════════════════════════════════
+   주제에서 나온 색: 이 화면이 하는 일은 '잰 값'과 '넘으면 안 되는 선'의 거리를 보여 주는 것.
+   그래서 색은 장식이 아니라 신호로만 쓴다 — 바탕과 글자는 중성으로 두고,
+   달성(--h-ok)과 미달(--h-over)에만 색을 준다. 범용 파랑(Tailwind blue-400)을 걷어내고
+   바탕에 옅은 초록 기운을 넣어 환경 주제에 맞췄다. 모든 글자색은 세 바탕 모두에서 4.5:1 이상.
+   색만으로 뜻을 나르지 않는다 — 미달에는 ✕ 과 '미달 전망' 글자가 늘 함께 간다.
+   적용 범위는 #tab-home 뿐이라, 마음에 안 들면 이 블록만 지우면 원래대로 돌아간다. */
+body:has(#tab-home.active){--h-ink:#0E1714;--h-panel:#16211D;--h-panel-2:#1D2A25;--h-line:#2B3A34;
+  --h-paper:#E7EDE9;--h-muted:#94A79D;--h-accent:#7FB3A8;--h-ok:#46C98C;--h-over:#FF6B5E;
+  background:var(--h-ink)}
+body:has(#tab-home.active) .tab-nav{background:var(--h-panel);border-bottom-color:var(--h-line)}
+body:has(#tab-home.active) .tab-btn{color:var(--h-muted)}
+body:has(#tab-home.active) .tab-btn.active{color:var(--h-paper);border-bottom-color:var(--h-accent)}
+#tab-home{color:var(--h-paper)}
+
+/* 1단 — 무슨 시스템인가. 카드를 두르지 않고 바탕 위에 그대로 둔다. */
+#tab-home .home-hero{background:none;border-radius:0;padding:4px 0 22px;margin-bottom:26px;
+  border-bottom:1px solid var(--h-line);gap:20px}
+#tab-home .home-hero::after{display:none}
+#tab-home .hero-mascot{width:96px}
+#tab-home .hero-txt h2{color:var(--h-paper);font-size:24px;letter-spacing:-.4px}
+#tab-home .hero-txt p{color:var(--h-muted);font-size:14px;max-width:62ch}
+#tab-home .hero-meta{color:var(--h-muted);gap:6px 22px}
+
+/* 2단 — 산식이 주인공. 이 화면에서 유일하게 '올라온' 면. */
+#tab-home .ev-block{background:var(--h-panel);border:1px solid var(--h-line);border-radius:12px;
+  padding:18px 18px 16px;margin-bottom:12px}
+#tab-home .ev-lbl b{color:var(--h-paper)}
+#tab-home .ev-lbl i{background:var(--h-line)}
+#tab-home .kpi-card{background:var(--h-panel-2);border-color:var(--h-line)}
+#tab-home .home-sec-hd h3{color:var(--h-paper);font-size:17px}
+#tab-home .hs-note,#tab-home .ev-lbl span{color:var(--h-muted)}
+
+/* 3단 — 할 일. 카드가 아니라 목록. 왼쪽 선이 급한 정도를 나른다. */
+#tab-home .todo-list{gap:0}
+#tab-home .todo-list li{background:none;border:0;border-left:2px solid var(--h-line);
+  border-radius:0;padding:11px 0 11px 16px;color:var(--h-paper)}
+#tab-home .todo-list li+li{border-top:1px solid var(--h-line)}
+
+/* 4단 — 어디로 갈지. 가장 조용하게. 카드 없이 선으로만 나눈다. */
+#tab-home .nav-grid{gap:0 28px}
+#tab-home .nav-card{background:none;border:0;border-top:1px solid var(--h-line);border-radius:0;
+  padding:14px 0 16px;text-align:left}
+#tab-home .nav-card:hover{background:none}
+#tab-home .nc-k{color:var(--h-paper)}
+#tab-home .nc-d{color:var(--h-muted)}
+#tab-home .nc-go{color:var(--h-accent)}
+
+body:has(#tab-home.active) header{background:var(--h-panel);color:var(--h-paper);
+  border-bottom:1px solid var(--h-line)}
+body:has(#tab-home.active) header .brand-sub,body:has(#tab-home.active) .header-right{color:var(--h-muted);opacity:1}
+body:has(#tab-home.active) .btn-login{border-color:var(--h-line);color:var(--h-paper)}
+/* 비계량 안쪽 면 — 바깥 패널보다 한 단만 밝게 (슬레이트 파랑이 남지 않게) */
+#tab-home .evq-row,#tab-home .evq-q,#tab-home .evq-tot,#tab-home .ev-card,
+#tab-home .evy,#tab-home .home-e{background:var(--h-panel-2);border-color:var(--h-line)}
+#tab-home .evq-op{color:var(--h-line)}
+#tab-home .td-go,#tab-home .nc-go{color:var(--h-accent)}
+#tab-home .td-i{color:var(--h-muted)}
+/* 신호색 — 달성/미달 */
+#tab-home .ok,#tab-home .good{color:var(--h-ok)}
+#tab-home .bad,#tab-home .warn{color:var(--h-over)}
+#tab-home a,#tab-home .hd-link{color:var(--h-accent)}
+#tab-home :focus-visible{outline:2px solid var(--h-accent);outline-offset:2px}
+@media(max-width:700px){#tab-home .hero-txt h2{font-size:20px}#tab-home .hero-mascot{width:72px}}
+
 /* ── 토스트 ──────────────────────────────────────────── */
 .toast{position:fixed;bottom:24px;right:24px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 18px;font-size:13px;font-weight:500;box-shadow:var(--shadow-md);z-index:999;transform:translateY(20px);opacity:0;transition:transform var(--dur-3) var(--ease-out),opacity var(--dur-3) var(--ease-out);pointer-events:none}
 .toast.show{transform:translateY(0);opacity:1}
@@ -7042,7 +7107,7 @@ body.intro-min .site-info .si-head{grid-row:auto}
   }
   function renderHome() {
     const now = new Date(), curYr = now.getFullYear(), yS = yrShort(curYr);
-    $('home-asof').textContent = `${curYr}년 기준 · ${now.getFullYear()}. ${now.getMonth() + 1}. ${now.getDate()}.`;
+    $('home-asof').textContent = `${curYr}년 기준`;
     $('home-updated').textContent = $('hdr-updated').textContent;
 
     // ① 계량 전망 — 목표가 있는 지표의 달성 전망
@@ -7102,14 +7167,14 @@ body.intro-min .site-info .si-head{grid-row:auto}
     const mine = todo.filter(t => !t.need || (t.need === 'admin' ? isAdmin() : canEdit()));
     $('home-todo').innerHTML = mine.length
       ? mine.map(t => `<li class="go" role="button" tabindex="0" data-go="${t.tab}"><span class="td-i">${t.i}</span>` +
-          `<span class="td-t">${t.t}${t.d ? `<br><small style="color:var(--muted)">${t.d}</small>` : ''}</span><span class="td-go">${esc(t.go)} →</span></li>`).join('')
-      : `<li class="done"><span class="td-i">✓</span><span class="td-t">${canEdit() ? '지금 할 일이 없어요 · 입력과 목표가 모두 갖춰졌어요' : '지금 챙길 일이 없어요'}</span></li>`;
+          `<span class="td-t">${t.t}${t.d ? `<br><small style="color:var(--muted)">${t.d}</small>` : ''}</span><span class="td-go">${esc(t.go)}</span></li>`).join('')
+      : `<li class="done"><span class="td-i">✓</span><span class="td-t">${canEdit() ? '지금 할 일이 없어요. 입력과 목표가 모두 갖춰졌어요' : '지금 챙길 일이 없어요'}</span></li>`;
 
     // ③ 탭 바로가기
     const navs = HOME_NAV.filter(n => !n.need || canEdit());
     $('home-nav').innerHTML = navs.map(n =>
       `<button type="button" class="nav-card" data-go="${n.tab}"><span class="nc-k">${n.k}</span>` +
-      `<span class="nc-d">${esc(n.d)}</span><span class="nc-go">${esc(n.go)} →</span></button>`).join('');
+      `<span class="nc-d">${esc(n.d)}</span><span class="nc-go">${esc(n.go)}</span></button>`).join('');
     $('home-nav').style.setProperty('--cols', colsFor(navs.length, 4, 2));   // 6개 → 3+3 · 4개 → 한 줄 (혼자 남는 칸 없게)
   }
   // 메인에서 목표 카드를 눌렀을 때 쓸 계산 근거만 만들어 둠 (목표·로드맵 탭을 아직 안 열었을 때)
