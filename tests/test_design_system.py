@@ -25,7 +25,11 @@ def run():
     frac = re.findall(r"font-size:\s*([0-9]+\.[0-9]+)px", SRC)
     H.ok(not frac, f"소수점 크기 없음 — {sorted(set(frac)) if frac else '0곳'}")
     sizes = sorted({int(v) for v in re.findall(r"font-size:\s*([0-9]+)px", SRC)})
-    H.ok(min(sizes) >= 9, f"가장 작은 글자 {min(sizes)}px (9px 미만 금지)")
+    STEPS = {10, 11, 12, 13, 14, 16, 18, 20, 24, 28, 32, 40, 44}
+    off = sorted(set(sizes) - STEPS)
+    H.ok(not off, f"글자 크기가 정해진 단계 안 — 벗어난 값 {off if off else '없음'}")
+    weights = sorted({int(v) for v in re.findall(r"font-weight:\s*([0-9]+)", SRC)})
+    H.ok(not any(w >= 700 for w in weights), f"굵기 700 이상 없음 (400/500/600 만) — {weights}")
 
     # ── 모서리 둥글기: 정해진 가족만 ──
     H.test_name("모서리 둥글기")
