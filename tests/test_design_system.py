@@ -76,6 +76,11 @@ def run():
     H.ok(not off, f"max-width 분기점이 6단계 안 — 벗어난 값 {off if off else '없음'}")
     H.ok("min-width:641px" in SRC and "min-width:601px" not in SRC, "min-width 짝이 max-width:640 과 맞음")
 
+    # ── 간격: 2px 격자 (홀수 px 금지, 1px 은 헤어라인으로 허용) ──
+    H.test_name("간격")
+    odd = sorted({int(v) for v in re.findall(r"(?:padding|gap|margin)[a-z-]*:[^;}\"']*?\b(\d+)px", SRC) if int(v) % 2 and int(v) > 1})
+    H.ok(not odd, f"padding/gap/margin 에 홀수 px 없음 — {odd if odd else '없음'}")
+
     # ── 모션: 길이는 토큰으로, 곡선은 반드시 ──
     H.test_name("모션")
     trans = re.findall(r"transition:\s*([^;}\n]*)", SRC)
