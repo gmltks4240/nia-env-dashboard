@@ -38,6 +38,13 @@ def run():
                 bad.add(v + "px")
     H.ok(not bad, f"허용 값만 사용 — 벗어난 값 {sorted(bad) if bad else '없음'}")
 
+    # ── 색의 역할: --primary 하나로 뭉뚱그리지 않는다 ──
+    H.test_name("색의 역할")
+    H.ok("var(--primary)" not in SRC and "--primary:" not in SRC, "--primary 를 쓰지 않음 (accent/focus/chart-* 로 역할 분리)")
+    for tok in ("--accent", "--focus", "--chart-elec", "--chart-s1", "--chart-pred"):
+        H.ok(f"{tok}:" in SRC, f"{tok} 정의됨")
+    H.ok("cssVar('--chart-" in SRC, "JS 차트 색이 CSS 토큰을 읽음 (팔레트 두 벌 금지)")
+
     # ── 모션: 길이는 토큰으로, 곡선은 반드시 ──
     H.test_name("모션")
     trans = re.findall(r"transition:\s*([^;}\n]*)", SRC)
