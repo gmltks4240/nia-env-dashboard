@@ -62,6 +62,13 @@ def run():
     H.ok("scale(.98)" in SRC, "단추 누름 scale(.98)")
     H.ok("translateY(-1px)" in SRC, "선택 가능한 카드 hover 들림")
 
+    # ── 묶음 B: 대문자 라벨 없음 · 팝업 진입 애니메이션 · 입력 포커스 링 ──
+    H.test_name("컴포넌트")
+    css = SRC[SRC.index("<style>"):SRC.index("</style>")]
+    H.ok("text-transform:uppercase" not in css, "대문자 변환 라벨 없음 (자간 벌린 대문자는 템플릿 티)")
+    H.ok("@keyframes modal-in" in css and "animation:modal-in" in css, "팝업 진입 애니메이션")
+    H.ok("color-mix(in srgb,var(--focus)" in css, "입력 포커스 링이 --focus 토큰")
+
     # ── 모션: 길이는 토큰으로, 곡선은 반드시 ──
     H.test_name("모션")
     trans = re.findall(r"transition:\s*([^;}\n]*)", SRC)
