@@ -34,6 +34,11 @@
   --chart-gasoline:#FBBF24; --chart-diesel:#A8A29E; --chart-re:#6EE7B7;
   --chart-s1:#E65100; --chart-s2:#60A5FA; --chart-pred:#60A5FA;
   --chart-site-dgb:#5B6BD6; --chart-site-jeju:#13A08C; --chart-site-seoul:#C77D1C;
+  --chart-actual:#60A5FA; --chart-s3:#A78BFA; --chart-own:#2DD4BF; --chart-law:#FBBF24; --chart-law-line:#93C5FD;
+  --chart-re-goal:#34D399; --chart-re-gen:#0D9488; --chart-gov:#0F766E; --chart-current:#EA580C;
+  --chart-ghost:#94A3B8; --chart-label:#CBD5E1; --chart-label-strong:#F1F5F9; --chart-fallback:#64748B;
+  --chart-yr-from:#64789A; --chart-yr-to:#DBEAFE;
+  --danger-bg:#B91C1C;   /* 위험한 확인 단추 바탕 (--bad 는 글자용 밝은 빨강이라 바탕으로 쓰면 대비가 안 나옴) */
   --green:#4ADE80; --orange:#FB923C; --indigo:#818CF8;
   --text:#F1F5F9; --text2:#CBD5E1; --muted:#94A3B8;
   --border:#334155; --border2:#475569; --red:#FCA5A5;
@@ -3938,7 +3943,7 @@ table.main-tbl tbody tr:hover>td,.sb-tbl tbody tr:hover>td{background:rgba(255,2
   // 거점 색 (거점별 비중 막대·거점 줄·거점별로 쌓은 막대) — 색각 이상에서도 서로 구분되고 밝은/어두운 바탕 모두 3:1 이상
   // 데이터 색은 CSS 토큰(--chart-*)이 한 곳에서 정하고 JS 는 읽기만 한다
   const cssVar = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
-  const rgbOf  = h => [1, 3, 5].map(k => parseInt(h.slice(k, k + 2), 16)).join(',');   // '#E65100' → '230,81,0'
+  const rgbOf  = h => [1, 3, 5].map(k => parseInt(h.slice(k, k + 2), 16)).join(',');   // cssVar('--chart-s1') → '230,81,0'
   const SITE_COL = { '대구본원': cssVar('--chart-site-dgb'), '제주글로벌센터': cssVar('--chart-site-jeju'), '서울사무소': cssVar('--chart-site-seoul') };
   // 거점별 기상 관측 좌표 (Open-Meteo, 도시 중심 기준)
   const SITE_COORDS = { '대구본원': [35.8714, 128.6014], '서울사무소': [37.5665, 126.9780], '제주글로벌센터': [33.4996, 126.5312] };
@@ -4966,7 +4971,7 @@ table.main-tbl tbody tr:hover>td,.sb-tbl tbody tr:hover>td{background:rgba(255,2
         <div style="font-size:12px;color:var(--muted);margin-bottom:22px;line-height:1.6;white-space:pre-line" class="cb-sub"></div>
         <div style="display:flex;gap:10px;justify-content:center">
           <button class="cb-no" style="padding:8px 20px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text);font-size:14px;cursor:pointer">취소</button>
-          <button class="cb-ok" style="padding:8px 20px;border:none;border-radius:8px;background:${tone === 'danger' ? '#B91C1C' : 'var(--accent)'};color:#fff;font-size:14px;font-weight:600;cursor:pointer"></button>
+          <button class="cb-ok" style="padding:8px 20px;border:none;border-radius:8px;background:${tone === 'danger' ? 'var(--danger-bg)' : 'var(--accent)'};color:#fff;font-size:14px;font-weight:600;cursor:pointer"></button>
         </div></div>`;
       ov.querySelector('.cb-msg').textContent = message;
       ov.querySelector('.cb-sub').textContent = sub;
@@ -5008,7 +5013,7 @@ table.main-tbl tbody tr:hover>td,.sb-tbl tbody tr:hover>td{background:rgba(255,2
   // 화면마다 차트 묶음을 따로 가짐: '' = 올해 현황, 'y-' = 실적 조회 한 해(올해 현황 복제), h = 실적 조회 연도별 비교
   const CHARTS = { '': {}, 'y-': {}, h: {}, o: {} };   // o = 📈 전망 탭
   const chartTheme = () => {
-    return { grid: 'rgba(255,255,255,.07)', tick: '#94A3B8' };
+    return { grid: 'rgba(255,255,255,.07)', tick: cssVar('--chart-ghost') };
   };
 
   /* ── 막대 값 레이블 (Chart.js 플러그인, 외부 라이브러리 없이) ──────────
@@ -5042,9 +5047,9 @@ table.main-tbl tbody tr:hover>td,.sb-tbl tbody tr:hover>td{background:rgba(255,2
       const f = o.kind === 'pct' ? fmtPct : v => fmt(v, d);
       ctx.save();
       ctx.font = `600 ${size}px 'Inter','Noto Sans KR',sans-serif`;
-      ctx.fillStyle = '#CBD5E1';
+      ctx.fillStyle = cssVar('--chart-label');
       // 글자 둘레에 배경색 테두리: 선·격자가 지나가도 숫자가 또렷하게
-      ctx.strokeStyle = '#1E293B'; ctx.lineWidth = 3; ctx.lineJoin = 'round';
+      ctx.strokeStyle = cssVar('--surface'); ctx.lineWidth = 3; ctx.lineJoin = 'round';
       const put = (t, x, y) => { ctx.strokeText(t, x, y); ctx.fillText(t, x, y); };
       chart.getSortedVisibleDatasetMetas().filter(m => m.type === 'line').forEach(m => {
         const ds = chart.data.datasets[m.index];
@@ -5060,7 +5065,7 @@ table.main-tbl tbody tr:hover>td,.sb-tbl tbody tr:hover>td{background:rgba(255,2
         });
         const ref = ds.refLabel, el = m.data.find(e => e && !e.skip);
         if (!ref || !el) return;
-        ctx.save(); ctx.fillStyle = '#94A3B8';
+        ctx.save(); ctx.fillStyle = cssVar('--chart-ghost');
         ctx.textAlign = 'left'; ctx.textBaseline = 'bottom'; put(ref, chart.chartArea.left + 6, el.y - 3); ctx.restore();
       });
       items.forEach(([el, v, custom, fl]) => {
@@ -5095,7 +5100,7 @@ table.main-tbl tbody tr:hover>td,.sb-tbl tbody tr:hover>td{background:rgba(255,2
         if (ctx.roundRect) ctx.roundRect(l, a.top, w, a.bottom - a.top, 6); else ctx.rect(l, a.top, w, a.bottom - a.top);
         ctx.fill();
       }
-      ctx.fillStyle = o.line || 'rgba(96,165,250,.9)';     // 아래 굵은 밑줄 = 고른 해
+      ctx.fillStyle = o.line || hexA(PRED_COLOR, .9);     // 아래 굵은 밑줄 = 고른 해
       ctx.beginPath();
       if (ctx.roundRect) ctx.roundRect(l, a.bottom - 1, w, 4, 2); else ctx.rect(l, a.bottom - 1, w, 4);
       ctx.fill(); ctx.restore();
@@ -5291,7 +5296,10 @@ table.main-tbl tbody tr:hover>td,.sb-tbl tbody tr:hover>td{background:rgba(255,2
   // 에너지원 색 (모든 그래프·표에서 같은 색) — 색각 이상(적록·청황)에서도 서로 구분되게 고른 값, 다크 모드는 밝은 단계
   const TYPE_COLS = { '전력': cssVar('--chart-elec'), '도시가스': cssVar('--chart-gas'), '지역난방': cssVar('--chart-heat'),
                       '휘발유': cssVar('--chart-gasoline'), '경유': cssVar('--chart-diesel'), [RE_SELF]: cssVar('--chart-re') };
-  const typeCol = t => TYPE_COLS[t] || '#64748B';
+  const typeCol = t => TYPE_COLS[t] || cssVar('--chart-fallback');
+  // 연도별 색 (실적 조회 비교 그래프) — 고른 해는 PICK, 지난 해들은 PAST 순서대로, 다음 해들은 NEXT.
+  // 색각 이상에서도 서로 구분되게 고른 값. 차트 색은 여기와 CSS --chart-* 두 곳 밖에 없다.
+  const YEAR_COLS = { PICK: '#E0946A', PAST: ['#7FA3D1', '#A496C9', '#6EAFA6', '#C48DA8', '#C2AC6E', '#8A92C4', '#7FB08A', '#7AAAC4', '#C48888', '#8E99A8'], NEXT: ['#B48EBF', '#A0B377', '#CDA17E'] };
   const EMIT_TYPES = ['전력', '도시가스', '지역난방', '휘발유', '경유'];   // 온실가스 배출원 (월별 온실가스 '에너지원별' 순서)
   const amtTxt = (t, v) => `${fq(v)} ${GHG[t]?.unit || ''}`;   // 사용량 + 원래 단위
   // 사용량 → 온실가스 환산 (tCO₂eq): 배출원 = 배출량 · 재생에너지 자가발전·승강기 회생제동 = 회피 배출량(참고, 전력 배출계수) · 구매 = 환산 안 함
@@ -5305,7 +5313,7 @@ table.main-tbl tbody tr:hover>td,.sb-tbl tbody tr:hover>td{background:rgba(255,2
   };
   // 연도별 색: 옛 연도 → 최근 연도 순으로 밝기 단계를 고르게 벌림 (밝은 쪽도 흰 배경 대비 3:1 이상)
   const yearColors = n => {
-    const [a, b] = ['#64789A', '#DBEAFE'];
+    const [a, b] = [cssVar('--chart-yr-from'), cssVar('--chart-yr-to')];
     if (n <= 1) return [b];
     const rgb = h => [1, 3, 5].map(k => parseInt(h.slice(k, k + 2), 16)), A = rgb(a), B = rgb(b);
     return Array.from({ length: n }, (_, i) => '#' + A.map((v, k) => Math.round(v + (B[k] - v) * i / (n - 1)).toString(16).padStart(2, '0')).join(''));
@@ -6560,7 +6568,7 @@ table.main-tbl tbody tr:hover>td,.sb-tbl tbody tr:hover>td{background:rgba(255,2
     setChart(set.ghg, P + 'chart-ghg-monthly', P + 'cgm-empty', [
       ...actual,
       { label: '예측 (미입력분)', data: m12(i => predAll[i] > 0 ? predAll[i] : null),
-        backgroundColor: 'rgba(96,165,250,0.28)', borderColor: 'rgba(96,165,250,0.95)', borderWidth: 1.5, borderRadius: 4 },
+        backgroundColor: hexA(PRED_COLOR, .28), borderColor: hexA(PRED_COLOR, .95), borderWidth: 1.5, borderRadius: 4 },
     ]);
 
     // ④-1 월별 승강기 회생제동 발전량 (kWh) — 대구본원(또는 전체 합계)일 때만 · 폐기물 그래프 왼쪽 · 전년 같은 달은 점선
@@ -6572,8 +6580,8 @@ table.main-tbl tbody tr:hover>td,.sb-tbl tbody tr:hover>td{background:rgba(255,2
       if (set.regen) { set.regen.data.labels = MONTHS; set.regen.options.plugins.legend.display = prev.length > 0;
                        const rv = rgMon(cur); set.regen.options.plugins.barLabels.only = labelPicks(rv, rv.map(v => v != null)); }
       setChart(set.regen, P + 'chart-regen', P + 'crg-empty', !cur.length ? [] : [
-        { type: 'bar', label: `${yrShort(year)} 발전량`, data: rgMon(cur), order: 2, backgroundColor: '#0D9488', borderRadius: 4, maxBarThickness: 36 },
-        ...(prev.length ? [{ type: 'line', label: `${yrShort(year - 1)} (전년)`, data: rgMon(prev), order: 1, borderColor: '#94A3B8', backgroundColor: '#94A3B8',
+        { type: 'bar', label: `${yrShort(year)} 발전량`, data: rgMon(cur), order: 2, backgroundColor: cssVar('--chart-re-gen'), borderRadius: 4, maxBarThickness: 36 },
+        ...(prev.length ? [{ type: 'line', label: `${yrShort(year - 1)} (전년)`, data: rgMon(prev), order: 1, borderColor: cssVar('--chart-ghost'), backgroundColor: cssVar('--chart-ghost'),
           borderDash: [5, 4], borderWidth: 1.5, pointRadius: 2.5, tension: .3, spanGaps: true }] : []),
       ]);
     }
@@ -6589,7 +6597,7 @@ table.main-tbl tbody tr:hover>td,.sb-tbl tbody tr:hover>td{background:rgba(255,2
     setChart(set.ws, P + 'chart-ws', P + 'cw-empty', !wy.length ? [] : [
       ...wSites.map(s => ({ type: 'bar', label: si ? `${yrShort(year)} 발생량` : s, $site: s, data: wMon(wy, s), stack: 'w', order: 2,
         backgroundColor: SITE_COL[s], borderRadius: 4, maxBarThickness: 36 })),
-      ...(prevW.length ? [{ type: 'line', label: `${yrShort(year - 1)} (전년)`, data: prevMon, order: 1, borderColor: '#94A3B8', backgroundColor: '#94A3B8',
+      ...(prevW.length ? [{ type: 'line', label: `${yrShort(year - 1)} (전년)`, data: prevMon, order: 1, borderColor: cssVar('--chart-ghost'), backgroundColor: cssVar('--chart-ghost'),
         borderDash: [5, 4], borderWidth: 1.5, pointRadius: 2.5, tension: .3, spanGaps: true, stack: 'prev' }] : []),
     ]);
 
@@ -6644,7 +6652,7 @@ table.main-tbl tbody tr:hover>td,.sb-tbl tbody tr:hover>td{background:rgba(255,2
         ...(hasPred ? [{ type: 'bar', label: '예측 (미입력분)', $type: t, $pred: true, data: pred, stack: 'a', order: 2,
           backgroundColor: hexA(col, .22), borderColor: hexA(col, .85), borderWidth: 1, borderRadius: 2, maxBarThickness: 22 }] : []),
         ...(hasPrev ? [{ type: 'line', label: `${pS} 같은 달`, $type: t, $prev: true, data: prev, stack: 'p', order: 1,
-          borderColor: '#94A3B8', backgroundColor: '#94A3B8', borderDash: [4, 3], borderWidth: 1.5, pointRadius: 1.8, pointHoverRadius: 4, tension: .3, spanGaps: true }] : []),
+          borderColor: cssVar('--chart-ghost'), backgroundColor: cssVar('--chart-ghost'), borderDash: [4, 3], borderWidth: 1.5, pointRadius: 1.8, pointHoverRadius: 4, tension: .3, spanGaps: true }] : []),
       ];
       c.update(chartQuiet ? 'none' : undefined);
     });
@@ -6745,7 +6753,7 @@ table.main-tbl tbody tr:hover>td,.sb-tbl tbody tr:hover>td{background:rgba(255,2
       const cur = y === yr;
       return { label: cur ? `${yrShort(y)} (올해)` : yrShort(y),
         data: m12(j => { const v = w[`${y}-${pad(j + 1)}`]; return v ? v.t : null; }),   // 툴팁에서 셋째 자리까지
-        borderColor: cur ? '#EA580C' : cols[i], backgroundColor: 'transparent', borderWidth: cur ? 3 : 1.5,
+        borderColor: cur ? cssVar('--chart-current') : cols[i], backgroundColor: 'transparent', borderWidth: cur ? 3 : 1.5,
         borderDash: cur ? [] : [5, 4], pointRadius: cur ? 3 : 0, tension: .3, spanGaps: false };
     }));
     let h = 0, c = 0, hb = 0, cb = 0, n = 0;
@@ -8397,7 +8405,7 @@ table.main-tbl tbody tr:hover>td,.sb-tbl tbody tr:hover>td{background:rgba(255,2
   //  o = { ys, v } · xs = 그래프 연도(문자·숫자) · lbl(y, v) = 막대 위 글자 (null = 그래프 기본 · '' = 안 씀) · 올해는 '올해 연말 예측' 막대가 따로 있음
   function olBars(o, xs, lbl = null, thick = 44) {
     if (!o) return [];
-    const y0 = new Date().getFullYear(), C = '#93C5FD', pat = hatch(C);
+    const y0 = new Date().getFullYear(), C = cssVar('--chart-law-line'), pat = hatch(C);
     const data = xs.map(yy => { const i = o.ys.indexOf(+yy); return i < 0 || +yy <= y0 ? null : o.v[i]; });
     return [{ type: 'bar', label: '전망', order: 2, grouped: false, $ol: true, data, maxBarThickness: thick, borderRadius: thick > 20 ? 4 : 3,
       legendColor: pat, backgroundColor: pat, borderColor: hexA(C, .9), borderWidth: thick > 20 ? 1.3 : 1, borderSkipped: 'bottom',
@@ -8407,7 +8415,7 @@ table.main-tbl tbody tr:hover>td,.sb-tbl tbody tr:hover>td{background:rgba(255,2
   /* ── 📈 전망 탭 ──────────────────────────────────────────────────────────────
      한눈에 보기(카드) → 🧮 만약에 → 온실가스 · RE100 (그래프 + 표) → 경영평가 계량 점수 → 셈 방법
      탭이 열려 있을 때만 그림 (탭을 누를 때 · 자료가 바뀔 때 · 만약에 칸을 바꿀 때) */
-  const VIO = () => '#C084FC';   // 만약에 (보라 점선)
+  const VIO = () => cssVar('--vio');   // 만약에 (보라 점선)
   // 그래프 아래 눈금 — 5년마다 + 올해 (좁으면 10년마다)
   const olTicks = { autoSkip: false, maxRotation: 0, callback(v) { const l = this.getLabelForValue(v), y = 2000 + parseInt(l), y0 = new Date().getFullYear();
     if ((this.chart.data.labels || []).length <= 12) return l;
@@ -8595,7 +8603,7 @@ table.main-tbl tbody tr:hover>td,.sb-tbl tbody tr:hover>td{background:rgba(255,2
   // ② 온실가스 (대구본원 Scope 1+2) — 실적 · 올해 연말 예측 · 전망(빗금) + 자체·법적 목표 + 만약에(보라 점선)
   function renderOGhg(OL, SOL, sc) {
     const y0 = new Date().getFullYear(), c = CHARTS.o?.ghg, t1 = v => fmt(v, 1);
-    const navy = '#60A5FA', TEAL = '#2DD4BF', AMBER = '#FBBF24';
+    const navy = cssVar('--chart-actual'), TEAL = cssVar('--chart-own'), AMBER = cssVar('--chart-law');
     const xs = []; for (let y = y0 - 2; y <= OUTLOOK.to; y++) xs.push(y);
     const MS = y => y === y0 - 1 || y === y0 || y === 2030 || y === 2040 || y === 2050, l0 = (y, v) => MS(y) ? fmt(v, 0) : '';
     const act = y => y < y0 && dgbOf(String(y)) > 0 ? dgbOf(String(y)) : null;
@@ -8610,8 +8618,8 @@ table.main-tbl tbody tr:hover>td,.sb-tbl tbody tr:hover>td{background:rgba(255,2
         { type: 'bar', label: '배출 실적', order: 2, grouped: false, borderRadius: 4, maxBarThickness: 34, legendColor: navy,
           data: xs.map(act), valueLabels: xs.map(y => act(y) == null ? null : l0(y, act(y))), backgroundColor: hexA(navy, .75) },
         { type: 'bar', label: '올해 연말 예측', order: 2, grouped: false, borderRadius: 4, maxBarThickness: 34, $pop: true,
-          data: xs.map(y => y === y0 ? OL.v[0] : null), valueLabels: xs.map(y => y === y0 ? fmt(OL.v[0], 0) : null), legendColor: 'rgba(96,165,250,0.45)',
-          backgroundColor: 'rgba(96,165,250,0.28)', borderColor: 'rgba(96,165,250,0.95)', borderWidth: 1.5 },
+          data: xs.map(y => y === y0 ? OL.v[0] : null), valueLabels: xs.map(y => y === y0 ? fmt(OL.v[0], 0) : null), legendColor: hexA(PRED_COLOR, .45),
+          backgroundColor: hexA(PRED_COLOR, .28), borderColor: hexA(PRED_COLOR, .95), borderWidth: 1.5 },
         ...olBars(OL, xs, l0, 34),
         { type: 'line', label: '자체 목표', order: 1, data: xs.map(ownOf), borderColor: TEAL, backgroundColor: TEAL, borderWidth: 2, pointRadius: pts, pointHoverRadius: 4, tension: 0 },
         { type: 'line', label: '법적 목표', order: 1, data: law.map(l => l && !l.tent ? l.t : null), borderColor: AMBER, backgroundColor: AMBER,
@@ -8637,7 +8645,7 @@ table.main-tbl tbody tr:hover>td,.sb-tbl tbody tr:hover>td{background:rgba(255,2
   // ③ RE100 (대구+제주 합산) — 실적 · 올해 연말 예측 · 전망(빗금) + 정부 목표 + 만약에
   function renderORe(ROL, SROL, sc) {
     const y0 = new Date().getFullYear(), c = CHARTS.o?.re, RS = TARGET_SITES.re, p1 = v => `${fmt(v, 1)}%`;
-    const G = '#34D399', AMBER = '#FBBF24';
+    const G = cssVar('--chart-re-goal'), AMBER = cssVar('--chart-law');
     const xs = []; for (let y = y0 - 2; y <= OUTLOOK.to; y++) xs.push(y);
     const MS = y => y === y0 - 1 || y === y0 || y === 2030 || y === 2040 || y === 2050;
     const act = y => y < y0 ? reOfYear(y, RS) : null, pAt = (o, y) => o?.rows.find(r => r.y === y)?.pct ?? null;
@@ -8659,7 +8667,7 @@ table.main-tbl tbody tr:hover>td,.sb-tbl tbody tr:hover>td{background:rgba(255,2
           valueLabels: xs.map(y => act(y) == null ? null : MS(y) ? p1(act(y)) : ''), backgroundColor: hexA(G, .75) },
         { type: 'bar', label: '올해 연말 예측', order: 2, grouped: false, borderRadius: 4, maxBarThickness: 34, $pop: true,
           data: xs.map(y => y === y0 ? pAt(ROL, y) : null), valueLabels: xs.map(y => y === y0 && pAt(ROL, y) != null ? p1(pAt(ROL, y)) : null),
-          legendColor: 'rgba(96,165,250,0.45)', backgroundColor: 'rgba(96,165,250,0.28)', borderColor: 'rgba(96,165,250,0.95)', borderWidth: 1.5 },
+          legendColor: hexA(PRED_COLOR, .45), backgroundColor: hexA(PRED_COLOR, .28), borderColor: hexA(PRED_COLOR, .95), borderWidth: 1.5 },
         ...olBars({ ys: ROL.ys, v: ROL.rows.map(r => r.pct) }, xs, (y, v) => MS(y) ? p1(v) : '', 34),
         { type: 'line', label: '정부 이행 목표', order: 1, data: goal, spanGaps: true, legendColor: AMBER, borderColor: AMBER, backgroundColor: AMBER,
           borderWidth: 2, borderDash: [6, 4], pointRadius: goal.map(v => v == null ? 0 : 3), tension: 0, markFmt: v => `${v}%`,
@@ -8848,12 +8856,12 @@ table.main-tbl tbody tr:hover>td,.sb-tbl tbody tr:hover>td{background:rgba(255,2
   }
   function drawGhgRoadmap(path, path50, ids, y, pred, OL) {
     const [pathId, pathEmpty, path50Id, path50Empty, milesId, peekId] = ids;
-    const curYr = new Date().getFullYear(), navy = '#60A5FA', years = pastYears();
-    const TEAL = '#2DD4BF', AMBER = '#FBBF24', hasPred = pred > 0;
+    const curYr = new Date().getFullYear(), navy = cssVar('--chart-actual'), years = pastYears();
+    const TEAL = cssVar('--chart-own'), AMBER = cssVar('--chart-law'), hasPred = pred > 0;
     const act = yy => +yy < curYr && dgbOf(yy) > 0 ? dgbOf(yy) : null;
     const predBar = (xs, thick) => !hasPred ? [] : [{ type: 'bar', label: '올해 연말 예측', order: 2, grouped: false, borderRadius: 4, maxBarThickness: thick, $pop: true,
-      data: xs.map(yy => +yy === curYr ? pred : null), legendColor: 'rgba(96,165,250,0.45)',
-      backgroundColor: 'rgba(96,165,250,0.28)', borderColor: 'rgba(96,165,250,0.95)', borderWidth: 1.5 }];
+      data: xs.map(yy => +yy === curYr ? pred : null), legendColor: hexA(PRED_COLOR, .45),
+      backgroundColor: hexA(PRED_COLOR, .28), borderColor: hexA(PRED_COLOR, .95), borderWidth: 1.5 }];
     const base = xs => { const d = xs.map(y => baseOf(y)), one = new Set(d.filter(v => v != null)).size === 1;   // 보이는 해의 기준배출량이 하나면 값도 이름표에
       // 꺾이는 곳 = 앞 해와 기준배출량이 달라지는 해 · 그 해 점 위에 전년 대비 증감률 (예: ▲3.2%)
       const prevOf = i => i > 0 ? d[i - 1] : baseOf(+xs[0] - 1);
@@ -8861,8 +8869,8 @@ table.main-tbl tbody tr:hover>td,.sb-tbl tbody tr:hover>td{background:rgba(255,2
       // 꺾이는 곳 중 기준배출량이 가장 높은(제일 솟아오른) 한 곳에만 표시
       const peak = bend.reduce((best, t, i) => t && (best < 0 || d[i] > d[best]) ? i : best, -1);
       return { type: 'line', label: '기준배출량', order: 3, data: d, stepped: 'middle', refLabel: one ? `기준배출량 ${fmt(d.find(v => v != null), 1)}` : '기준배출량 (연도별)',
-      markIdx: peak >= 0 ? [peak] : [], markLabels: bend, markColor: '#CBD5E1',
-      borderColor: '#94A3B8', backgroundColor: '#94A3B8', borderWidth: 1.5, borderDash: [2, 3], pointRadius: 0, pointHoverRadius: 0, tension: 0 }; };
+      markIdx: peak >= 0 ? [peak] : [], markLabels: bend, markColor: cssVar('--chart-label'),
+      borderColor: cssVar('--chart-ghost'), backgroundColor: cssVar('--chart-ghost'), borderWidth: 1.5, borderDash: [2, 3], pointRadius: 0, pointHoverRadius: 0, tension: 0 }; };
     // 2030 중기: 연도별 실적(막대) vs 자체·법적 목표(선) · 기준배출량은 막대가 아니라 기준선(회색 점선 · 해마다 조정된 값이라 계단 모양)
     //  기준배출량이 바뀌는 해(점선이 꺾이는 곳)에 전년 대비 증감률 % · 표시 기간은 제목 옆에서 고름
     const xsAll = [], first = Math.min(2024, ...years.map(Number));
@@ -8921,14 +8929,14 @@ table.main-tbl tbody tr:hover>td,.sb-tbl tbody tr:hover>td{background:rgba(255,2
   function drawReRoadmap(re, re50, ids, y, site, pred, ROL) {
     const [pathId, pathEmpty, path50Id, path50Empty, milesId, peekId] = ids;
     const curYr = new Date().getFullYear(), hasPred = pred != null;
-    const G = '#34D399', AMBER = '#FBBF24';
+    const G = cssVar('--chart-re-goal'), AMBER = cssVar('--chart-law');
     const act = yy => +yy < curYr ? reOfYear(yy, site) : null, pctL = v => v == null ? null : `${fmt(v, 1)}%`;
     const first = Math.min(2024, ...pastYears().map(Number)), xs = [], ys = [];
     for (let yy = first; yy <= Math.max(2030, curYr); yy++) xs.push(String(yy));
     for (let yy = first; yy <= 2050; yy++) ys.push(String(yy));
     const predBar = (arr, thick) => !hasPred ? [] : [{ type: 'bar', label: '올해 연말 예측', order: 2, grouped: false, borderRadius: 4, maxBarThickness: thick, $pop: true,
-      data: arr.map(yy => +yy === curYr ? pred : null), valueLabels: arr.map(yy => +yy === curYr ? pctL(pred) : null), legendColor: 'rgba(96,165,250,0.45)',
-      backgroundColor: 'rgba(96,165,250,0.28)', borderColor: 'rgba(96,165,250,0.95)', borderWidth: 1.5 }];
+      data: arr.map(yy => +yy === curYr ? pred : null), valueLabels: arr.map(yy => +yy === curYr ? pctL(pred) : null), legendColor: hexA(PRED_COLOR, .45),
+      backgroundColor: hexA(PRED_COLOR, .28), borderColor: hexA(PRED_COLOR, .95), borderWidth: 1.5 }];
     const goal = (arr, extra) => ({ type: 'line', label: '정부 이행 목표', order: 1, data: arr.map(reGoalOf), spanGaps: true, legendColor: AMBER,
       borderColor: AMBER, backgroundColor: AMBER, borderWidth: 2, pointRadius: arr.map(yy => reGoalOf(yy) != null ? 3 : 0), tension: 0, markFmt: v => `${v}%`, ...extra });
     // 2030 중기
@@ -8999,9 +9007,7 @@ table.main-tbl tbody tr:hover>td,.sb-tbl tbody tr:hover>td{background:rgba(255,2
     const isAll = !!histMonYrs && rng.from === avail[0] && rng.to === avail[avail.length - 1];
     // 연도마다 색을 다르게 · 점은 모두 네모 · 고른 연도 = 주황 굵은 선 · 그 전 해부터 파랑 → 보라 → 청록 → …
     //  어두운 화면에서 눈부시지 않게 채도·밝기를 낮춘 차분한 색
-    const PICK = '#E0946A';
-    const PAST = ['#7FA3D1', '#A496C9', '#6EAFA6', '#C48DA8', '#C2AC6E', '#8A92C4', '#7FB08A', '#7AAAC4', '#C48888', '#8E99A8'];
-    const NEXT = ['#B48EBF', '#A0B377', '#CDA17E'];
+    const { PICK, PAST, NEXT } = YEAR_COLS;
     const colOf = yy => { const d = +fy - +yy; return d === 0 ? PICK : d > 0 ? PAST[(d - 1) % PAST.length] : NEXT[(-d - 1) % NEXT.length]; };
     const styleOf = yy => ({ c: colOf(yy), shape: 'rect' });
     // 비교 연도: [최근 4년] [전체] 바로가기 + 기간(시작 ~ 끝) 선택 — 연도마다 버튼을 두지 않아 한 줄로 끝남
@@ -9036,7 +9042,7 @@ table.main-tbl tbody tr:hover>td,.sb-tbl tbody tr:hover>td{background:rgba(255,2
   // 배출 구성: 왼쪽 = 연도별 온실가스 (Scope별 · 에너지원별 · 거점별로 쌓음 — 모든 연도 같은 색, 고른 연도는 뒤에 띠 + 굵은 눈금)
   //  오른쪽 = 고른 연도의 거점별 온실가스(Scope 1+2) · 폐기물 발생량 — 세 거점을 한 줄씩 (막대 · 값 · 비중 · 전년 대비, 누르면 그 거점 자료)
   function renderMixCharts(set, years, S, si, fy, py) {
-    const navy = '#60A5FA', S3C = '#A78BFA';
+    const navy = cssVar('--chart-actual'), S3C = cssVar('--chart-s3');
     const by = histMixBy === 'site' && si ? 'scope' : histMixBy;   // 거점별로 쌓기는 전체 합계에서만
     $('h-mix-note').textContent = `${yrShort(fy)} 기준 · 막대나 줄을 누르면 그 해 월별 자료`;
     $('h-cs-title').innerHTML = `연도별 온실가스 배출<small>${esc(si || '전체 거점')} · tCO₂eq</small>`;
@@ -9047,8 +9053,8 @@ table.main-tbl tbody tr:hover>td,.sb-tbl tbody tr:hover>td{background:rgba(255,2
     if (set.scope) {
       set.scope.data.labels = years.map(yrShort);
       set.scope.options.plugins.colBand = { idx: fi, color: null,
-                                            line: 'rgba(96,165,250,.9)' };
-      Object.assign(set.scope.options.scales.x.ticks, { color: c => c.index === fi ? '#F1F5F9' : tick,
+                                            line: hexA(PRED_COLOR, .9) };
+      Object.assign(set.scope.options.scales.x.ticks, { color: c => c.index === fi ? cssVar('--chart-label-strong') : tick,
                                                          font: c => ({ size: 12, weight: c.index === fi ? '700' : '400' }) });
     }
     const bar = (label, data, c, extra = {}) => ({ label, data, backgroundColor: c, legendColor: c, borderRadius: 4, maxBarThickness: 56, ...extra });
@@ -9057,7 +9063,7 @@ table.main-tbl tbody tr:hover>td,.sb-tbl tbody tr:hover>td{background:rgba(255,2
     setChart(set.scope, 'h-chart-scope', 'h-cs-empty',
       by === 'type' ? [...EMIT_TYPES.filter(t => !itemNA(si, t)).map(t => bar(t, years.map(yy => S[yy].g[GK[t]]), typeCol(t), { $type: t, $amt: years.map(yy => S[yy][GK[t]]) })), s3]
       : by === 'site' ? [...SITES.map(s => bar(s, years.map(yy => ghgOfStat(yearStat(yy, [s]))), SITE_COL[s], { $site: s })), s3]
-      : [bar('Scope 1', years.map(yy => S[yy].months ? S[yy].s1 : null), '#E65100'), bar('Scope 2', years.map(yy => S[yy].months ? S[yy].s2 : null), navy), s3]);
+      : [bar('Scope 1', years.map(yy => S[yy].months ? S[yy].s1 : null), cssVar('--chart-s1')), bar('Scope 2', years.map(yy => S[yy].months ? S[yy].s2 : null), navy), s3]);
     // 거점별 온실가스 · 폐기물: 세 거점 (고른 거점이 있으면 그 줄을 강조)
     const cmp = py ? ` · ▲▼ ${yrShort(py)} 대비` : '';
     $('h-csi-title').textContent = `거점별 온실가스 배출 · ${yrShort(fy)}`;
@@ -9144,10 +9150,10 @@ table.main-tbl tbody tr:hover>td,.sb-tbl tbody tr:hover>td{background:rgba(255,2
       ...sites.map(st => ({ type: 'bar', label: st, $site: st, stack: 'w', order: 2, borderRadius: 2, maxBarThickness: 40, legendColor: WRM_COL[st],
         data: xs.map(yy => +yy < curYr ? wasteYearTon(yy, [st]) : null),
         backgroundColor: xs.map(yy => rm && yy === rm.baseYear ? hexA(WRM_COL[st], .45) : WRM_COL[st]) })),
-      ...(proj > 0 ? [{ type: 'bar', label: '올해 연말 예측', stack: 'w', order: 2, borderRadius: 2, maxBarThickness: 40, legendColor: 'rgba(96,165,250,0.45)',
-        data: xs.map(yy => +yy === curYr ? proj : null), backgroundColor: 'rgba(96,165,250,0.28)', borderColor: 'rgba(96,165,250,0.95)', borderWidth: 1.5 }] : []),
+      ...(proj > 0 ? [{ type: 'bar', label: '올해 연말 예측', stack: 'w', order: 2, borderRadius: 2, maxBarThickness: 40, legendColor: hexA(PRED_COLOR, .45),
+        data: xs.map(yy => +yy === curYr ? proj : null), backgroundColor: hexA(PRED_COLOR, .28), borderColor: hexA(PRED_COLOR, .95), borderWidth: 1.5 }] : []),
       ...(rm ? [{ type: 'line', label: '감축 목표 (합산)', stack: 'tgt', order: 1, data: xs.map(yy => yy === rm.baseYear ? rm.baseTon : rm.target(yy)),
-        borderColor: '#0F766E', backgroundColor: '#0F766E', borderWidth: 2, pointRadius: 3, spanGaps: true }] : []),
+        borderColor: cssVar('--chart-gov'), backgroundColor: cssVar('--chart-gov'), borderWidth: 2, pointRadius: 3, spanGaps: true }] : []),
     ]);
   }
 
