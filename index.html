@@ -63,7 +63,7 @@
      (Tab 키로 옮겼을 때 포커스 테두리가 늦게 뜸) 바뀌는 속성만 적어 둔다. */
   --t-ui:background var(--dur-1) var(--ease-out),color var(--dur-1) var(--ease-out),
          border-color var(--dur-1) var(--ease-out),opacity var(--dur-1) var(--ease-out),
-         box-shadow var(--dur-1) var(--ease-out);
+         box-shadow var(--dur-1) var(--ease-out),transform var(--dur-1) var(--ease-out);
   --font:'Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif;
   --fdata:'Inter','Segoe UI',Roboto,'Helvetica Neue',Arial,'Malgun Gothic',sans-serif;
   color-scheme: dark;
@@ -83,6 +83,19 @@ input,select{font-family:inherit;font-size:14px;color:var(--text)}
 select option{background-color:var(--surface);color:var(--text)} /* 펼친 목록도 어두운 바탕·밝은 글자 (운영체제 기본 흰 바탕 방지) */
 select option:disabled{color:var(--muted)}
 input:focus,select:focus{outline:2px solid var(--focus);outline-offset:2px}
+
+/* ── 누름·들림 피드백 ─────────────────────────────────
+   hover 는 76곳에 있었지만 :active 는 0곳이었다. 모바일에선 :active 가 유일한 반응이다.
+   · 단추·칩: 누르면 scale(.98) — 짧게(--dur-1), 놓으면 ease-out 으로 돌아옴
+   · 선택 가능한 카드: hover 에 1px 들림 + 2층 그림자, 누르면 내려앉음(.995)
+   · 탭: 제외 — 밑줄이 같이 움직이면 어색하다
+   :where() 로 명시도를 0으로 둬서, 각 요소가 가진 자기 규칙이 늘 이긴다 */
+:where(button,[role="button"]){transition:var(--t-ui)}
+:where(button:not(:disabled),[role="button"]):active{transform:scale(.98)}
+.kpi-click:hover,.sum-click:hover,.gs-card[data-calc]:hover,.o-card[role="button"]:hover,.ev-card:hover{transform:translateY(-1px)}
+.kpi-click:active,.sum-click:active,.gs-card[data-calc]:active,.o-card[role="button"]:active,.ev-card:active,.nav-card:active{transform:translateY(0) scale(.995);box-shadow:var(--shadow)}
+.todo-list li:active,.evy:active{transform:scale(.995)}   /* 폭이 넓은 줄은 .98 이면 가장자리가 너무 움직임 */
+.tab-btn:active,.subtab-btn:active{transform:none}
 
 /* ── 로딩 / 오류 화면 ────────────────────────────────── */
 #loading{position:fixed;inset:0;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;background:var(--bg);z-index:999;overflow:hidden}
@@ -187,7 +200,7 @@ header{background:var(--surface);color:var(--text);padding:0 20px;border-bottom:
 .kpi-placeholder .kpi-value{font-size:10px!important;font-weight:400!important;font-family:var(--font)!important;color:var(--muted)}
 .kpi-placeholder .kpi-unit,.kpi-amt[hidden]{display:none}
 /* 누르면 계산 근거가 뜨는 카드 */
-.kpi-click{cursor:pointer;position:relative;transition:border-color var(--dur-1) var(--ease-out),box-shadow var(--dur-1) var(--ease-out)}
+.kpi-click{cursor:pointer;position:relative;transition:border-color var(--dur-1) var(--ease-out),box-shadow var(--dur-1) var(--ease-out),transform var(--dur-2) var(--ease-out)}
 .kpi-click:hover{border-color:var(--accent);box-shadow:var(--shadow-md)}
 .kpi-click:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 .kpi-click::after{content:'';position:absolute;right:7px;bottom:5px;width:12px;height:12px;opacity:0;transition:opacity var(--dur-1) var(--ease-out);background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' stroke='currentColor' stroke-width='1.8' stroke-linecap='round' viewBox='0 0 24 24'%3E%3Ccircle cx='10.5' cy='10.5' r='6'/%3E%3Cpath d='M15 15l5.5 5.5'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' stroke='currentColor' stroke-width='1.8' stroke-linecap='round' viewBox='0 0 24 24'%3E%3Ccircle cx='10.5' cy='10.5' r='6'/%3E%3Cpath d='M15 15l5.5 5.5'/%3E%3C/svg%3E") center/contain no-repeat}
@@ -373,7 +386,7 @@ button.sb-btn:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
 #tab-outlook .fold-sec:not([open]){margin-bottom:14px}
 #o-sum-sec{margin-bottom:26px}
 .o-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
-.o-card[role="button"]{cursor:pointer;transition:border-color var(--dur-1) var(--ease-out),box-shadow var(--dur-1) var(--ease-out)}
+.o-card[role="button"]{cursor:pointer;transition:border-color var(--dur-1) var(--ease-out),box-shadow var(--dur-1) var(--ease-out),transform var(--dur-2) var(--ease-out)}
 .o-card[role="button"]:hover{border-color:var(--accent);box-shadow:var(--shadow-md)}
 .o-card[role="button"]:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 .o-card .gs-t b{font-family:var(--fdata);font-weight:700;color:var(--text2)}
@@ -878,12 +891,12 @@ table.main-tbl.gs-tbl tr:hover td:first-child{background:var(--surface2)}
 .sum-card[role="button"]{cursor:pointer;transition:border-color var(--dur-1) var(--ease-out)}
 .sum-card[role="button"]:hover{border-color:var(--accent)}
 .sum-card[role="button"]:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
-.sum-click{position:relative;cursor:pointer;transition:border-color var(--dur-1) var(--ease-out),box-shadow var(--dur-1) var(--ease-out)}
+.sum-click{position:relative;cursor:pointer;transition:border-color var(--dur-1) var(--ease-out),box-shadow var(--dur-1) var(--ease-out),transform var(--dur-2) var(--ease-out)}
 .sum-click:hover{border-color:var(--accent);box-shadow:var(--shadow-md)}
 .sum-click:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 .sum-click::after{content:'';position:absolute;right:7px;bottom:5px;width:12px;height:12px;opacity:0;transition:opacity var(--dur-1) var(--ease-out);background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' stroke='currentColor' stroke-width='1.8' stroke-linecap='round' viewBox='0 0 24 24'%3E%3Ccircle cx='10.5' cy='10.5' r='6'/%3E%3Cpath d='M15 15l5.5 5.5'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' stroke='currentColor' stroke-width='1.8' stroke-linecap='round' viewBox='0 0 24 24'%3E%3Ccircle cx='10.5' cy='10.5' r='6'/%3E%3Cpath d='M15 15l5.5 5.5'/%3E%3C/svg%3E") center/contain no-repeat}
 .sum-click:hover::after,.sum-click:focus-visible::after{opacity:.5}
-.gs-card[data-calc]{cursor:pointer;transition:border-color var(--dur-1) var(--ease-out),box-shadow var(--dur-1) var(--ease-out)}
+.gs-card[data-calc]{cursor:pointer;transition:border-color var(--dur-1) var(--ease-out),box-shadow var(--dur-1) var(--ease-out),transform var(--dur-2) var(--ease-out)}
 .gs-card[data-calc]:hover{border-color:var(--accent);box-shadow:var(--shadow-md)}
 .gs-card[data-calc]:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 .sum-hd{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
@@ -1440,7 +1453,7 @@ table.main-tbl tr:hover td{background:var(--surface2)}
 .ev-sum .es-d .eb.no::before{content:'✗';color:var(--red)}
 /* 지표별 전망 카드 */
 .eval-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
-.ev-card{position:relative;padding:14px 16px 13px;border:1px solid var(--border);border-top:3px solid var(--border2);border-radius:12px;background:var(--surface);cursor:pointer;transition:border-color var(--dur-1) var(--ease-out),box-shadow var(--dur-1) var(--ease-out)}
+.ev-card{position:relative;padding:14px 16px 13px;border:1px solid var(--border);border-top:3px solid var(--border2);border-radius:12px;background:var(--surface);cursor:pointer;transition:border-color var(--dur-1) var(--ease-out),box-shadow var(--dur-1) var(--ease-out),transform var(--dur-2) var(--ease-out)}
 .ev-card[data-calc]::after{content:'';position:absolute;right:11px;bottom:10px;width:14px;height:14px;opacity:.35;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' stroke='currentColor' stroke-width='1.8' stroke-linecap='round' viewBox='0 0 24 24'%3E%3Ccircle cx='10.5' cy='10.5' r='6'/%3E%3Cpath d='M15 15l5.5 5.5'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' stroke='currentColor' stroke-width='1.8' stroke-linecap='round' viewBox='0 0 24 24'%3E%3Ccircle cx='10.5' cy='10.5' r='6'/%3E%3Cpath d='M15 15l5.5 5.5'/%3E%3C/svg%3E") center/contain no-repeat}
 .ev-card[data-calc]:hover::after{opacity:.8}
 .ev-card:hover{border-color:var(--accent);box-shadow:var(--shadow-md)}
@@ -1529,7 +1542,7 @@ table.main-tbl tr:hover td{background:var(--surface2)}
 .todo-list li.done{color:var(--muted)}
 /* 탭 바로가기 */
 .nav-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:12px}
-.nav-card{display:flex;flex-direction:column;gap:5px;padding:15px 16px;border:1px solid var(--border);border-radius:12px;background:var(--surface);text-align:left;cursor:pointer;transition:border-color var(--dur-1) var(--ease-out),box-shadow var(--dur-1) var(--ease-out),transform var(--dur-2) var(--ease-out)}
+.nav-card{display:flex;flex-direction:column;gap:5px;padding:15px 16px;border:1px solid var(--border);border-radius:12px;background:var(--surface);text-align:left;cursor:pointer;transition:border-color var(--dur-1) var(--ease-out),box-shadow var(--dur-1) var(--ease-out),transform var(--dur-2) var(--ease-out),transform var(--dur-2) var(--ease-out)}
 .nav-card:hover{border-color:var(--accent);box-shadow:var(--shadow-md);transform:translateY(-1px)}
 .nav-card:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 .nav-card .nc-k{display:flex;align-items:center;gap:7px;font-size:14px;font-weight:700;color:var(--text)}

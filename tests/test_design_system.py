@@ -52,6 +52,12 @@ def run():
         H.ok("rgba(255,255,255" in line, f"{tok[:-1]} 에 윗선 빛(inset 흰색) 포함 — 검은 그림자만으로는 다크에서 안 보임")
     H.ok("backdrop-filter:blur" in SRC, "모달 오버레이에 블러")
 
+    # ── 누름 피드백: :active 가 있어야 한다 (모바일에선 유일한 반응) ──
+    H.test_name("누름 피드백")
+    H.ok(SRC.count(":active") >= 6, f":active 규칙 {SRC.count(':active')}개 (0이면 안 됨)")
+    H.ok("scale(.98)" in SRC, "단추 누름 scale(.98)")
+    H.ok("translateY(-1px)" in SRC, "선택 가능한 카드 hover 들림")
+
     # ── 모션: 길이는 토큰으로, 곡선은 반드시 ──
     H.test_name("모션")
     trans = re.findall(r"transition:\s*([^;}\n]*)", SRC)
