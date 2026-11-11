@@ -45,6 +45,13 @@ def run():
         H.ok(f"{tok}:" in SRC, f"{tok} 정의됨")
     H.ok("cssVar('--chart-" in SRC, "JS 차트 색이 CSS 토큰을 읽음 (팔레트 두 벌 금지)")
 
+    # ── 층위(다크): 그림자는 다크용 처방, 오버레이는 블러 ──
+    H.test_name("층위")
+    for tok in ("--shadow:", "--shadow-md:"):
+        line = next((l for l in SRC.splitlines() if l.strip().startswith(tok)), "")
+        H.ok("rgba(255,255,255" in line, f"{tok[:-1]} 에 윗선 빛(inset 흰색) 포함 — 검은 그림자만으로는 다크에서 안 보임")
+    H.ok("backdrop-filter:blur" in SRC, "모달 오버레이에 블러")
+
     # ── 모션: 길이는 토큰으로, 곡선은 반드시 ──
     H.test_name("모션")
     trans = re.findall(r"transition:\s*([^;}\n]*)", SRC)

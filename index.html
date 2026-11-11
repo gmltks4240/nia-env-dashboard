@@ -40,8 +40,15 @@
   --amber:#FBBF24; --teal:#2DD4BF; --good-bg:rgba(74,222,128,.14); --bad-bg:rgba(252,165,165,.14); --yb-dim:#3B5578;
   --vio:#C084FC;   /* 📈 전망 탭 '만약에' */
   --radius:10px;
-  --shadow:0 1px 4px rgba(0,0,0,.09);
-  --shadow-md:0 4px 12px rgba(0,0,0,.11);
+  /* ── 층위 (다크) ──
+     어두운 화면에서 높이는 '검은 그림자'가 아니라 밝기와 빛받는 윗선으로 보인다.
+     예전 값(rgba(0,0,0,.09))은 #0F172A 위에서 보이지 않아 모든 층이 1px 선 하나였다.
+       0  바닥        --bg
+       1  놓인 카드   --surface + 1px --border + --shadow      (얇은 그림자 + 윗선 빛)
+       2  떠 있는 것  --surface + --shadow-md                  (모달·팝오버·토스트·스낵바·hover 들림)
+       인셋 채움(입력칸·표 머리·설명 블록)은 --surface2 — 층이 아니라 '파인 면' */
+  --shadow:inset 0 1px 0 rgba(255,255,255,.04), 0 1px 2px rgba(0,0,0,.35);
+  --shadow-md:inset 0 1px 0 rgba(255,255,255,.06), 0 2px 6px rgba(0,0,0,.3), 0 12px 32px -8px rgba(0,0,0,.6);
   /* ── 모션 ──
      곡선은 ease-out 한 가지만 쓴다: 시작이 가장 빨라서 누르거나 올린 순간 바로 반응하는 느낌이 나고,
      끝에서 부드럽게 멎는다. (브라우저 기본값 ease 는 시작도 느려서 뭉개지는 느낌)
@@ -98,7 +105,7 @@ input:focus,select:focus{outline:2px solid var(--focus);outline-offset:2px}
 @keyframes sk-shine{to{transform:translateX(100%)}}
 @media (prefers-reduced-motion:reduce){.sk-b::after{animation:none}}
 @media (max-width:640px){.sk-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.sk-grid2{grid-template-columns:minmax(0,1fr)}.sk-nav .sk-b:nth-child(n+4){display:none}}
-.sk-status{position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);display:flex;align-items:center;gap:8px;margin:0;background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:6px 14px;font-size:12px;color:var(--muted);box-shadow:0 4px 14px rgba(0,0,0,.18)}
+.sk-status{box-shadow:var(--shadow-md);position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);display:flex;align-items:center;gap:8px;margin:0;background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:6px 14px;font-size:12px;color:var(--muted);box-shadow:0 4px 14px rgba(0,0,0,.18)}
 .sk-status::before{content:"";width:12px;height:12px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
 .spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -1248,7 +1255,7 @@ table.main-tbl tr:hover td{background:var(--surface2)}
 .btn-pag.active{background:var(--accent);color:#fff;border-color:var(--accent)}
 
 /* ── 모달 ────────────────────────────────────────────── */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal-overlay{position:fixed;inset:0;background:rgba(8,12,22,.6);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px}
 .modal-box{background:var(--surface);border-radius:var(--radius);padding:24px;width:100%;max-width:520px;box-shadow:var(--shadow-md);max-height:90vh;overflow-y:auto}
 .modal-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
 .modal-hdr h3{font-size:16px;font-weight:700}
