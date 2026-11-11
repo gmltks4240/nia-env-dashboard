@@ -69,6 +69,13 @@ def run():
     H.ok("@keyframes modal-in" in css and "animation:modal-in" in css, "팝업 진입 애니메이션")
     H.ok("color-mix(in srgb,var(--focus)" in css, "입력 포커스 링이 --focus 토큰")
 
+    # ── 반응형 분기점: 6단계만 (480 560 640 767 1023 1120) ──
+    H.test_name("분기점")
+    bps = sorted({int(v) for v in re.findall(r"@media[^{]*?\(max-width:\s*([0-9]+)px\)", SRC)})   # 미디어 쿼리만 (일반 max-width 속성 제외)
+    off = sorted(set(bps) - {480, 560, 640, 767, 1023, 1120})
+    H.ok(not off, f"max-width 분기점이 6단계 안 — 벗어난 값 {off if off else '없음'}")
+    H.ok("min-width:641px" in SRC and "min-width:601px" not in SRC, "min-width 짝이 max-width:640 과 맞음")
+
     # ── 모션: 길이는 토큰으로, 곡선은 반드시 ──
     H.test_name("모션")
     trans = re.findall(r"transition:\s*([^;}\n]*)", SRC)
