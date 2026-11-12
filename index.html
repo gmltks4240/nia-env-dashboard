@@ -3602,13 +3602,13 @@ table.main-tbl tbody tr:hover>td,.sb-tbl tbody tr:hover>td{background:rgba(255,2
   <div id="sub-trip" hidden>
     <div class="input-card">
       <h3><svg class="ic" aria-hidden="true"><use href="#i-compass"/></svg> 출장 배출량 자동 산정 <small class="trip-tag">Scope 3 · 철도</small></h3>
-      <p class="set-desc">관내출장 엑셀(연도별 시트)을 올리면 출발지·목적지를 분류하고, 철도 출장을 운임 기준으로 판정해 배출량을 계산해요. 저장하기 전에 결과를 먼저 확인해요.<br>
+      <p class="set-desc">관내출장 엑셀(연도별 시트)이나 CSV를 올리면 출발지·목적지를 분류하고, 철도 출장을 운임 기준으로 판정해 배출량을 계산해요. 저장하기 전에 결과를 먼저 확인해요.<br>
         교통비 0원은 이동하지 않은 것으로 보고 빼요 · 철도 외 교통편(항공·자가차량·버스)은 아직 산정하지 않아요</p>
-      <div class="drop-zone" id="trip-drop" role="button" tabindex="0" aria-label="출장 엑셀 파일을 끌어다 놓거나 눌러서 선택">
+      <div class="drop-zone" id="trip-drop" role="button" tabindex="0" aria-label="출장 엑셀·CSV 파일을 끌어다 놓거나 눌러서 선택">
         <div class="dz-icon" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-file"/></svg></div>
-        <b>출장 엑셀을 끌어다 놓거나 눌러서 선택</b>
-        <span>엑셀(xlsx, xls) · 시트 이름이 연도(2023, 2024 …)</span>
-        <input type="file" id="trip-file" accept=".xlsx,.xls" hidden>
+        <b>출장 엑셀·CSV를 끌어다 놓거나 눌러서 선택</b>
+        <span>엑셀(xlsx, xls) · CSV · 연도는 시트 이름이나 출장시작일에서 읽어요</span>
+        <input type="file" id="trip-file" accept=".xlsx,.xls,.csv,.tsv,.txt" hidden>
       </div>
       <p class="save-info trip-info" id="trip-info" role="status"></p>
       <div id="trip-out" hidden>
@@ -4672,15 +4672,15 @@ table.main-tbl tbody tr:hover>td,.sb-tbl tbody tr:hover>td{background:rgba(255,2
     const toDate = v => {
       if (v instanceof Date) return isNaN(v) ? '' : new Date(v.getTime() - v.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
       if (typeof v === 'number' && v > 20000 && v < 80000) return new Date(Math.round((v - 25569) * 86400000)).toISOString().slice(0, 10);   // 엑셀 날짜 일련번호
-      const m = /(\d{4})[-./](\d{1,2})[-./](\d{1,2})/.exec(String(v ?? ''));
+      const m = /(\d{4})\s*[-./년]\s*(\d{1,2})\s*[-./월]\s*(\d{1,2})/.exec(String(v ?? ''));   // 2025-01-02 · 2025.1.2 · 2025년 1월 2일
       return m ? `${m[1]}-${m[2].padStart(2, '0')}-${m[3].padStart(2, '0')}` : '';
     };
     const sheetYear = /^\d{4}$/.test(String(name).trim()) ? String(name).trim() : '';
     const rows = [];
     grid.slice(hi + 1).forEach(r => {
-      if (!r || !(Number(r[0]) > 0) || norm(r[c.m]) === '교통편') return;
+      if (!r || !(Number(String(r[0] ?? '').replace(/,/g, '')) > 0) || norm(r[c.m]) === '교통편') return;
       const date = toDate(r[c.s]), fare = Number(String(r[c.f] ?? '').replace(/,/g, ''));
-      rows.push({ year: sheetYear || date.slice(0, 4), seq: Number(r[0]), date, origin: String(r[c.o] ?? '').trim(), via: c.v >= 0 ? String(r[c.v] ?? '').trim() : '',
+      rows.push({ year: sheetYear || date.slice(0, 4), seq: Number(String(r[0]).replace(/,/g, '')), date, origin: String(r[c.o] ?? '').trim(), via: c.v >= 0 ? String(r[c.v] ?? '').trim() : '',
         dest: String(r[c.d] ?? '').trim(), mode: norm(r[c.m]), fare: Number.isFinite(fare) ? fare : 0 });
     });
     return { rows, error: rows.length ? '' : `'${name}' 시트에 출장 행이 없어요` };
@@ -10495,25 +10495,32 @@ table.main-tbl tbody tr:hover>td,.sb-tbl tbody tr:hover>td{background:rgba(255,2
   }
   async function tripRun(file) {
     if (!file) return;
-    if (!/\.xlsx?$/i.test(file.name)) { tripInfo('엑셀(xlsx, xls) 파일만 읽을 수 있어요', true); return; }
+    const isCsv = /\.(csv|tsv|txt)$/i.test(file.name);
+    if (!isCsv && !/\.xlsx?$/i.test(file.name)) { tripInfo('엑셀(xlsx, xls)·CSV 파일만 읽을 수 있어요', true); return; }
     $('trip-out').hidden = true; trip = null;
     tripInfo(`${esc(file.name)} 읽는 중…`);
     try {
-      const [X] = await Promise.all([loadXlsx(), loadTripRef()]);
-      const buf = await file.arrayBuffer(), wb = X.read(buf, { type: 'array' });
-      const rows = [], errs = [];
-      wb.SheetNames.forEach(n => {
-        const ws = wb.Sheets[n]; if (!ws || !ws['!ref']) return;
-        const p = tripParseSheet(n, X.utils.sheet_to_json(ws, { header: 1, defval: '', raw: true }));
-        rows.push(...p.rows); if (p.error) errs.push(p.error);
-      });
+      const buf = await file.arrayBuffer(), rows = [], errs = [];
+      const take = (n, grid) => { const p = tripParseSheet(n, grid); rows.push(...p.rows); if (p.error) errs.push(p.error); };
+      if (isCsv) {
+        // CSV 는 시트가 하나 — 연도는 출장시작일에서 읽음 · 한글 엑셀이 저장한 CSV 는 대개 CP949(EUC-KR)
+        await loadTripRef();
+        let text; try { text = new TextDecoder('utf-8', { fatal: true }).decode(buf); } catch { text = new TextDecoder('euc-kr').decode(buf); }
+        text = text.replace(/^\ufeff/, '');
+        take(file.name.replace(/\.[^.]+$/, ''), /\.csv$/i.test(file.name) && !text.includes('\t') ? parseCSV(text) : text.split(/\r?\n/).map(l => l.split('\t')));
+      } else {
+        const [X] = await Promise.all([loadXlsx(), loadTripRef()]), wb = X.read(buf, { type: 'array' });
+        wb.SheetNames.forEach(n => { const ws = wb.Sheets[n]; if (ws && ws['!ref']) take(n, X.utils.sheet_to_json(ws, { header: 1, defval: '', raw: true })); });
+      }
       const rail = rows.filter(r => r.mode === TRIP_RAIL && /^\d{4}$/.test(r.year));
+      const noYear = rows.filter(r => r.mode === TRIP_RAIL && !/^\d{4}$/.test(r.year)).length;
+      if (!rail.length && noYear) { tripInfo(`철도 ${noYear.toLocaleString('ko-KR')}건의 출장시작일을 읽지 못했어요 · 날짜를 2025-01-02 모양으로 저장해 주세요`, true); return; }
       if (!rail.length) { tripInfo(esc(errs[0] || (rows.length ? '철도 출장 행이 없어요 (국외출장 파일은 아직 산정하지 않아요)' : '출장 행을 찾지 못했어요')), true); return; }
       const others = {}; rows.forEach(r => { if (r.mode !== TRIP_RAIL) others[r.mode || '(빈칸)'] = (others[r.mode || '(빈칸)'] || 0) + 1; });
       let hash = '';
       try { hash = [...new Uint8Array(await crypto.subtle.digest('SHA-256', buf))].map(b => b.toString(16).padStart(2, '0')).join(''); } catch { /* file:// 등 — 지문 없이 진행 */ }
       const pl = await tripLoadPlaces();
-      trip = { name: file.name, hash, rows, rail, others, placeMap: pl.map, dbMissing: pl.missing, aiNote: '' };
+      trip = { name: file.name, hash, rows, rail, others, noYear, placeMap: pl.map, dbMissing: pl.missing, aiNote: '' };
       tripCompute();
       if (trip.unknown.length) {
         const ai = await tripAskAI(trip.unknown.map(u => u[0]), (a, b) => tripInfo(`새 장소 ${b.toLocaleString('ko-KR')}개 분류 중… (${a.toLocaleString('ko-KR')})`));
@@ -10545,6 +10552,7 @@ table.main-tbl tbody tr:hover>td,.sb-tbl tbody tr:hover>td{background:rgba(255,2
       dtop.map(([f, o]) => `<tr><td class="r">${n0(f)}</td><td class="r">${n0(o.n)}</td><td>${esc(o.ex)}</td><td>${esc(o.basis)}</td></tr>`).join('') + '</tbody>';
     const oth = Object.entries(trip.others).sort((a, b) => b[1] - a[1]).map(([m, n]) => `${esc(m)} ${n0(n)}`).join(' · ');
     tripInfo(`${esc(trip.name)} · 철도 ${n0(trip.rail.length)}건 산정` + (oth ? ` · 미산정: ${oth}` : '') +
+      (trip.noYear ? `<br>${icn('alert')} 출장시작일을 읽지 못한 철도 ${n0(trip.noYear)}건은 뺐어요` : '') +
       (trip.aiNote ? `<br>${icn('alert')} ${esc(trip.aiNote)} — 내장 규칙으로만 분류했어요` : '') +
       (trip.dbMissing ? `<br>${icn('alert')} 장소 사전 표가 없어요 · 저장하려면 supabase/trip_scope3.sql을 한 번 실행하세요` : ''));
     $('trip-out').hidden = false;

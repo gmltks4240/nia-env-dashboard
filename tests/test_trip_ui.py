@@ -50,9 +50,21 @@ window.XLSX = {
 USERS = [dict(user_id="u1", email="tester@nia.or.kr", name="테스터", role="editor")]
 
 
+CSV = """관내출장현황,,,,,,,,,,,,
+번호,출장시간,,출장일수,,출발지,경유지,목적지,교통편,왕복거리[KM],연비,유가,교통비
+부서코드,출장시작일,출장종료일,박,일,출발지,경유지,목적지,교통편,왕복거리[KM],연비,유가,교통비
+1,2025-01-02,2025-01-02,0,1,대구,,서울,철도운임,0,0,0,"87,000"
+2,2025.1.3,2025.1.3,0,1,대구,,"세종, 서울",철도운임,0,0,0,49600
+3,2026년 2월 3일,2026년 2월 3일,0,1,대구,,서울,철도운임,0,0,0,87000
+4,2025-01-05,2025-01-05,0,1,제주,,서울,항공운임,0,0,0,86700
+5,날짜없음,,0,1,대구,,서울,철도운임,0,0,0,87000
+"""
+
+
 def upload(p, content, name="출장.xls"):
     p.evaluate("()=>{document.querySelector('button[data-tab=input]').click();document.querySelector('.subtab-btn[data-sub=trip]').click()}")
-    p.set_input_files("#trip-file", files=[dict(name=name, mimeType="application/vnd.ms-excel", buffer=content.encode("utf-8"))])
+    data = content if isinstance(content, bytes) else content.encode("utf-8")
+    p.set_input_files("#trip-file", files=[dict(name=name, mimeType="application/vnd.ms-excel", buffer=data)])
     p.wait_for_function("document.getElementById('trip-info').textContent && !/읽는 중|분류 중/.test(document.getElementById('trip-info').textContent)", timeout=10000)
     p.wait_for_timeout(200)
 
@@ -122,6 +134,24 @@ def run():
         ok("출장 양식이 아니에요" in p.text_content("#trip-info"), "안내 문구")
         ok(p.evaluate("()=>document.getElementById('trip-out').hidden && document.getElementById('trip-info').classList.contains('err')"), "요약은 비어 있음")
         errs += errs2
+        br.close()
+
+        # ── 2-1) CSV ──
+        mock = MockRouter(tables={"app_users": USERS})
+        br, ctx, p, errs_csv = open_page(pw, mock, init_script=INIT.split("window.XLSX")[0])
+        test_name("CSV")
+        upload(p, CSV, "출장.csv")
+        a, b = cells(p, "2025"), cells(p, "2026")
+        ok(a and a[1] == "2" and b and b[1] == "1", f"연도를 출장시작일에서 읽음 (2025-01-02 · 2025.1.3 · 2026년 2월 3일) — 2025 {a[1:2]} 2026 {b[1:2]}")
+        ok(a[3] == "50.0%" and a[4] == "50.0%", f"쉼표 든 금액(\"87,000\")과 따옴표 안 쉼표 장소도 읽음 — A {a[3]} B {a[4]}")
+        info = p.text_content("#trip-info")
+        ok("항공운임 1" in info and "읽지 못한 철도 1건" in info, f"날짜를 못 읽은 행은 빼고 알림 — '{info[:90]}'")
+        ok(not p.evaluate("()=>!!document.querySelector('script[src*=sheetjs]')"), "CSV 는 엑셀 도구를 불러오지 않음")
+        upload(p, CSV.encode("euc-kr"), "출장_엑셀저장.csv")
+        ok(cells(p, "2025")[1] == "2", "한글 엑셀이 저장한 CSV(EUC-KR)도 읽음")
+        upload(p, "날짜,사업장,전력\n2024-01,대구,100\n", "에너지.csv")
+        ok("출장 양식이 아니에요" in p.text_content("#trip-info"), "출장 양식이 아닌 CSV 는 안내")
+        errs += errs_csv
         br.close()
 
         # ── 3) AI 응답 있음 · 500 ──
