@@ -4503,6 +4503,152 @@ table.main-tbl tbody tr:hover>td,.sb-tbl tbody tr:hover>td{background:rgba(255,2
   }
   /* @model-end */
 
+  /* @trip-start ── 출장(철도) Scope 3 산정 (순수 함수: 검증 스크립트에서도 이 코드를 그대로 사용) ── */
+  // 한 행 = 출장 1건(1인) · 기본 왕복, 왕복 1회가 상한 · 교통비 0원은 미이동으로 제외
+  // 판정 등급  A 업무상 확정(판정기준표) → B 운임표+구간 일치 → C 운임표만 일치 → D 추정
+  const TRIP_RATE = 43500 / 286.7;           // 운임 역산: 원/km (동대구–서울 일반실)
+  const TRIP_KM_CAP = 573.4 * 1.5;           // 운임 역산 상한 (km)
+  const TRIP_STN_CITY = { 서울: '서울', 용산: '서울', 광명: '서울', 수서: '서울', 영등포: '서울', 동대구: '대구', 서대구: '대구', 오송: '세종' };
+  const TRIP_NORTH = ['서울', '용산', '광명', '천안아산', '오송', '대전', '김천구미', '영등포'];   // 서대구 기준 북쪽 역
+  // 표준 지점(도시) — AI 분류 함수도 이 목록 안에서만 고름
+  const TRIP_POINTS = ['대구', '서울', '세종', '대전', '부산', '천안아산', '김천구미', '경주', '울산', '포항', '광주송정', '나주', '익산', '전주',
+    '목포', '여수EXPO', '순천', '진주', '창원', '밀양', '공주', '정읍', '강릉선', '제주', '기타'];
+  const TRIP_PAT = [
+    ['대구', /대구|본원|NIA(?!.*서울)|혁신도시|신서/],
+    ['서울', /서울|광화문|용산|여의도|강남|마포|종로|코엑스|상암|판교|성남|분당|수서|과천|양재|무교|중구|서초|송파|영등포|잠실|명동|광명|수원|인천|경기|고양|일산|안양|용인|과기정통부서울/],
+    ['세종', /세종|오송|기재부|과기부|과기정통부|행안부|청주|기획재정부|조치원|정부청사(?!.*(서울|대전|과천))/],
+    ['대전', /대전|유성|대덕/], ['부산', /부산|해운대|벡스코/], ['천안아산', /천안|아산/], ['김천구미', /김천|구미/],
+    ['경주', /경주/], ['울산', /울산/], ['포항', /포항/], ['광주송정', /광주(?!.*경기)|나주(?=$)/], ['나주', /나주|빛가람/], ['익산', /익산/],
+    ['전주', /전주|전북|완주/], ['목포', /목포|무안/], ['여수EXPO', /여수/], ['순천', /순천/], ['진주', /진주/],
+    ['창원', /창원|마산/], ['밀양', /밀양/], ['공주', /공주/], ['정읍', /정읍/], ['강릉선', /강릉|평창|진부|횡성|둔내/], ['제주', /제주|서귀포/]
+  ];
+  const tripR1 = x => Math.round(x * 10) / 10;
+  const tripCity = s => TRIP_STN_CITY[s] || s;
+  const tripPairKey = (a, b) => a < b ? a + '|' + b : b + '|' + a;
+  // 장소명 → 표준 지점 목록 · 사전(placeMap: AI·사람 확정)에 있으면 그 값, 없으면 내장 키워드 규칙
+  function tripCities(text, placeMap) {
+    const t = String(text ?? '').trim();
+    if (!t) return [];
+    if (placeMap && Array.isArray(placeMap[t])) return placeMap[t];
+    return TRIP_PAT.filter(([, re]) => re.test(t)).map(([c]) => c);
+  }
+  function tripBuildRef(REF) {
+    const DT = new Map(REF.dist.map(([a, b, km]) => [tripPairKey(a, b), km]));
+    const official = (a, b) => DT.get(tripPairKey(a, b));
+    // 역간 거리: 공식 거리표 → 수서·서대구는 참고값으로 추정
+    const dist = (a, b) => {
+      if (a === b) return null;
+      const d = official(a, b);
+      if (d != null) return { km: d, q: '공식' };
+      if (a === '수서' || b === '수서') {
+        const o = a === '수서' ? b : a;
+        let v = o === '서대구' ? 261.8 : o === '동대구' ? 269.2 : official(o, '서울') != null ? official(o, '서울') - 17.5 : null;
+        if (v && v > 0) return { km: tripR1(v), q: '추정' };
+        if (o !== '서대구') return null;
+      }
+      if (a === '서대구' || b === '서대구') {
+        const o = a === '서대구' ? b : a, d0 = official(o, '동대구');
+        if (d0 == null) return null;
+        return { km: tripR1(TRIP_NORTH.includes(o) ? d0 - 7.4 : d0 + 7.4), q: '추정' };
+      }
+      return null;
+    };
+    const segs = [];
+    const add = (a, b, fare, train, special) => {
+      const d = dist(a, b), base = { a, b, train, km: d?.km ?? null, q: d?.q ?? null };
+      segs.push({ ...base, fare, cls: '일반' });
+      if (special) segs.push({ ...base, fare: Math.round(fare * 1.4 / 100 + 1e-9) * 100, cls: '특실(×1.4 산식)' });
+    };
+    REF.fares.filter(f => f.train === 'KTX').forEach(f => add(f.a, f.b, f.fare, 'KTX', true));
+    REF.fares.filter(f => f.train !== 'KTX').forEach(f => add(f.a, f.b, f.fare, f.train, false));
+    // 판정기준표의 편도 운임은 '두 구간 합' 계산의 재료로도 씀 (예: 80,400 = 43,500 + 36,900)
+    [36900, 37000, 37100, 37200, 37300].forEach(f => segs.push({ a: '동대구', b: '수서', fare: f, train: 'SRT', cls: '일반', km: 269.2, q: '추정' }));
+    segs.push({ a: '동대구', b: '서울', fare: 43300, train: 'KTX(오송 환승)', cls: '일반', km: 286.7, q: '공식' });
+    const one = new Map(), two = new Map(), byCity = new Map(), push = (m, k, v) => { const l = m.get(k); l ? l.push(v) : m.set(k, [v]); };
+    segs.forEach(s => {
+      if (!s.km) return;
+      push(one, s.fare, s);
+      push(byCity, tripPairKey(tripCity(s.a), tripCity(s.b)), s);
+      s.c1 = tripCity(s.a); s.c2 = tripCity(s.b);
+    });
+    byCity.forEach(L => {
+      if (L[0].c1 === L[0].c2) return;
+      for (let i = 0; i < L.length; i++) for (let j = i; j < L.length; j++) if (L[i].cls === L[j].cls) push(two, L[i].fare + L[j].fare, [L[i], L[j]]);
+    });
+    const J = new Map(REF.judgment.map(j => [j.fare, j]));
+    return { one, two, byCity, J, factors: REF.factors, version: REF.version };
+  }
+  //  row : { origin, via, dest, fare }  →  { grade, gradeLabel, legs, km, factor, kg, basis }
+  function classifyRail(row, ref, placeMap) {
+    const f = Math.round(Number(row.fare) || 0);
+    if (f <= 0) return { grade: '제외', gradeLabel: '제외(교통비 0원)', legs: 0, km: 0, factor: 0, kg: 0, basis: '교통비 0원 — 미이동' };
+    const O = tripCities(row.origin, placeMap), D = [...new Set([...tripCities(row.dest, placeMap), ...tripCities(row.via, placeMap)])];
+    const gang = O.includes('강릉선') || D.includes('강릉선'), factor = gang ? ref.factors.gangneung : ref.factors.rail;
+    const out = (grade, gradeLabel, legs, km, basis) => ({ grade, gradeLabel, legs, km, factor, kg: Math.round(km * factor * 1000) / 1000, basis });
+    if (gang) return out('D', 'D 추정', f < 40000 ? 1 : 2, tripR1(f / TRIP_RATE), '강릉선: 운임÷km당 운임');
+    const j = ref.J.get(f);
+    if (j) return out('A', j.kmQ === '공식' ? 'A 업무상 확정' : 'A 업무상 확정(거리 추정)', j.legs, j.km, `${j.train} ${j.label}`);
+    const score = (c1, c2) => (O.includes(c1) && D.includes(c2)) || (O.includes(c2) && D.includes(c1)) ? 2 : [c1, c2].some(c => O.includes(c) || D.includes(c)) ? 1 : 0;
+    const cands = [];
+    (ref.one.get(f) || []).forEach(s => cands.push({ sc: score(s.c1, s.c2), legs: 1, km: s.km, q: s.q, train: s.train, cls: s.cls, basis: `${s.train} ${s.a}→${s.b} 편도 ${s.cls}` }));
+    (ref.two.get(f) || []).forEach(([s1, s2]) => cands.push({
+      sc: score(s1.c1, s1.c2), legs: 2, km: tripR1(s1.km + s2.km), q: s1.q === '공식' && s2.q === '공식' ? '공식' : '추정', train: s1.train, cls: s1.cls,
+      basis: s1 === s2 ? `${s1.train} ${s1.a}↔${s1.b} 왕복 ${s1.cls}` : `${s1.train} ${s1.a}-${s1.b} + ${s2.train} ${s2.a}-${s2.b} 왕복 ${s1.cls}`
+    }));
+    const od = [];
+    O.forEach(co => D.forEach(cd => { if (co !== cd) od.push(...(ref.byCity.get(tripPairKey(co, cd)) || [])); }));
+    if (cands.length) {
+      const top = Math.max(...cands.map(c => c.sc));
+      const best = cands.filter(c => c.sc === top).sort((x, y) => (x.cls !== '일반') - (y.cls !== '일반') || (x.q !== '공식') - (y.q !== '공식') || (x.train !== 'KTX') - (y.train !== 'KTX'));
+      const kms = best.map(c => c.km), spread = (Math.max(...kms) - Math.min(...kms)) / Math.max(...kms), c = best[0];
+      if (top === 2) return out('B', 'B 운임표+구간 일치' + (c.q === '공식' ? '' : '(거리 추정)'), c.legs, c.km, c.basis);
+      if (!od.length && spread <= 0.05) return out('C', 'C 운임표만 일치', c.legs, c.km, c.basis);
+    }
+    // 운임 불일치 — 출발·목적 도시의 구간 거리를 쓰고, 기준 편도 운임의 1.5배 미만이면 편도
+    const plain = od.filter(s => s.cls === '일반'), ktx = plain.filter(s => s.train === 'KTX'), L = ktx.length ? ktx : plain;
+    if (L.length) {
+      const s = [...L].sort((x, y) => y.km - x.km || y.fare - x.fare)[0], legs = f < 1.5 * s.fare ? 1 : 2;
+      return out('D', 'D 추정', legs, tripR1(s.km * legs), `구간 ${s.a}-${s.b} 거리 적용(운임 불일치, 기준 편도 ${s.fare.toLocaleString('ko-KR')})`);
+    }
+    return out('D', 'D 추정', f < 65000 ? 1 : 2, tripR1(Math.min(f / TRIP_RATE, TRIP_KM_CAP)), '운임÷km당 운임(151.7원/km)');
+  }
+  // 엑셀 한 시트(2차원 배열) → 출장 행 · 양식: 머리글에 출발지·목적지·교통편·교통비, 그 아래 번호가 숫자인 행
+  function tripParseSheet(name, grid) {
+    const norm = v => String(v ?? '').replace(/\s/g, '');
+    const hi = grid.slice(0, 6).findIndex(r => { const h = (r || []).map(norm); return h.includes('출발지') && h.includes('목적지') && h.includes('교통편') && h.includes('교통비'); });
+    if (hi < 0) return { rows: [], error: `'${name}' 시트는 출장 양식이 아니에요 (머리글에 출발지·목적지·교통편·교통비가 있어야 해요)` };
+    const h = grid[hi].map(norm), col = k => h.indexOf(k), iS = h.findIndex(x => /시작일/.test(x));
+    const c = { o: col('출발지'), v: col('경유지'), d: col('목적지'), m: col('교통편'), f: col('교통비'), s: iS >= 0 ? iS : 1 };
+    const toDate = v => {
+      if (v instanceof Date) return isNaN(v) ? '' : new Date(v.getTime() - v.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+      if (typeof v === 'number' && v > 20000 && v < 80000) return new Date(Math.round((v - 25569) * 86400000)).toISOString().slice(0, 10);   // 엑셀 날짜 일련번호
+      const m = /(\d{4})[-./](\d{1,2})[-./](\d{1,2})/.exec(String(v ?? ''));
+      return m ? `${m[1]}-${m[2].padStart(2, '0')}-${m[3].padStart(2, '0')}` : '';
+    };
+    const sheetYear = /^\d{4}$/.test(String(name).trim()) ? String(name).trim() : '';
+    const rows = [];
+    grid.slice(hi + 1).forEach(r => {
+      if (!r || !(Number(r[0]) > 0) || norm(r[c.m]) === '교통편') return;
+      const date = toDate(r[c.s]), fare = Number(String(r[c.f] ?? '').replace(/,/g, ''));
+      rows.push({ year: sheetYear || date.slice(0, 4), seq: Number(r[0]), date, origin: String(r[c.o] ?? '').trim(), via: c.v >= 0 ? String(r[c.v] ?? '').trim() : '',
+        dest: String(r[c.d] ?? '').trim(), mode: norm(r[c.m]), fare: Number.isFinite(fare) ? fare : 0 });
+    });
+    return { rows, error: rows.length ? '' : `'${name}' 시트에 출장 행이 없어요` };
+  }
+  //  results : [{ row, res }] (철도 행만)  →  연도별·월별 합계
+  function tripSummarize(results) {
+    const byYear = {}, byMonth = {};
+    results.forEach(({ row, res }) => {
+      const y = byYear[row.year] ||= { n: 0, excluded: 0, A: 0, B: 0, C: 0, D: 0, km: 0, kg: 0, kgD: 0 };
+      if (res.grade === '제외') { y.excluded++; return; }
+      y.n++; y[res.grade]++; y.km += res.km; y.kg += res.kg; if (res.grade === 'D') y.kgD += res.kg;
+      const mk = row.date ? row.date.slice(0, 7) : `${row.year}-00`, m = byMonth[mk] ||= { n: 0, km: 0, kg: 0 };
+      m.n++; m.km += res.km; m.kg += res.kg;
+    });
+    return { byYear, byMonth };
+  }
+  /* @trip-end */
+
   // 학습연도: 올해 직전 TRAIN_N개 연도 중 데이터가 있는 해 (해가 바뀌면 자동으로 바뀜)
   function trainYearsFor(curYr) {
     const ys = [...new Set(energyRecs.map(r => (r.date || '').slice(0, 4)))]

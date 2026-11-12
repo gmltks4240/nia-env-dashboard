@@ -31,6 +31,7 @@ python tests/test_ghg_factors.py
 | `test_ux_behavior.py` | 인라인 오류, 저장 버튼 로딩, 오프라인 배너 |
 | `test_forecast.py` | 기상연동 예측 모델 (같은 달 평균·기온 민감도 복원·추세 보정·추세 상한·학습연도 1개) — 화면 없이 모델 함수만 검증 |
 | `test_design_system.py` | 디자인 시스템 규칙 (반픽셀 글자 금지·모서리 둥글기 가족·transition 토큰과 곡선·움직임 줄이기) — 화면 없이 CSS 선언만 검사 |
+| `test_trip_rail.py` | 출장(철도) Scope 3 산정 (판정 등급 A~D·거리·계수·0원 제외·장소 사전·엑셀 시트 읽기) — 화면 없이 산정 함수만 검증 |
 | `test_skeleton_rings.py` | 스켈레톤 로딩, RE100/EV 링, 삭제·되돌리기·확정 |
 
 ## 종료 코드

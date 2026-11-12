@@ -24,6 +24,7 @@ TESTS = [
     "test_skeleton_rings",
     "test_forecast",
     "test_design_system",
+    "test_trip_rail",
 ]
 
 def main():
