@@ -24,7 +24,7 @@ create table if not exists public.trip_batches (
   status      text not null default 'saving' check (status in ('saving', 'active', 'replaced')),
   file_name   text,
   file_sha256 text,
-  ref_version text,                                   -- data/trip-ref.js 의 기준표 버전
+  ref_version text,                                   -- index.html 안 기준표(@trip-ref)의 버전
   summary     jsonb not null default '{}'::jsonb,     -- { n, excluded, A, B, C, D, km, kg, kgD, months: {'YYYY-MM': {n, km, kg}}, others }
   uploaded_by text,
   created_at  timestamptz not null default now()

@@ -1,5 +1,5 @@
 """
-출장(철도) Scope 3 산정 검증 — index.html 의 @trip-start … @trip-end 블록과 data/trip-ref.js 를
+출장(철도) Scope 3 산정 검증 — index.html 의 @trip-start … @trip-end 블록과 기준표(@trip-ref) 를
 그대로 꺼내 판정 등급·거리·배출량을 확인한다. (화면을 띄우지 않고 산정 코드만 평가)
 
 등급:  A 업무상 확정 → B 운임표+구간 일치 → C 운임표만 일치 → D 추정 · 교통비 0원은 제외
@@ -21,11 +21,18 @@ def trip_source():
     return m.group(1)
 
 
+def ref_source():
+    src = (ROOT / "index.html").read_text(encoding="utf-8")
+    m = re.search(r"<!-- @trip-ref-start -->\s*<script>(.*?)</script>\s*<!-- @trip-ref-end -->", src, re.S)
+    assert m, "@trip-ref-start … @trip-ref-end 블록을 찾지 못했습니다"
+    return m.group(1)
+
+
 def open_engine(pw):
     br = pw.chromium.launch()
     page = br.new_page()
     page.set_content("<!doctype html><title>trip</title>")
-    page.add_script_tag(content=(ROOT / "data" / "trip-ref.js").read_text(encoding="utf-8"))
+    page.add_script_tag(content=ref_source())
     page.add_script_tag(content=trip_source() + "\nwindow.__ref = tripBuildRef(window.TRIP_REF);"
                         "\nwindow.__c = (o, d, f, via, pm) => classifyRail({ origin: o, dest: d, via: via || '', fare: f }, window.__ref, pm || {});"
                         "\nwindow.__parse = tripParseSheet; window.__sum = tripSummarize;")
