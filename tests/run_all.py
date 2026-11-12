@@ -22,6 +22,8 @@ TESTS = [
     "test_ux_icons",
     "test_ux_behavior",
     "test_skeleton_rings",
+    "test_forecast",
+    "test_design_system",
 ]
 
 def main():
