@@ -1157,6 +1157,16 @@ table.main-tbl.bulk-tbl td.bk-none{color:var(--border2);text-align:center}
 .basis-h4{font-size:13px;font-weight:600;color:var(--text2)}
 .basis-note{font-size:11px;color:var(--muted);margin-top:8px;line-height:1.6}
 .basis-tbl-wrap{box-shadow:none}
+.trip-tag{font-size:12px;font-weight:500;color:var(--muted);margin-left:6px}
+.trip-info{margin-top:10px;min-height:18px}
+.trip-info.err{color:var(--red)}
+.trip-h4-row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin:18px 0 8px}
+.trip-acts{display:flex;align-items:center;gap:8px}
+.trip-note{margin:8px 0 0}
+.trip-scroll{overflow-x:auto}
+.trip-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px;margin-top:24px}
+.trip-cols .set-desc{margin:4px 0 8px}
+.trip-cols select{font-size:12px;padding:2px 6px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text)}
 .mini-tbl{width:100%;border-collapse:collapse;font-size:12px}
 .mini-tbl th{background:var(--surface2);color:var(--muted);font-weight:500;font-size:11px;text-align:left;padding:6px 10px;border-bottom:1px solid var(--border);white-space:nowrap}
 .mini-tbl td{padding:6px 10px;border-bottom:1px solid var(--border);color:var(--text2)}
@@ -2626,6 +2636,7 @@ table.main-tbl tbody tr:hover>td,.sb-tbl tbody tr:hover>td{background:rgba(255,2
         <div class="kpi-label">Scope 3 <small>기타 간접</small></div>
         <div class="kpi-row"><div class="kpi-value num" id="k-waste">—</div><span class="kpi-u">tCO₂eq</span></div>
         <div class="kpi-sub" id="k-waste-sub">종량제 봉투 기준</div>
+        <div class="kpi-sub" id="k-trip-sub" hidden></div>
         <div class="kpi-sub kpi-yoy" id="k-waste-yoy"></div>
         <div class="kpi-mb" id="k-waste-mb"></div>
       </div>
@@ -3303,6 +3314,7 @@ table.main-tbl tbody tr:hover>td,.sb-tbl tbody tr:hover>td{background:rgba(255,2
     <button class="subtab-btn" data-sub="waste"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg> 폐기물</button>
     <button class="subtab-btn" data-sub="metrics"><svg class="ic" aria-hidden="true"><use href="#i-sprout"/></svg> 기타 지표</button>
     <button class="subtab-btn" data-sub="bulk"><svg class="ic" aria-hidden="true"><use href="#i-upload"/></svg> 일괄 입력</button>
+    <button class="subtab-btn" data-sub="trip"><svg class="ic" aria-hidden="true"><use href="#i-compass"/></svg> 출장 (Scope 3)</button>
   </div>
 
   <!-- 에너지 월별 입력 -->
@@ -3583,6 +3595,39 @@ table.main-tbl tbody tr:hover>td,.sb-tbl tbody tr:hover>td{background:rgba(255,2
              ※ 폐기물(봉투 규격·수량)은 폐기물 탭에서 입력해요</p>
         </div>
       </details>
+    </div>
+  </div>
+
+  <!-- 출장 배출량(Scope 3): 출장 엑셀 → 장소 분류 → 운임 기준 판정 → 미리보기 → 저장 -->
+  <div id="sub-trip" hidden>
+    <div class="input-card">
+      <h3><svg class="ic" aria-hidden="true"><use href="#i-compass"/></svg> 출장 배출량 자동 산정 <small class="trip-tag">Scope 3 · 철도</small></h3>
+      <p class="set-desc">관내출장 엑셀(연도별 시트)을 올리면 출발지·목적지를 분류하고, 철도 출장을 운임 기준으로 판정해 배출량을 계산해요. 저장하기 전에 결과를 먼저 확인해요.<br>
+        교통비 0원은 이동하지 않은 것으로 보고 빼요 · 철도 외 교통편(항공·자가차량·버스)은 아직 산정하지 않아요</p>
+      <div class="drop-zone" id="trip-drop" role="button" tabindex="0" aria-label="출장 엑셀 파일을 끌어다 놓거나 눌러서 선택">
+        <div class="dz-icon" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-file"/></svg></div>
+        <b>출장 엑셀을 끌어다 놓거나 눌러서 선택</b>
+        <span>엑셀(xlsx, xls) · 시트 이름이 연도(2023, 2024 …)</span>
+        <input type="file" id="trip-file" accept=".xlsx,.xls" hidden>
+      </div>
+      <p class="save-info trip-info" id="trip-info" role="status"></p>
+      <div id="trip-out" hidden>
+        <div class="trip-h4-row"><h4 class="basis-h4">연도별 산정 결과</h4>
+          <span class="trip-acts">
+            <button class="btn-export" id="trip-dl" type="button"><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg> 행별 결과 CSV</button>
+            <button class="btn-primary" id="trip-save" type="button" data-need="edit">저장</button>
+          </span></div>
+        <div class="trip-scroll"><table class="mini-tbl" id="trip-summary"></table></div>
+        <p class="set-desc trip-note">A 업무상 확정(판정기준표) · B 운임표와 구간이 모두 일치 · C 운임표만 일치 · D 추정(구간 거리 또는 운임 역산) · 계수 0.0219 kgCO₂eq/인·km (강릉선 0.0716)</p>
+        <div class="trip-cols">
+          <div><h4 class="basis-h4">분류하지 못한 장소 <small id="trip-unk-n"></small></h4>
+            <p class="set-desc">지점을 고르면 장소 사전에 '사람 확정'으로 남고 바로 다시 계산해요.</p>
+            <div class="trip-scroll"><table class="mini-tbl" id="trip-unknown"></table></div></div>
+          <div><h4 class="basis-h4">추정(D)이 많은 운임</h4>
+            <p class="set-desc">판정기준표나 운임표에 없는 금액이에요. 건수가 큰 것부터 확인해 주세요.</p>
+            <div class="trip-scroll"><table class="mini-tbl" id="trip-dtop"></table></div></div>
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -4368,6 +4413,11 @@ table.main-tbl tbody tr:hover>td,.sb-tbl tbody tr:hover>td{background:rgba(255,2
     updatedAt: r.updated_at ? +new Date(r.updated_at) : null });
 
   let energyRecs = [], wasteRecs = [], metricRecs = [];
+  let tripBatches = [];   // 출장(Scope 3) 연도별 산정 결과 — trip_batches 의 status=active 묶음 { year, mode, summary }
+  async function loadTripBatches() {
+    try { tripBatches = (await sb('GET', 'trip_batches', '?select=year,mode,summary,ref_version,created_at&status=eq.active')) || []; }
+    catch (e) { tripBatches = []; }   // 표가 아직 없으면(SQL 실행 전) 출장 표시만 끔
+  }
   let managePage = 0;
   // 2단계(phase2.sql) 테이블이 있으면 true — 없으면 기타 지표·연도 마감·로드맵·변경 이력만 꺼지고 나머지는 그대로 동작
   let v2 = false;
@@ -4851,6 +4901,7 @@ table.main-tbl tbody tr:hover>td,.sb-tbl tbody tr:hover>td{background:rgba(255,2
       sbAll('waste', 'date.desc'),
       optional(sbAll('env_metrics', 'period.desc')),
       optional(sb('GET', 'env_settings', '?select=*')),
+      loadTripBatches(),
     ]);
     // 자료 지문: 자동 새로고침 때 바뀐 게 없으면 화면을 다시 그리지 않으려고 (그래프가 1분마다 다시 자라나지 않게)
     dataSig = hashStr(JSON.stringify([eData, wData, mData, sData]));
@@ -5983,6 +6034,9 @@ table.main-tbl tbody tr:hover>td,.sb-tbl tbody tr:hover>td{background:rgba(255,2
     $$('k-s2').innerHTML    = hasE ? bigNum(s2) : '—';
     $$('k-waste').innerHTML = !wy.length ? '—' : wGhgNA ? '<span class="cmp-na">미산정</span>' : bigNum(wGhg);
     $$('k-waste-sub').textContent = wy.length ? `폐기물 ${fq(wTon)} ton · 소각 기준` : '-';
+    // 출장(철도)은 거점 구분 없이 전사 기준 — 카드 숫자(폐기물)에 더하지 않고 따로 보여 줌
+    const tripEl = $$('k-trip-sub'), tb = tripBatches.find(b => String(b.year) === String(year) && b.mode === 'rail' && b.summary);
+    if (tripEl) { tripEl.hidden = !tb; tripEl.textContent = tb ? `출장(철도) ${fq(tb.summary.kg / 1000)} tCO₂eq · 전사 · 추정 ${tb.summary.n ? Math.round(tb.summary.D / tb.summary.n * 100) : 0}%` : ''; }
     if (hasE) {
       setYoy('k-total-yoy', yoy(r => isEmit(r.type)));
       setYoy('k-s1-yoy', yoy(isScope('Scope 1')));
@@ -10388,6 +10442,167 @@ table.main-tbl tbody tr:hover>td,.sb-tbl tbody tr:hover>td{background:rgba(255,2
   $('bulk-drop').addEventListener('click', () => $('bulk-file').click());
   $('bulk-drop').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); $('bulk-file').click(); } });
   $('bulk-file').addEventListener('change', e => { bulkFromFiles(e.target.files); e.target.value = ''; });
+
+  /* ── 출장 배출량 (Scope 3 · 철도) — 엑셀 → 장소 분류 → 판정 → 미리보기 → 저장 ─────────────── */
+  const TRIP_RAIL = '철도운임';
+  let tripRefLoading = null, tripRef = null;
+  // 기준표(운임·거리·판정)는 출장 파일을 올릴 때만 불러옴
+  const loadTripRef = () => tripRef ? Promise.resolve(tripRef) : (tripRefLoading ||= new Promise((ok, no) => {
+    const done = () => window.TRIP_REF ? ok(tripRef = tripBuildRef(window.TRIP_REF)) : fail();
+    const fail = () => { tripRefLoading = null; no(new Error('출장 산정 기준표(data/trip-ref.js)를 불러오지 못했어요')); };
+    if (window.TRIP_REF) return done();
+    const sc = document.createElement('script');
+    sc.src = 'data/trip-ref.js'; sc.onload = done; sc.onerror = () => { sc.remove(); fail(); };
+    document.head.appendChild(sc);
+  }));
+  let trip = null;   // { name, hash, rows, rail, others, placeMap, results, summary, unknown, aiNote, dbMissing }
+  const tripInfo = (msg, err) => { const el = $('trip-info'); el.innerHTML = msg; el.classList.toggle('err', !!err); };
+  // 장소 사전(AI·사람 확정)을 읽음 — 표가 아직 없으면(SQL 실행 전) 내장 규칙만으로 계산
+  async function tripLoadPlaces() {
+    try {
+      const rows = await sb('GET', 'trip_places', '?select=raw,points,source');
+      return { map: Object.fromEntries((rows || []).filter(r => Array.isArray(r.points)).map(r => [r.raw, r.points])), missing: false };
+    } catch (e) { console.warn('[출장] 장소 사전을 읽지 못했어요:', e.message); return { map: {}, missing: true }; }
+  }
+  // 내장 규칙으로 못 푼 장소만 AI 분류 함수로 보냄 (장소명 문자열만 전송) · 실패해도 산정은 계속
+  async function tripAskAI(raws, onStep) {
+    const got = {}; let note = '';
+    if (!raws.length || !session?.access_token || !canEdit()) return { got, note: raws.length ? 'AI 분류는 로그인한 편집자만 쓸 수 있어요' : '' };
+    for (let i = 0; i < raws.length; i += 100) {
+      onStep?.(Math.min(i + 100, raws.length), raws.length);
+      try {
+        const res = await fetchT(`${SB_URL}/functions/v1/classify-places`, { method: 'POST',
+          headers: { apikey: SB_KEY, Authorization: `Bearer ${session.access_token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ places: raws.slice(i, i + 100) }) }, 60000);
+        if (!res.ok) throw new Error(res.status === 404 ? 'AI 분류 함수가 아직 배포되지 않았어요' : `AI 분류 함수 오류 (${res.status})`);
+        const j = await res.json();
+        // 미확인(unknown)은 사전에 넣지 않고 '분류하지 못한 장소'에 남겨 사람이 정함 · '기타'로 판단한 곳은 지점 없음으로 확정
+        (j.results || []).forEach(r => {
+          if (!r || typeof r.raw !== 'string' || !Array.isArray(r.points) || r.confidence === 'unknown') return;
+          got[r.raw] = r.points.filter(p => TRIP_POINTS.includes(p) && p !== '기타');
+        });
+      } catch (e) { note = e?.name === 'AbortError' ? 'AI 분류 함수가 응답하지 않았어요' : e.message; break; }
+    }
+    return { got, note };
+  }
+  const tripPlacesOf = rows => { const n = new Map(); rows.forEach(r => [r.origin, r.dest, r.via].forEach(t => { if (t) n.set(t, (n.get(t) || 0) + 1); })); return n; };
+  function tripCompute() {
+    trip.results = trip.rail.map(row => ({ row, res: classifyRail(row, tripRef, trip.placeMap) }));
+    trip.summary = tripSummarize(trip.results);
+    // 분류하지 못한 장소: 사전에도 없고 내장 규칙에도 안 걸린 것 (교통비가 있는 철도 행 기준, 건수 순)
+    const paid = trip.rail.filter(r => r.fare > 0);
+    trip.unknown = [...tripPlacesOf(paid)].filter(([t]) => !tripCities(t, trip.placeMap).length && !(t in trip.placeMap)).sort((a, b) => b[1] - a[1]);
+  }
+  async function tripRun(file) {
+    if (!file) return;
+    if (!/\.xlsx?$/i.test(file.name)) { tripInfo('엑셀(xlsx, xls) 파일만 읽을 수 있어요', true); return; }
+    $('trip-out').hidden = true; trip = null;
+    tripInfo(`${esc(file.name)} 읽는 중…`);
+    try {
+      const [X] = await Promise.all([loadXlsx(), loadTripRef()]);
+      const buf = await file.arrayBuffer(), wb = X.read(buf, { type: 'array' });
+      const rows = [], errs = [];
+      wb.SheetNames.forEach(n => {
+        const ws = wb.Sheets[n]; if (!ws || !ws['!ref']) return;
+        const p = tripParseSheet(n, X.utils.sheet_to_json(ws, { header: 1, defval: '', raw: true }));
+        rows.push(...p.rows); if (p.error) errs.push(p.error);
+      });
+      const rail = rows.filter(r => r.mode === TRIP_RAIL && /^\d{4}$/.test(r.year));
+      if (!rail.length) { tripInfo(esc(errs[0] || (rows.length ? '철도 출장 행이 없어요 (국외출장 파일은 아직 산정하지 않아요)' : '출장 행을 찾지 못했어요')), true); return; }
+      const others = {}; rows.forEach(r => { if (r.mode !== TRIP_RAIL) others[r.mode || '(빈칸)'] = (others[r.mode || '(빈칸)'] || 0) + 1; });
+      let hash = '';
+      try { hash = [...new Uint8Array(await crypto.subtle.digest('SHA-256', buf))].map(b => b.toString(16).padStart(2, '0')).join(''); } catch { /* file:// 등 — 지문 없이 진행 */ }
+      const pl = await tripLoadPlaces();
+      trip = { name: file.name, hash, rows, rail, others, placeMap: pl.map, dbMissing: pl.missing, aiNote: '' };
+      tripCompute();
+      if (trip.unknown.length) {
+        const ai = await tripAskAI(trip.unknown.map(u => u[0]), (a, b) => tripInfo(`새 장소 ${b.toLocaleString('ko-KR')}개 분류 중… (${a.toLocaleString('ko-KR')})`));
+        Object.assign(trip.placeMap, ai.got); trip.aiNote = ai.note;
+        if (Object.keys(ai.got).length) tripCompute();
+      }
+      tripRender();
+    } catch (e) { console.error(e); trip = null; $('trip-out').hidden = true; tripInfo(esc(e.message || '파일을 읽지 못했어요'), true); }
+  }
+  function tripRender() {
+    if (!trip) return;
+    const n0 = v => Math.round(v).toLocaleString('ko-KR'), pc = (a, b) => b ? `${(a / b * 100).toFixed(1)}%` : '—';
+    const years = Object.keys(trip.summary.byYear).sort();
+    $('trip-summary').innerHTML = `<thead><tr><th>연도</th><th class="r">산정</th><th class="r">제외(0원)</th><th class="r">A 확정</th><th class="r">B 일치</th><th class="r">C 운임만</th><th class="r">D 추정</th><th class="r">만 인·km</th><th class="r">배출량 tCO₂eq</th><th class="r">그중 추정</th></tr></thead><tbody>` +
+      years.map(y => { const s = trip.summary.byYear[y];
+        return `<tr data-year="${y}"><td>${y}${isClosed(y) ? ' ' + icn('lock') : ''}</td><td class="r">${n0(s.n)}</td><td class="r">${n0(s.excluded)}</td>${['A', 'B', 'C', 'D'].map(g => `<td class="r">${pc(s[g], s.n)}</td>`).join('')}
+          <td class="r">${(s.km / 1e4).toFixed(1)}</td><td class="r"><b>${(s.kg / 1000).toFixed(1)}</b></td><td class="r">${(s.kgD / 1000).toFixed(1)}</td></tr>`; }).join('') + '</tbody>';
+    const opt = '<option value="">지점 고르기</option>' + TRIP_POINTS.map(p => `<option>${p}</option>`).join('');
+    $('trip-unk-n').textContent = trip.unknown.length ? `${trip.unknown.length.toLocaleString('ko-KR')}개` : '';
+    $('trip-unknown').innerHTML = !trip.unknown.length ? '<tbody><tr><td class="table-empty">모든 장소를 분류했어요</td></tr></tbody>' :
+      '<thead><tr><th>장소</th><th class="r">건수</th><th>지점</th></tr></thead><tbody>' + trip.unknown.slice(0, 30).map(([t, n]) =>
+        `<tr><td>${esc(t)}</td><td class="r">${n0(n)}</td><td><select data-raw="${esc(t)}" aria-label="${esc(t)} 지점"${canEdit() ? '' : ' disabled'}>${opt}</select></td></tr>`).join('') +
+      (trip.unknown.length > 30 ? `<tr><td colspan="3" class="table-empty">외 ${(trip.unknown.length - 30).toLocaleString('ko-KR')}개 (건수 순 상위 30개만 보여요)</td></tr>` : '') + '</tbody>';
+    const dm = new Map();
+    trip.results.forEach(({ row, res }) => { if (res.grade !== 'D') return; const k = row.fare, o = dm.get(k) || { n: 0, basis: res.basis, ex: `${row.origin}→${row.dest}` }; o.n++; dm.set(k, o); });
+    const dtop = [...dm].sort((a, b) => b[1].n - a[1].n).slice(0, 10);
+    $('trip-dtop').innerHTML = !dtop.length ? '<tbody><tr><td class="table-empty">추정으로 넘어간 행이 없어요</td></tr></tbody>' :
+      '<thead><tr><th class="r">교통비</th><th class="r">건수</th><th>기록 예</th><th>적용</th></tr></thead><tbody>' +
+      dtop.map(([f, o]) => `<tr><td class="r">${n0(f)}</td><td class="r">${n0(o.n)}</td><td>${esc(o.ex)}</td><td>${esc(o.basis)}</td></tr>`).join('') + '</tbody>';
+    const oth = Object.entries(trip.others).sort((a, b) => b[1] - a[1]).map(([m, n]) => `${esc(m)} ${n0(n)}`).join(' · ');
+    tripInfo(`${esc(trip.name)} · 철도 ${n0(trip.rail.length)}건 산정` + (oth ? ` · 미산정: ${oth}` : '') +
+      (trip.aiNote ? `<br>${icn('alert')} ${esc(trip.aiNote)} — 내장 규칙으로만 분류했어요` : '') +
+      (trip.dbMissing ? `<br>${icn('alert')} 장소 사전 표가 없어요 · 저장하려면 supabase/trip_scope3.sql을 한 번 실행하세요` : ''));
+    $('trip-out').hidden = false;
+  }
+  function tripDownload() {
+    if (!trip) return;
+    const head = ['연도', '번호', '출장시작일', '출발지', '경유지', '목적지', '교통비', '판정등급', '이동횟수(편도)', '거리km', '배출계수', 'kgCO2e', '판정근거'];
+    const lines = trip.results.map(({ row: r, res: x }) => [r.year, r.seq, r.date, r.origin, r.via, r.dest, r.fare, x.gradeLabel, x.legs, x.km, x.factor, x.kg, x.basis]);
+    const csv = [head, ...lines].map(l => l.map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(',')).join('\n');
+    const url = URL.createObjectURL(new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' })), a = document.createElement('a');
+    a.href = url; a.download = `NIA_출장_철도_Scope3_행별_${new Date().toISOString().slice(0, 10)}.csv`; a.click(); URL.revokeObjectURL(url);
+    showToast(`${icn('download')} ${lines.length.toLocaleString('ko-KR')}건 CSV 내보내기 완료`);
+  }
+  // 사람이 장소를 지정 → 사전에 '사람 확정'으로 남기고 다시 계산 (AI가 덮어쓰지 않음)
+  async function tripSetPlace(raw, point) {
+    if (!trip || !point || !canEdit()) return;
+    trip.placeMap[raw] = point === '기타' ? [] : [point];
+    tripCompute(); tripRender();
+    try {
+      await sb('POST', 'trip_places', '?on_conflict=raw', [{ raw, points: trip.placeMap[raw], confidence: 'high', reason: '사람 확정', source: 'human', updated_by: me?.email || null }], 'resolution=merge-duplicates,return=minimal');
+      showToast(`'${esc(raw)}' → ${esc(point)} · 장소 사전에 저장했어요`);
+    } catch (e) { showToast(`이번 계산에만 반영했어요 · 장소 사전 저장 실패: ${esc(e.message)}`, 'err'); }
+  }
+  let tripSaving = false;
+  async function tripSave() {
+    if (!trip || tripSaving || !canEdit()) return;
+    const years = Object.keys(trip.summary.byYear).sort(), locked = years.filter(isClosed);
+    if (locked.length) { showToast(`${locked.join('·')}년은 마감된 연도라 저장할 수 없어요`, 'err'); return; }
+    const btn = $('trip-save'); tripSaving = true; btn.disabled = true; btn.textContent = '저장 중…';
+    try {
+      for (const y of years) {
+        const id = crypto.randomUUID(), s = trip.summary.byYear[y];
+        const months = Object.fromEntries(Object.entries(trip.summary.byMonth).filter(([k]) => k.startsWith(y)).map(([k, v]) => [k, { n: v.n, km: tripR1(v.km), kg: Math.round(v.kg * 1000) / 1000 }]));
+        const mine = trip.results.filter(x => x.row.year === y);
+        await sb('POST', 'trip_batches', '', [{ id, year: Number(y), mode: 'rail', file_name: trip.name, file_sha256: trip.hash || null, ref_version: tripRef.version,
+          uploaded_by: me?.email || null, status: 'saving', summary: { ...s, km: tripR1(s.km), kg: Math.round(s.kg * 1000) / 1000, kgD: Math.round(s.kgD * 1000) / 1000, months, others: trip.others } }], 'return=minimal');
+        for (let i = 0; i < mine.length; i += 500) {
+          btn.textContent = `${y}년 저장 중… ${Math.min(i + 500, mine.length).toLocaleString('ko-KR')}/${mine.length.toLocaleString('ko-KR')}`;
+          await sb('POST', 'trip_rows', '', mine.slice(i, i + 500).map(({ row: r, res: x }) => ({ batch_id: id, year: Number(y), seq: r.seq, trip_date: r.date || null, mode: 'rail',
+            origin: r.origin, via: r.via, dest: r.dest, fare: r.fare, grade: x.grade, grade_label: x.gradeLabel, legs: x.legs, km: x.km, factor: x.factor, kgco2e: x.kg, basis: x.basis })), 'return=minimal');
+        }
+        // 새 묶음이 다 들어간 뒤에 같은 연도의 이전 묶음을 내림 (도중에 실패하면 이전 결과가 그대로 남음)
+        await sb('PATCH', 'trip_batches', `?id=eq.${id}`, { status: 'active' }, 'return=minimal');
+        await sb('DELETE', 'trip_rows', `?year=eq.${y}&mode=eq.rail&batch_id=neq.${id}`, null, 'return=minimal');
+        await sb('PATCH', 'trip_batches', `?year=eq.${y}&mode=eq.rail&status=eq.active&id=neq.${id}`, { status: 'replaced' }, 'return=minimal');
+      }
+      showToast(`출장(철도) ${years.join('·')}년 산정 결과를 저장했어요`);
+      await loadTripBatches(); renderAll({ force: true });
+    } catch (e) {
+      showToast(trip.dbMissing || /trip_/.test(e.message) ? `저장하지 못했어요 · supabase/trip_scope3.sql을 먼저 실행해 주세요 (${esc(e.message)})` : `저장하지 못했어요 · ${esc(e.message)}`, 'err');
+    } finally { tripSaving = false; btn.disabled = false; btn.textContent = '저장'; }
+  }
+  $('trip-drop').addEventListener('click', () => $('trip-file').click());
+  $('trip-drop').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); $('trip-file').click(); } });
+  $('trip-file').addEventListener('change', e => { tripRun(e.target.files[0]); e.target.value = ''; });
+  $('trip-dl').addEventListener('click', tripDownload);
+  $('trip-save').addEventListener('click', tripSave);
+  $('trip-unknown').addEventListener('change', e => { const sel = e.target.closest('select[data-raw]'); if (sel) tripSetPlace(sel.dataset.raw, sel.value); });
   // 화면 어디에 파일을 끌어다 놓아도 일괄 입력으로
   let dragDepth = 0;
   const hasFiles = e => [...(e.dataTransfer?.types || [])].includes('Files');
@@ -10399,7 +10614,10 @@ table.main-tbl tbody tr:hover>td,.sb-tbl tbody tr:hover>td{background:rgba(255,2
   window.addEventListener('drop', e => {
     if (!hasFiles(e)) return;
     e.preventDefault(); dragDepth = 0; showDrop(false);
-    if (appOn()) bulkFromFiles(e.dataTransfer.files);
+    if (!appOn()) return;
+    // 출장 화면을 보고 있을 때 놓은 파일은 출장 산정으로
+    if ($('tab-input').classList.contains('active') && !$('sub-trip').hidden) tripRun(e.dataTransfer.files[0]);
+    else bulkFromFiles(e.dataTransfer.files);
   });
 
   /* ── 관리 테이블 렌더 (페이지네이션) ────────────────── */

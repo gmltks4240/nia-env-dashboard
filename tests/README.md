@@ -32,6 +32,7 @@ python tests/test_ghg_factors.py
 | `test_forecast.py` | 기상연동 예측 모델 (같은 달 평균·기온 민감도 복원·추세 보정·추세 상한·학습연도 1개) — 화면 없이 모델 함수만 검증 |
 | `test_design_system.py` | 디자인 시스템 규칙 (반픽셀 글자 금지·모서리 둥글기 가족·transition 토큰과 곡선·움직임 줄이기) — 화면 없이 CSS 선언만 검사 |
 | `test_trip_rail.py` | 출장(철도) Scope 3 산정 (판정 등급 A~D·거리·계수·0원 제외·장소 사전·엑셀 시트 읽기) — 화면 없이 산정 함수만 검증 |
+| `test_trip_ui.py` | 출장(Scope 3) 화면 — 업로드·요약, AI 분류 함수 실패·응답, 사람 확정, 저장(묶음·행·교체), SQL 실행 전, Scope 3 카드 표시 |
 | `test_skeleton_rings.py` | 스켈레톤 로딩, RE100/EV 링, 삭제·되돌리기·확정 |
 
 ## 종료 코드

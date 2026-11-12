@@ -24,13 +24,19 @@ def wrow(i, date, site, ton):
 class MockRouter:
     """Supabase REST / Auth / 외부 API 가로채기"""
 
-    def __init__(self, energy=None, waste=None, settings=None, metrics=None):
+    def __init__(self, energy=None, waste=None, settings=None, metrics=None,
+                 tables=None, missing=(), functions=None):
         self.tables = {
             "energy": energy or [],
             "waste": waste or [],
             "env_settings": settings or [],
             "env_metrics": metrics or [],
         }
+        self.tables.update(tables or {})   # 그 밖의 표 (app_users · trip_batches 등)
+        self.missing = set(missing)        # 아직 만들지 않은 표 → 404 (SQL 실행 전 상태)
+        self.functions = functions or {}   # Edge Function 이름 → (status, 응답 dict)
+        self.writes = []                   # POST·PATCH 요청 (method, 표, 본문)
+        self.calls = []                    # Edge Function 호출 (이름, 본문)
         self.deletes = []          # DELETE 요청 URL 수집
         self.hold_energy = False   # True 면 /energy 응답을 보류 (스켈레톤 테스트)
         self._held = []
@@ -52,8 +58,32 @@ class MockRouter:
     def route(self, req):
         url = req.request.url
 
+        # Supabase Edge Function
+        m = re.search(r"supabase\.co/functions/v1/([a-z-]+)", url)
+        if m:
+            if req.request.method == "OPTIONS":
+                req.fulfill(status=204, headers={"access-control-allow-origin": "*", "access-control-allow-headers": "*"}, body="")
+                return
+            self.calls.append((m.group(1), req.request.post_data_json))
+            status, body = self.functions.get(m.group(1), (404, {"message": "not found"}))
+            req.fulfill(status=status, content_type="application/json",
+                        headers={"access-control-allow-origin": "*"}, body=json.dumps(body, ensure_ascii=False))
+            return
+
         # Supabase REST
         if "supabase.co/rest" in url:
+            m = re.search(r"/rest/v1/([a-z_]+)", url)
+            table = m.group(1) if m else ""
+            if req.request.method == "OPTIONS":
+                req.fulfill(status=204, headers={"access-control-allow-origin": "*", "access-control-allow-headers": "*",
+                                                 "access-control-allow-methods": "*"}, body="")
+                return
+            if table in self.missing:
+                req.fulfill(status=404, content_type="application/json", headers={"access-control-allow-origin": "*"},
+                            body=json.dumps({"code": "PGRST205", "message": f"Could not find the table 'public.{table}' in the schema cache"}))
+                return
+            if req.request.method in ("POST", "PATCH"):
+                self.writes.append((req.request.method, table, req.request.post_data_json))
             if req.request.method == "DELETE":
                 self.deletes.append(url)
                 req.fulfill(status=204, body="")
@@ -86,7 +116,7 @@ class MockRouter:
 
 # ─── 브라우저 + 페이지 열기 ──────────────────────────
 def open_page(pw, mock, *, width=1280, height=900, accept_downloads=False,
-              device_scale_factor=1, wait_load=True):
+              device_scale_factor=1, wait_load=True, init_script=None):
     """Chromium 열고 index.html 로드. (br, ctx, page, errors) 반환"""
     br = pw.chromium.launch()
     opts = dict(viewport={"width": width, "height": height},
@@ -96,6 +126,8 @@ def open_page(pw, mock, *, width=1280, height=900, accept_downloads=False,
         opts["accept_downloads"] = True
     ctx = br.new_context(**opts)
     ctx.route("**/*", mock.route)
+    if init_script:
+        ctx.add_init_script(init_script)
     page = ctx.new_page()
     errors = []
     page.on("pageerror", lambda e: errors.append(str(e)))

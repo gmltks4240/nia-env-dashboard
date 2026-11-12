@@ -25,6 +25,7 @@ TESTS = [
     "test_forecast",
     "test_design_system",
     "test_trip_rail",
+    "test_trip_ui",
 ]
 
 def main():
