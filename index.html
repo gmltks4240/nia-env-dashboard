@@ -1993,10 +1993,9 @@ body:has(#tab-home.active) .btn-login{border-color:var(--h-line);color:var(--h-p
 @media(max-width:767px){.header-mascot{display:none}}
 /* 대시보드 상단 환영 배너 */
 .welcome-banner{background:linear-gradient(135deg,#0F172A 0%,#1E293B 60%,#0F172A 100%);border-radius:var(--radius);padding:18px 24px;margin-bottom:20px;display:flex;align-items:center;gap:20px;overflow:hidden;position:relative}
-.welcome-banner::after{content:'';position:absolute;right:-20px;top:-20px;width:140px;height:140px;background:rgba(255,255,255,.04);border-radius:50%}
 .wb-mascot{width:70px;height:auto;flex-shrink:0;filter:drop-shadow(0 2px 6px rgba(0,0,0,.3))}
 .wb-text h2{color:#fff;font-size:14px;font-weight:600;margin-bottom:4px}
-.wb-text p{color:rgba(255,255,255,.7);font-size:12px;line-height:1.5}
+.wb-text p{color:rgba(255,255,255,.7);font-size:12px;line-height:1.5;text-wrap:pretty;word-break:keep-all}
 
 /* ── 새 마스코트 CSS ───────────────────────────────── */
 .tab-banner{display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,rgba(27,58,107,.25) 0%,rgba(42,82,152,.2) 100%);border:1px solid rgba(100,140,200,.2);border-radius:10px;padding:12px 18px;margin-bottom:16px}
@@ -2120,7 +2119,6 @@ body.intro-min :is(.welcome-banner,.tab-banner){padding:6px 10px 6px 14px;gap:10
 body.intro-min :is(.wb-mascot,.tab-mascot){width:26px;height:26px;object-fit:contain}
 body.intro-min .welcome-banner .wb-text h2,body.intro-min .tab-banner strong{font-size:13px;margin:0}
 body.intro-min .welcome-banner .wb-text p,body.intro-min .tab-banner span{display:none}
-body.intro-min .welcome-banner::after{display:none}
 body.intro-min .site-info .si-desc{display:none}   /* 거점 설명 문장도 (적용 목표·관리 항목 줄은 그대로) */
 body.intro-min .site-info .si-head{grid-row:auto}
 @media(max-width:640px){   /* 좁은 화면: [접기]는 오른쪽 위 구석에 — 설명 글이 좁아지지 않게 */
@@ -5057,6 +5055,7 @@ table.main-tbl tbody tr:hover>td,.sb-tbl tbody tr:hover>td{background:rgba(255,2
       // 글자 둘레에 배경색 테두리: 선·격자가 지나가도 숫자가 또렷하게
       ctx.strokeStyle = cssVar('--surface'); ctx.lineWidth = 3; ctx.lineJoin = 'round';
       const put = (t, x, y) => { ctx.strokeText(t, x, y); ctx.fillText(t, x, y); };
+      const solo = o.total || metas.length === 1, slot = chart.chartArea.width / (chart.data.labels.length || 1);   // 칸마다 레이블이 하나뿐인지 · 한 칸 너비
       chart.getSortedVisibleDatasetMetas().filter(m => m.type === 'line').forEach(m => {
         const ds = chart.data.datasets[m.index];
         (ds.markIdx || []).forEach(i => {               // 이정표 지점 값 (예: 30·40·50년 목표)
@@ -5083,6 +5082,10 @@ table.main-tbl tbody tr:hover>td,.sb-tbl tbody tr:hover>td{background:rgba(255,2
         } else if ((el.width ?? 0) >= w + 2) {
           ctx.textAlign = 'center'; ctx.textBaseline = neg ? 'top' : 'bottom';
           put(txt, el.x, (neg && fl ? el.base : el.y) + (neg ? 3 : -3));   // 폭포에서 줄어든 막대는 막대 아래에
+        } else if (!neg && (solo && w + 6 <= slot || w > el.y - 4)) {
+          // 막대는 좁아도 칸이 넉넉하면(막대가 칸마다 하나) 가로로 · 세로로 돌리면 캔버스 위로 잘릴 때도 가로로 (잘린 숫자는 틀린 숫자로 읽힘)
+          ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+          put(txt, Math.min(Math.max(el.x, w / 2 + 2), chart.width - w / 2 - 2), el.y - 3);
         } else if ((el.width ?? 0) >= size - 1) { // 좁은 막대: 세로로
           ctx.save(); ctx.translate(el.x, el.y - 3); ctx.rotate(-Math.PI / 2);
           ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; put(txt, 0, 0); ctx.restore();
