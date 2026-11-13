@@ -35,7 +35,10 @@ def open_engine(pw):
     page.add_script_tag(content=ref_source())
     page.add_script_tag(content=trip_source() + "\nwindow.__ref = tripBuildRef(window.TRIP_REF);"
                         "\nwindow.__c = (o, d, f, via, pm) => classifyRail({ origin: o, dest: d, via: via || '', fare: f }, window.__ref, pm || {});"
-                        "\nwindow.__parse = tripParseSheet; window.__sum = tripSummarize;")
+                        "\nwindow.__parse = tripParseSheet; window.__sum = tripSummarize;"
+                        "\nwindow.__pairs = f => tripFarePairs(f, window.__ref).map(p => [...p].sort().join('-'));"
+                        "\nwindow.__ev = (rows, pm) => Object.fromEntries(tripPlaceEvidence(rows, window.__ref, pm || {}));"
+                        "\nwindow.__mark = tripEvidenceMark;")
     return br, page
 
 
@@ -123,6 +126,37 @@ def run():
         H.ok(y["n"] == 2 and y["excluded"] == 1 and y["A"] == 1 and y["D"] == 1, f"연도 합계 — {y}")
         H.near(s["byMonth"]["2024-01"]["kg"], 2 * 12.557, 0.01, "1월 배출량")
         H.ok("2024-02" not in s["byMonth"], "제외 행은 월 합계에 없음")
+
+        H.test_name("운임 대조")
+        pr = page.evaluate("f => __pairs(f)", 87000)
+        H.ok("대구-서울" in pr, f"87,000 은 대구–서울 구간 — {pr}")
+        pr = page.evaluate("f => __pairs(f)", 49600)
+        H.ok("대구-세종" in pr, f"49,600 은 대구–세종 구간 — {pr}")
+        H.ok(page.evaluate("f => __pairs(f)", 70010) == [], "어느 운임표와도 맞지 않으면 빈 목록")
+        trip = lambda o, d, f: dict(origin=o, dest=d, via="", fare=f)
+        rows = [trip("대구", "한국프레스센터", 87000)] * 3 + [trip("대구", "한국프레스센터", 43500)]
+        ev = lambda rows, pm=None: page.evaluate("([r, pm]) => __ev(r, pm)", [rows, pm or {}])
+        mark = lambda pts, e: page.evaluate("([p, e]) => __mark(p, e)", [pts, e])
+        e = ev(rows).get("한국프레스센터")
+        H.ok(e and e["hit"] == 4 and e["votes"] == {"서울": 4}, f"분류 전 장소도 운임이 가리키는 곳을 모음 — {e}")
+        H.ok(mark([], e) == "참고", "지점이 없으면 '참고'")
+        e = ev(rows, {"한국프레스센터": ["서울"]}).get("한국프레스센터")
+        H.ok(mark(["서울"], e) == "일치", f"분류와 운임이 같으면 '일치' — {e}")
+        e = ev(rows, {"한국프레스센터": ["세종"]}).get("한국프레스센터")
+        H.ok(e and e["votes"] == {"서울": 4} and mark(["세종"], e) == "다름", f"세종으로 잘못 분류하면 '다름' — {e}")
+        e = ev(rows[:1], {"한국프레스센터": ["세종"]}).get("한국프레스센터")
+        H.ok(mark(["세종"], e) == "다름(건수 적음)", "증거가 1~2건이면 '다름(건수 적음)'")
+        H.ok(mark(["서울"], None) == "대조 불가" and mark(["서울"], {"hit": 0, "votes": {}}) == "대조 불가", "증거가 없으면 '대조 불가'")
+        e = ev([trip("서울", "서울", 43500), trip("서울사무소", "서울", 43500)])
+        H.ok("서울" not in e and "서울사무소" not in e, f"같은 도시 안 이동은 증거로 세지 않음 — {list(e)}")
+        e = ev([trip("대구", "제주", 87000)] * 3)
+        H.ok("제주" not in e, f"운임표가 없는 구간(대구–제주)은 대조하지 않음 — {list(e)}")
+        e = ev([trip("대구", "서울", 87000), trip("모르는곳", "서울", 87000), trip("대구", "서울", 0)])
+        H.ok(e["서울"]["hit"] == 1 and e["대구"]["hit"] == 1 and e["모르는곳"]["votes"] == {"대구": 1}, f"양쪽 장소 모두에 증거 · 0원 행은 제외 — {e}")
+        e = ev([dict(origin="대구", dest="세종", via="한국프레스센터", fare=49600)])
+        H.ok("한국프레스센터" not in e, "경유지는 대조에 쓰지 않음")
+        e = ev([trip("대구", "세종, 서울", 87000), trip("대구", "세종, 서울", 49600)])
+        H.ok(mark(["서울", "세종"], e["세종, 서울"]) == "일치", f"여러 곳이 적힌 장소는 어느 쪽과 맞아도 '일치' — {e['세종, 서울']}")
 
         H.ok(not errors, f"JS 오류 없음 — {errors[:2]}")
         br.close()

@@ -10,11 +10,22 @@ index.html 의 <!-- @trip-ref-start --> … <!-- @trip-ref-end --> 사이를 새
 같은 역쌍에 거리가 여럿이면 거리표ID가 가장 앞선 표(표1, 고속선 대표 경로)를 쓴다.
 """
 import json
+import re
 import sys
 
 import openpyxl
 
-VERSION = "2026-11-12"
+VERSION = "2026-11-13"
+
+# 판정기준표의 '대표 경로'에 나오는 역·권역 → 도시 (index.html 의 TRIP_STN_CITY 와 같은 기준)
+LABEL_CITY = {"동대구": "대구", "서대구": "대구", "대구권": "대구", "서울": "서울", "용산": "서울", "광명": "서울", "수서": "서울", "오송": "세종"}
+
+
+def label_cities(label):
+    """'동대구→오송→서울' → ['대구', '서울'] (처음과 끝)"""
+    stops = [LABEL_CITY[t] for t in re.split(r"[↔→/]", label) if t in LABEL_CITY]
+    assert len(stops) >= 2 and stops[0] != stops[-1], f"판정기준 경로를 읽지 못했습니다: {label}"
+    return [stops[0], stops[-1]]
 
 
 def main(src, out):
@@ -29,7 +40,7 @@ def main(src, out):
         if train == "SRT":
             km_q = "추정"
         judgment.append(dict(fare=fare, train=train, legs=1 if "편도 1회" in count else 2,
-                             km=km, kmQ=km_q, label=label))
+                             km=km, kmQ=km_q, label=label, cities=label_cities(label)))
 
     fares, seen = [], set()
     for train, sheet in (("KTX", "KTX_주요일반실"), ("SRT", "SRT_일반실505")):
