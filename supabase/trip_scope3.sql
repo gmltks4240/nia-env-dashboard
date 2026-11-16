@@ -3,7 +3,9 @@
 --    · trip_places  : 장소 사전 — 출장 엑셀의 자유 입력 장소명 → 표준 지점 (AI 분류 · 사람 확정)
 --    · trip_batches : 업로드 묶음 — 연도·파일 지문·기준표 버전·요약(월별 합계 포함)
 --    · trip_rows    : 행별 산정 결과 — 판정 등급·이동횟수·거리·계수·배출량·근거 (검증용 추적)
---  읽기 = 누구나 · 추가·수정·삭제 = 입력·수정, 관리자  (auth_roles.sql 을 먼저 실행한 상태여야 해요)
+--  읽기   · trip_batches(연도별 요약)        = 누구나 — 올해 현황 카드가 로그인 없이도 보여야 해서
+--         · trip_places · trip_rows(행별 기록) = 입력·수정, 관리자만 — 출장 한 건 한 건과 장소명은 내부 자료
+--  추가·수정·삭제 = 입력·수정, 관리자  (auth_roles.sql 을 먼저 실행한 상태여야 해요)
 --  여러 번 실행해도 안전합니다 (이미 있으면 그대로).
 -- ════════════════════════════════════════════════════════════════════
 
@@ -71,7 +73,8 @@ create trigger trip_places_guard before insert or update on public.trip_places
 alter table public.trip_places  enable row level security;
 alter table public.trip_batches enable row level security;
 alter table public.trip_rows    enable row level security;
-grant select on public.trip_places, public.trip_batches, public.trip_rows to anon;
+grant select on public.trip_batches to anon;
+revoke all on public.trip_places, public.trip_rows from anon;   -- 예전 판(누구나 읽기)을 실행했더라도 여기서 거둠
 grant select, insert, update, delete on public.trip_places, public.trip_batches, public.trip_rows to authenticated;
 
 do $$
@@ -82,7 +85,11 @@ begin
     execute format('drop policy if exists %I on public.%I', t || '_insert', t);
     execute format('drop policy if exists %I on public.%I', t || '_update', t);
     execute format('drop policy if exists %I on public.%I', t || '_delete', t);
-    execute format('create policy %I on public.%I for select to anon, authenticated using (true)', t || '_read', t);
+    if t = 'trip_batches' then
+      execute format('create policy %I on public.%I for select to anon, authenticated using (true)', t || '_read', t);
+    else
+      execute format('create policy %I on public.%I for select to authenticated using ((select public.app_role()) in (''admin'', ''editor''))', t || '_read', t);
+    end if;
     execute format('create policy %I on public.%I for insert to authenticated with check ((select public.app_role()) in (''admin'', ''editor''))', t || '_insert', t);
     execute format('create policy %I on public.%I for update to authenticated using ((select public.app_role()) in (''admin'', ''editor'')) with check ((select public.app_role()) in (''admin'', ''editor''))', t || '_update', t);
     execute format('create policy %I on public.%I for delete to authenticated using ((select public.app_role()) in (''admin'', ''editor''))', t || '_delete', t);
