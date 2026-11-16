@@ -1,6 +1,6 @@
 // 출장 장소 분류 — 자유 입력 장소명을 표준 지점(철도 거점 도시)으로 바꿔 trip_places 에 기록
 //
-//   POST /functions/v1/classify-places   { places: string[] }   (한 번에 100개까지)
+//   POST /functions/v1/classify-places   { places: string[] }   (한 번에 100개까지 · 화면은 50개씩 보냄)
 //   → { results: [{ raw, points: string[], confidence: 'high'|'low'|'unknown', reason }] }
 //
 // · 로그인한 입력·수정/관리자만 쓸 수 있어요 (app_role 확인)
@@ -35,19 +35,21 @@ const SYSTEM = `한국지능정보사회진흥원(NIA) 직원의 국내 출장 �
 각 장소에 대해 아래 지점 중에서 고릅니다: ${POINTS.join(", ")}
 
 지점의 뜻
-- 대구: 대구 전역. NIA 본원(대구 혁신도시, "본원", "대구청사")을 포함합니다. KTX 동대구·서대구역.
-- 서울: 서울과 수도권(경기·인천, 판교·성남·과천·수원 포함). NIA 서울사무소(무교동)를 포함합니다.
-- 세종: 세종·오송·청주. 정부세종청사의 부처(기재부, 과기정통부, 행안부 등)를 포함합니다.
+- 대구: 대구 전역과 바로 붙은 경산. NIA 본원(대구 혁신도시, "본원", "대구청사")을 포함합니다. KTX 동대구·서대구역.
+- 서울: 서울과 수도권(경기·인천, 판교·성남·과천·수원 포함). NIA 서울사무소(무교동, "무교청사")를 포함합니다. 다만 SRT 동탄·평택지제 권역(동탄·평택·오산·안성·화성)은 "기타"입니다.
+- 세종: 세종·오송·청주(오창 포함). 정부세종청사의 부처(기재부, 과기정통부, 행안부 등)와 오송의 식약처·질병청을 포함합니다.
+- 대전: 대전 전역. 정부대전청사 기관과 대덕의 연구기관을 포함합니다.
 - 강릉선: KTX 강릉선으로 가는 강릉·평창·진부·횡성·둔내. 원주·춘천은 여기에 넣지 않고 "기타"로 둡니다.
 - 광주송정: 광주광역시. 나주(빛가람 혁신도시)는 "나주".
 - 제주: 제주도 전역. NIA 글로벌센터(제주)를 포함합니다.
 - 그 밖의 지점은 이름 그대로의 도시와 그 주변입니다 (천안아산, 김천구미, 여수EXPO = 여수).
-- 기타: 위 어느 거점에도 해당하지 않는 국내 지역(강원 원주·춘천, 충북 충주, 경북 안동 등)이나 국외.
+- 기타: 위 어느 거점에도 해당하지 않는 국내 지역(강원 원주·춘천, 충북 충주·제천·진천, 충남 태안·홍성·계룡, 경북 안동·영천 등)이나 국외.
 
 규칙
 - 한 칸에 여러 곳이 적혀 있으면("세종, 서울") 해당하는 지점을 모두 넣습니다.
 - 기관·건물 이름이면 그 소재지로 판단합니다. 소재지를 확실히 알면 confidence 는 "high", 짐작이면 "low" 입니다.
-- 어디인지 알 수 없으면("자택", "회의실", "현장", 뜻 모를 약어) points 를 빈 배열로, confidence 를 "unknown" 으로 둡니다. 지어내지 않습니다.
+- 어디인지 알 수 없으면("자택", "회의실", "현장", 뜻 모를 약어, 소재지를 모르는 업체, "충남"처럼 범위가 넓은 이름) points 를 빈 배열로, confidence 를 "unknown" 으로 둡니다. 지어내지 않습니다.
+- 오타로 보이면("사울", "새종", "댜구") 바로잡아 분류하고 reason 에 적습니다.
 - raw 에는 입력 문자열을 한 글자도 바꾸지 않고 그대로 넣습니다. 입력마다 결과를 하나씩, 같은 순서로 냅니다.
 - reason 은 한국어 한 문장으로 짧게 씁니다.`;
 
@@ -104,7 +106,9 @@ Deno.serve(async (req) => {
     if (e instanceof Anthropic.RateLimitError) return json(429, { error: "요청이 많아요 · 잠시 뒤 다시 시도해 주세요" });
     if (e instanceof Anthropic.AuthenticationError) return json(503, { error: "ANTHROPIC_API_KEY 가 올바르지 않아요" });
     if (e instanceof Anthropic.APIError) return json(502, { error: `Claude API 오류 (${e.status ?? "연결"})` });
-    throw e;
+    // 스키마에 맞지 않는 답 등 — 화면은 이 묶음을 건너뛰고 규칙으로 계속함
+    console.error("[classify-places] 분류 실패:", e instanceof Error ? e.message : e);
+    return json(502, { error: "분류 결과를 읽지 못했어요" });
   }
   if (!parsed) return json(502, { error: "분류 결과를 읽지 못했어요" });
 
@@ -118,8 +122,8 @@ Deno.serve(async (req) => {
       return { raw: r.raw, points, confidence: points.length || other ? r.confidence : "unknown", reason: r.reason.slice(0, 200) };
     });
 
-  // 5) 장소 사전에 기록 — 이미 있는 줄(사람 확정 포함)은 건드리지 않음 · 미확인은 다음에 다시 물을 수 있게 남기지 않음
-  const rows = results.filter((r) => r.confidence !== "unknown")
+  // 5) 장소 사전에 기록 — 이미 있는 줄(사람 확정 포함)은 건드리지 않음 · '모름'도 남겨 다음 업로드 때 다시 묻지 않음(검토표에 나옴)
+  const rows = results
     .map((r) => ({ raw: r.raw, points: r.points, confidence: r.confidence, reason: r.reason, source: "ai", updated_by: "classify-places" }));
   if (rows.length) {
     const { error } = await db.from("trip_places").upsert(rows, { onConflict: "raw", ignoreDuplicates: true });
