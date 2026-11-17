@@ -25,7 +25,9 @@ def ref_source():
     src = (ROOT / "index.html").read_text(encoding="utf-8")
     m = re.search(r"<!-- @trip-ref-start -->\s*<script>(.*?)</script>\s*<!-- @trip-ref-end -->", src, re.S)
     assert m, "@trip-ref-start … @trip-ref-end 블록을 찾지 못했습니다"
-    return m.group(1)
+    f = re.search(r"<!-- @trip-fare-start -->\s*<script>(.*?)</script>\s*<!-- @trip-fare-end -->", src, re.S)
+    assert f, "@trip-fare-start … @trip-fare-end 블록을 찾지 못했습니다"
+    return m.group(1) + "\n" + f.group(1)
 
 
 def open_engine(pw):
@@ -33,8 +35,8 @@ def open_engine(pw):
     page = br.new_page()
     page.set_content("<!doctype html><title>trip</title>")
     page.add_script_tag(content=ref_source())
-    page.add_script_tag(content=trip_source() + "\nwindow.__ref = tripBuildRef(window.TRIP_REF);"
-                        "\nwindow.__c = (o, d, f, via, pm, days) => classifyRail({ origin: o, dest: d, via: via || '', fare: f, days }, window.__ref, pm || {});"
+    page.add_script_tag(content=trip_source() + "\nwindow.__ref = tripBuildRef(window.TRIP_REF, window.TRIP_FARE);"
+                        "\nwindow.__c = (o, d, f, via, pm, days) => classifyRail({ origin: o, dest: d, via: via || '', fare: f, days, date: window.__date || '' }, window.__ref, pm || {});"
                         "\nwindow.__parse = tripParseSheet; window.__sum = tripSummarize;"
                         "\nwindow.__pairs = f => tripFarePairs(f, window.__ref).map(p => [...p].sort().join('-'));"
                         "\nwindow.__ev = (rows, pm) => Object.fromEntries(tripPlaceEvidence(rows, window.__ref, pm || {}));"
@@ -105,8 +107,8 @@ def run():
         H.ok(r["grade"] == "D" and r["legs"] == 2 and r["km"] == 573.4, f"어느 운임표와도 맞지 않는 70,010 → D·구간 거리 왕복 — {r['basis']}")
         r = c("대구", "서울", 38800)
         H.ok(r["grade"] == "D" and r["legs"] == 1 and r["km"] == 286.7, f"38,800 → D·편도 (기준 편도의 1.5배 미만) — {r['basis']}")
-        r = c("어딘가", "모르는곳", 30000)
-        H.ok(r["grade"] == "D" and abs(r["km"] - 30000 / (43500 / 286.7)) < 0.1, f"구간을 몰라도 운임 역산 — {r['km']}km")
+        r = c("어딘가", "모르는곳", 30050)
+        H.ok(r["grade"] == "D" and abs(r["km"] - 30050 / (43500 / 286.7)) < 0.1, f"구간을 몰라도 운임 역산 — {r['km']}km")
         r = c("어딘가", "모르는곳", 999999)
         H.near(r["km"], 860.1, 0.01, "운임 역산 상한 860.1km")
         r = c(12345, None, 43100)
@@ -116,12 +118,16 @@ def run():
         r = c("대구", "서울", 0)
         H.ok(r["grade"] == "제외" and r["kg"] == 0 and r["km"] == 0, "교통비 0원 → 제외")
         r = c("서울", "강릉", 55200)
-        H.ok(r["grade"] == "D" and r["legs"] == 2 and r["km"] == 446.4 and r["factor"] == 0.0716, f"서울→강릉 55,200 → 서울↔강릉 왕복 446.4km · 계수 0.0716 — {r['basis']}")
+        H.ok(r["grade"] == "B" and r["legs"] == 2 and r["km"] == 446.4 and r["factor"] == 0.0716, f"서울→강릉 55,200 = 27,600 × 2 → B · 서울↔강릉 왕복 446.4km · 계수 0.0716 — {r['basis']}")
+        r = c("서울", "진부", 43800)
+        H.ok(r["grade"] == "B" and r["km"] == 365.8, f"서울→진부 43,800 = 21,900 × 2 (역별 운임표) → B · 365.8km — {r['basis']}")
+        r = c("서울", "강릉", 50000)
+        H.ok(r["grade"] == "D" and r["legs"] == 2 and r["km"] == 446.4, "운임표와 다른 금액이면 D(추정) · 역 거리는 그대로")
         H.near(r["kg"], 31.962, 0.001, "446.4 × 0.0716 = 31.962 kg")
         r = c("서울", "강릉", 27600)
         H.ok(r["legs"] == 1 and r["km"] == 223.2, "서울→강릉 27,600 → 편도 223.2km")
         r = c("대구", "강릉", 142200)
-        H.ok(r["legs"] == 2 and r["km"] == 1019.8 and not r.get("check"), f"대구→강릉 142,200 → 동대구-서울-강릉 왕복 1,019.8km — {r['basis']}")
+        H.ok(r["grade"] == "B" and r["legs"] == 2 and r["km"] == 1019.8 and not r.get("check"), f"대구→강릉 142,200 = (43,500 + 27,600) × 2 → B · 동대구-서울-강릉 왕복 1,019.8km — {r['basis']}")
         H.near(r["kg"], 573.4 * 0.0219 + 446.4 * 0.0716, 0.001, "서울까지는 0.0219, 강릉선만 0.0716 (12.557 + 31.962 = 44.520 kg)")
         r = c("대구", "진부", 71000)
         H.ok(r["legs"] == 1 and r["km"] == tripkm(286.7 + 182.9), f"대구→진부 → 내리는 역은 진부(182.9km) 편도 — {r['basis']}")
@@ -137,6 +143,34 @@ def run():
         H.ok(r["km"] == 1019.8, "목적지가 '서울, 강릉'이어도 대구에서 출발한 것으로")
         r = c("대구", "원주", 30000)
         H.ok(r["factor"] == 0.0219, "원주는 기본 계수 0.0219")
+
+        H.test_name("기간별 운임표 (2026-09-01 KTX·SRT 통합 · 코레일 KTX 운임표 2025·2026년판)")
+        on = lambda d: page.evaluate("d => { window.__date = d; }", d)
+        on("2026-10-05")
+        r = c("대구", "서울", 78000)
+        H.ok(r["grade"] == "B" and r["legs"] == 2 and r["km"] == 573.4, f"9월 이후 78,000 = 39,000 × 2 → 동대구↔서울 왕복 — {r['basis']}")
+        r = c("대구", "서울", 39000)
+        H.ok(r["grade"] == "B" and r["legs"] == 1 and r["km"] == 286.7, "9월 이후 39,000 → 편도")
+        r = c("대구", "세종", 44600)
+        H.ok(r["grade"] == "B" and r["km"] == 324, f"9월 이후 44,600 = 22,300 × 2 → 동대구↔오송 왕복 — {r['basis']}")
+        r = c("대구", "서울", 56600)
+        H.ok(r["grade"] == "B" and r["legs"] == 1 and "특실" in r["basis"], f"9월 이후 특실 편도는 56,600 (일반실 × 1.4 가 아님) — {r['basis']}")
+        r = c("대구", "서울", 87000)
+        H.ok(r["grade"] == "D" and r["km"] == 573.4, "9월 이후에는 옛 판정기준(87,000 → A)을 쓰지 않음 · 구간 거리로 추정")
+        r = c("대구", "강릉", 133200)
+        H.ok(r["grade"] == "B" and r["km"] == 1019.8, "9월 이후 대구→강릉 왕복 = (39,000 + 27,600) × 2")
+        on("2026-08-31")
+        r = c("대구", "서울", 87000)
+        H.ok(r["grade"] == "A", "8월 31일까지는 옛 운임 · 판정기준 그대로")
+        r = c("대구", "서울", 78000)
+        H.ok(r["km"] == 573.4, "8월 이전의 78,000 도 대구–서울 왕복 거리")
+        on("")
+        r = c("대구", "천안아산", 58600)
+        H.ok(r["grade"] == "B" and r["km"] == 381.4, f"전 구간 운임표: 대구→천안아산 58,600 = 29,300 × 2 → B — {r['basis']}")
+        r = c("대구", "김천구미", 13200)
+        H.ok(r["grade"] == "B" and r["legs"] == 1 and "특실" in r["basis"], f"짧은 구간 특실은 운임표 금액(8,400 + 최저 요금 4,800 = 13,200) — {r['basis']}")
+        r = c("대구", "서울", 60900)
+        H.ok(r["grade"] == "B" and "특실" in r["basis"] and "산식" not in r["basis"], "60,900 특실은 산식이 아니라 운임표에서")
 
         H.test_name("장소 사전")
         r0 = c("비상임감사집무실", "서울", 43100)

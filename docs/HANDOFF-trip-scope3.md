@@ -32,6 +32,7 @@
 
 - `index.html` — 단일 파일 앱
   - `<!-- @trip-ref-start -->` 블록: 운임·거리·판정 기준표 (`tools/build_trip_ref.py`로 생성, 직접 수정 금지)
+  - `<!-- @trip-fare-start -->` 블록: 코레일 KTX 운임표(기간별) (`tools/build_trip_fares.py`로 생성, 직접 수정 금지)
   - `/* @trip-start */ … /* @trip-end */`: 순수 함수 — `TRIP_PAT`(키워드 규칙), `TRIP_POINTS`(25개 선택지), `tripCities`, `tripBuildRef`, `classifyRail`, `tripFarePairs`, `tripPlaceEvidence`, `tripEvidenceMark`, `tripParseSheet`, `tripSummarize`
   - "출장 배출량 (Scope 3 · 철도)" 주석 아래: 화면 로직 — `tripRun`, `tripCompute`, `tripRender`, `tripRenderReview`, `tripLoadPlaces`, `tripAskAI`, `tripSetPlace`, `tripSave`
 - `supabase/trip_scope3.sql` — `trip_places`(장소 사전), `trip_batches`(연도별 요약), `trip_rows`(행별 결과). 행별 기록·장소 사전은 입력·수정·관리자만 읽음
@@ -77,8 +78,8 @@
 ## 2026-11-17 자료 조사에서 확인한 것
 
 - 기준표의 'SRT' 운임에 서울·광명 착발 금액이 들어 있다(동대구–서울 38,900 등). 2026-09-01 통합 뒤 KTX 운임이 SRT 수준으로 내려간 값으로 보이나 **확인되지 않았다**
-  (보도는 서울–부산 54,400원, 기준표는 54,200원). 사용자가 9월 이후 동대구–서울 실제 운임을 확인해 주기로 함. 날짜별 운임 적용은 아직 없다
-- KTX 전 구간 운임표는 파일로 구하지 못했다(공공데이터포털 15052168은 옛 레츠코레일 주소로 연결되고, 새 예매 사이트는 표를 내려받을 수 없음)
+  (보도는 서울–부산 54,400원, 기준표는 54,200원). → 코레일 2026년판으로 해결: 동대구–서울 39,000 · 38,600원, 9월 이후에는 SRT 표를 쓰지 않는다
+- KTX 전 구간 운임표: 사용자가 코레일 KTX 운임표 xls 두 권(2025년판 · 2026년 통합 후판)을 줬고 `tools/build_trip_fares.py`로 `@trip-fare` 블록에 넣었다. 9월 1일 전후로 운임표를 갈라 쓴다(설계서 §12). 원본 xls는 저장소에 없다
 - 공공데이터포털 '역키로정내역'(15153841)에는 강릉선 중간역이 없다
 
 ## 결정이 필요한 것
