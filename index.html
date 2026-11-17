@@ -4631,7 +4631,10 @@ window.TRIP_FARE = {"version":"2026-11-17","source":"한국철도공사 KTX 운�
     };
     //  rows : 코레일 운임표 [역, 역, 일반실, 특실 계] · legacy : 옛 기준표(REF.fares·판정기준)를 함께 쓸지
     const build = (rows, legacy) => {
-    const segs = [], have = new Set();
+    const segs = [], have = new Set(), topFare = new Map();
+    const bump = (a, b, f) => { const k = tripPairKey(a, b); if (!(topFare.get(k) >= f)) topFare.set(k, f); };
+    (rows || []).forEach(([a, b, fare]) => bump(a, b, fare));
+    if (legacy) REF.fares.forEach(f => bump(f.a, f.b, f.fare));
     //  special : 숫자 = 운임표의 특실 금액 · true = 일반실 × 1.4 산식(운임표에 없는 옛 기준표 행) · false = 특실 없음
     //  vary : 같은 구간·좌석이라도 금액이 조금씩 다름 — 운임표의 금액에서 파생시켜 함께 둠
     //    정차역 수: 중간 정차역 4개부터 1개당 0.2% 할인 → 0.2~1.0%. 일반실·특실 모두 깎인다(2026-11-17 사용자 확인)
@@ -4641,6 +4644,9 @@ window.TRIP_FARE = {"version":"2026-11-17","source":"한국철도공사 KTX 운�
     //    dk = 운임표 금액에서 몇 단계 파생된 것인지(0 = 표 그대로). 후보가 여럿이면 dk 가 작은 것을 먼저 본다
     const add = (a, b, fare, train, special, vary) => {
       const d = dist(a, b), base = { a, b, train, km: d?.km ?? null, q: d?.q ?? null };
+      //  그 역쌍의 대표 운임(가장 높은 일반실 운임)보다 10% 이상 싼 행에서는 입석·자유석을 파생시키지 않는다
+      //  (예: 동대구–서울 34,500 은 수원 경유 완행 KTX 운임 — 여기서 입석 29,200 까지 만들면 우연히 맞는 금액이 늘어난다)
+      const seatOK = fare >= 0.9 * (topFare.get(tripPairKey(a, b)) || fare);
       const r100 = (v, down) => (down ? Math.floor(v / 100 + 1e-9) : Math.round(v / 100)) * 100;
       const put1 = (cls, f0) => {
         const seen = new Set(), put = (v, dk, note) => { if (!(v > 0) || seen.has(v)) return; seen.add(v); segs.push({ ...base, fare: v, cls, dk, note }); };
@@ -4649,9 +4655,8 @@ window.TRIP_FARE = {"version":"2026-11-17","source":"한국철도공사 KTX 운�
         for (let k = 1; k <= TRIP_STOP_STEPS; k++) for (const down of [true, false]) stops.push([r100(f0 * (1 - 0.002 * k), down), k, ` 정차역 할인 ${(0.2 * k).toFixed(1)}%`]);
         if (vary === 'nonstop') stops.push([r100(f0 * 1.006), 1, ' 무정차 할증 0.6%']);
         stops.forEach(([v, dk, note]) => put(v, dk, note));
-        if (cls === '일반') stops.forEach(([v, dk, note]) => {
-          for (const down of [true, false]) { put(r100(v * 0.85, down), dk + TRIP_SEAT_DK, note + ' 입석(15% 할인)'); put(r100(v * 0.95, down), dk + TRIP_SEAT_DK, note + ' 자유석(5% 할인)'); }
-        });
+        //  입석·자유석은 운임표 금액(정차역 할인 전)에서만 파생시킨다 — 정차역 할인까지 겹쳐 쓰면 우연히 맞는 금액이 너무 늘어난다
+        if (cls === '일반' && seatOK) for (const down of [true, false]) { put(r100(f0 * 0.85, down), TRIP_SEAT_DK, ' 입석(15% 할인)'); put(r100(f0 * 0.95, down), TRIP_SEAT_DK, ' 자유석(5% 할인)'); }
       };
       put1('일반', fare);
       if (special === true) put1('특실(×1.4 산식)', r100(fare * 1.4));

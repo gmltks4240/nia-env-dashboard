@@ -164,16 +164,20 @@ def run():
         r = c("대구", "서울", 60800)
         H.ok(r["grade"] == "B" and r["legs"] == 1 and r["km"] == 286.7 and "특실 정차역 할인" in r["basis"], f"60,800 = 특실 60,900 에서 정차역 할인 → B·편도 (특실도 정차역 수로 깎임) — {r['basis']}")
         r = c("대구", "세종", 40900)
-        H.ok(r["grade"] == "B" and r["legs"] == 2 and r["km"] == 324 and "입석" in r["basis"] and "좌석 종류 가정" in r["gradeLabel"], f"40,900 = 22,300 + 18,600(입석) → 왕복 · 등급에 좌석 가정 표시 — {r['gradeLabel']} {r['basis']}")
+        H.ok(r["grade"] == "B" and r["legs"] == 2 and 300 < r["km"] < 330 and "입석" in r["basis"] and "좌석 종류 가정" in r["gradeLabel"], f"40,900 → 좌석 + 입석 왕복 · 등급에 좌석 가정 표시 — {r['gradeLabel']} {r['basis']}")
         r = c("대구", "세종", 48400)
         H.ok(r["grade"] == "B" and r["legs"] == 2 and r["km"] == 324 and "자유석" in r["basis"], f"48,400 = 24,800 + 23,600(자유석) → 왕복 — {r['basis']}")
         r = c("대구", "서울", 87000)
         H.ok("좌석 종류 가정" not in r["gradeLabel"], "운임표 금액 그대로인 행에는 좌석 가정 표시가 없음")
-        r = c("대구", "서울", 57900)
-        H.ok(r["grade"] == "B" and r["legs"] == 2 and "좌석 종류 가정" in r["gradeLabel"] and len([t for t in r["basis"].split("입석") if t]) >= 2,
-             f"57,900 → 가는 편·오는 편 모두 입석인 왕복도 인정 (사용자 확인) — {r['basis']}")
-        r = c("대구", "서울", 62000)
-        H.ok(r["grade"] == "B" and r["legs"] == 2 and "입석" in r["basis"] and "자유석" in r["basis"], f"62,000 → 입석 + 자유석 왕복 — {r['basis']}")
+        r = c("대구", "서울", 61800)
+        H.ok(r["grade"] == "B" and r["legs"] == 2 and "입석" in r["basis"] and "좌석 종류 가정" in r["gradeLabel"],
+             f"61,800 = SRT 서대구↔수서 30,900 × 2 → 두 편 모두 입석인 왕복도 인정 (사용자 확인) — {r['basis']}")
+        r = c("대구", "서울", 62600)
+        H.ok(r["grade"] == "B" and r["legs"] == 2 and len(r["basis"].split("입석")) >= 3, f"62,600 → 가는 편·오는 편 모두 입석 (동대구·서대구 각각) — {r['basis']}")
+        r = c("대구", "세종", 40000)
+        H.ok(r["grade"] == "B" and r["legs"] == 2 and "입석" in r["basis"], f"40,000 → 좌석 + 입석 왕복 — {r['basis']}")
+        r = c("대구", "서울", 29200)
+        H.ok(r["grade"] == "D", "입석은 그 구간 대표 운임에서만 파생 — 수원 경유 완행(34,500)의 입석 29,200 은 만들지 않음")
         r = c("대구", "서울", 21700)
         H.ok(r["grade"] == "D", "좌석 종류로도 설명되지 않는 금액(편도의 49.9%)은 추정으로 남김")
 
@@ -215,7 +219,7 @@ def run():
         r1 = c("비상임감사집무실", "서울", 43100, "", {"비상임감사집무실": ["대구"]})
         H.ok(r0["grade"] != "B" and r1["grade"] == "B", f"사전에 대구로 등록하면 B로 — {r0['grade']} → {r1['grade']}")
         r = c("대구", "서울 광화문", 87300, "", {"대구": ["부산"]})
-        H.ok("부산" in r["basis"] and r["km"] > 700, f"사전 값이 내장 규칙보다 우선 — 출발지를 부산으로 보고 부산↔서울 구간 — {r['basis']}")
+        H.ok("부산" in r["basis"] and r["km"] > 400, f"사전 값이 내장 규칙보다 우선 — 출발지를 부산으로 보고 부산-서울 구간 — {r['basis']}")
 
         H.test_name("엑셀 시트 읽기")
         grid = [
