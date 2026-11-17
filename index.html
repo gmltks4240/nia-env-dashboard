@@ -4575,6 +4575,8 @@ window.TRIP_FARE = {"version":"2026-11-17","source":"한국철도공사 KTX 운�
   // 판정 등급  A 업무상 확정(판정기준표) → B 운임표+구간 일치 → C 운임표만 일치 → D 추정
   const TRIP_RATE = 43500 / 286.7;           // 운임 역산: 원/km (동대구–서울 일반실)
   const TRIP_STOP_STEPS = 5;                 // 정차역 할인 단계 수 (0.2% × 1~5)
+  const TRIP_SEAT_DK = 9;                    // 입석·자유석은 정차역 변형보다 뒤에 보도록 주는 가중치
+  const TRIP_DK_MAX = TRIP_SEAT_DK + TRIP_STOP_STEPS;   // 여기까지만 운임표 일치로 인정 — 왕복 두 편 모두 입석·자유석인 조합은 추정(D)으로 남김
   const TRIP_KM_CAP = 573.4 * 1.5;           // 운임 역산 상한 (km)
   // 강릉선 역 — 서울역 기점 영업거리(km). 국토교통부고시 제2017-428호 철도거리표(위키백과 '강릉선 KTX' 역 목록에서 옮김) ·
   //  코레일 운영노선 '원주~강릉 120.7km'(2026-09-01 기준)와 대조함. 기준표(@trip-ref)의 거리표에는 강릉선 역이 없어 여기에 둠
@@ -4631,18 +4633,29 @@ window.TRIP_FARE = {"version":"2026-11-17","source":"한국철도공사 KTX 운�
     const build = (rows, legacy) => {
     const segs = [], have = new Set();
     //  special : 숫자 = 운임표의 특실 금액 · true = 일반실 × 1.4 산식(운임표에 없는 옛 기준표 행) · false = 특실 없음
-    //  vary : 같은 구간이라도 열차의 정차역 수에 따라 금액이 조금씩 다름 — 운임표의 금액에서 파생시켜 함께 둠
-    //    'stops' (SRT · 2026-09 통합 뒤 KTX) 중간 정차역 4개부터 1개당 0.2% 할인(100원 미만 버림) → 0.2~1.0%
+    //  vary : 같은 구간·좌석이라도 금액이 조금씩 다름 — 운임표의 금액에서 파생시켜 함께 둠
+    //    정차역 수: 중간 정차역 4개부터 1개당 0.2% 할인 → 0.2~1.0%. 일반실·특실 모두 깎인다(2026-11-17 사용자 확인)
+    //      통합 뒤 KTX·SRT 의 공식 산정 방식이고, 통합 전 KTX 금액도 같은 폭(±100원)으로 흩어져 있어 모든 기간에 적용한다
     //    'nonstop' (통합 전 KTX) 도중 정차역 2개 이하 열차 0.6% 할증 (2025년판 운임표 주석)
+    //    좌석 종류: 입석 = 일반실 좌석운임의 15% 할인 · 자유석 = 5% 할인 (코레일 운임 안내) — 정차역 변형에도 각각 붙음
+    //    dk = 운임표 금액에서 몇 단계 파생된 것인지(0 = 표 그대로). 후보가 여럿이면 dk 가 작은 것을 먼저 본다
     const add = (a, b, fare, train, special, vary) => {
-      const d = dist(a, b), base = { a, b, train, km: d?.km ?? null, q: d?.q ?? null }, seen = new Set([fare]);
-      segs.push({ ...base, fare, cls: '일반', dk: 0, note: '' });
-      // 할인은 100원 미만 버림(39,000 → 38,766 → 38,700), 할증은 반올림(43,500 → 43,761 → 43,800)
-      const alt = (rate, dk, note) => { const v = (rate < 1 ? Math.floor(fare * rate / 100 + 1e-9) : Math.round(fare * rate / 100)) * 100; if (!seen.has(v)) { seen.add(v); segs.push({ ...base, fare: v, cls: '일반', dk, note }); } };
-      if (vary === 'stops') for (let k = 1; k <= TRIP_STOP_STEPS; k++) alt(1 - 0.002 * k, k, ` 정차역 할인 ${(0.2 * k).toFixed(1)}%`);
-      if (vary === 'nonstop') alt(1.006, 1, ' 무정차 할증 0.6%');
-      if (special === true) segs.push({ ...base, fare: Math.round(fare * 1.4 / 100 + 1e-9) * 100, cls: '특실(×1.4 산식)', dk: 0, note: '' });
-      else if (special) segs.push({ ...base, fare: special, cls: '특실', dk: 0, note: '' });
+      const d = dist(a, b), base = { a, b, train, km: d?.km ?? null, q: d?.q ?? null };
+      const r100 = (v, down) => (down ? Math.floor(v / 100 + 1e-9) : Math.round(v / 100)) * 100;
+      const put1 = (cls, f0) => {
+        const seen = new Set(), put = (v, dk, note) => { if (!(v > 0) || seen.has(v)) return; seen.add(v); segs.push({ ...base, fare: v, cls, dk, note }); };
+        const stops = [[f0, 0, '']];
+        //  100원 단위 처리(버림·사사오입)가 확인되지 않아 두 값을 모두 둔다 (39,000 의 0.6% → 38,766 → 38,700 또는 38,800)
+        for (let k = 1; k <= TRIP_STOP_STEPS; k++) for (const down of [true, false]) stops.push([r100(f0 * (1 - 0.002 * k), down), k, ` 정차역 할인 ${(0.2 * k).toFixed(1)}%`]);
+        if (vary === 'nonstop') stops.push([r100(f0 * 1.006), 1, ' 무정차 할증 0.6%']);
+        stops.forEach(([v, dk, note]) => put(v, dk, note));
+        if (cls === '일반') stops.forEach(([v, dk, note]) => {
+          for (const down of [true, false]) { put(r100(v * 0.85, down), dk + TRIP_SEAT_DK, note + ' 입석(15% 할인)'); put(r100(v * 0.95, down), dk + TRIP_SEAT_DK, note + ' 자유석(5% 할인)'); }
+        });
+      };
+      put1('일반', fare);
+      if (special === true) put1('특실(×1.4 산식)', r100(fare * 1.4));
+      else if (special) put1('특실', special);
     };
     (rows || []).forEach(([a, b, fare, sp]) => { have.add(tripPairKey(a, b) + '|' + fare); add(a, b, fare, 'KTX', sp || false, legacy ? 'nonstop' : 'stops'); });
     if (legacy) {
@@ -4733,14 +4746,17 @@ window.TRIP_FARE = {"version":"2026-11-17","source":"한국철도공사 KTX 운�
     }));
     const od = [];
     O.forEach(co => D.forEach(cd => { if (co !== cd) od.push(...(ref.byCity.get(tripPairKey(co, cd)) || [])); }));
-    if (cands.length) {
-      const top = Math.max(...cands.map(c => c.sc));
-      const best = cands.filter(c => c.sc === top).sort((x, y) => (x.cls !== '일반') - (y.cls !== '일반') || (x.q !== '공식') - (y.q !== '공식') || (x.train !== 'KTX') - (y.train !== 'KTX') || x.dk - y.dk);
+    const okc = cands.filter(c => c.dk <= TRIP_DK_MAX);
+    if (okc.length) {
+      const top = Math.max(...okc.map(c => c.sc));
+      //  운임표 금액에 가까운 설명(파생 단계 dk 가 작은 것)을 먼저 — 그래야 '특실 정차역 할인 편도'가 '입석 왕복'보다 앞선다
+      const best = okc.filter(c => c.sc === top).sort((x, y) => x.dk - y.dk || (x.cls !== '일반') - (y.cls !== '일반') || (x.q !== '공식') - (y.q !== '공식') || (x.train !== 'KTX') - (y.train !== 'KTX'));
       // 장소로 못 가릴 때(C)는 운임표의 금액 그대로인 후보가 있으면 그것만 봄 — 정차역 변형으로 우연히 같아진 금액 때문에 흐려지지 않게
       const dk0 = Math.min(...best.map(c => c.dk)), exact = best.filter(c => c.dk === dk0);
       const kms = exact.map(c => c.km), spread = (Math.max(...kms) - Math.min(...kms)) / Math.max(...kms), c = top === 2 ? best[0] : exact[0];
-      if (top === 2) return out('B', 'B 운임표+구간 일치' + (c.q === '공식' ? '' : '(거리 추정)'), c.legs, c.km, c.basis);
-      if (!od.length && spread <= 0.05) return out('C', 'C 운임표만 일치', c.legs, c.km, c.basis);
+      const tag = (c.dk >= TRIP_SEAT_DK ? '(좌석 종류 가정)' : '') + (c.q === '공식' ? '' : '(거리 추정)');
+      if (top === 2) return out('B', 'B 운임표+구간 일치' + tag, c.legs, c.km, c.basis);
+      if (!od.length && spread <= 0.05) return out('C', 'C 운임표만 일치' + tag, c.legs, c.km, c.basis);
     }
     // 운임 불일치 — 출발·목적 도시의 구간 거리를 쓰고, 기준 편도 운임의 1.5배 미만이면 편도
     const plain = od.filter(s => s.cls === '일반'), ktx = plain.filter(s => s.train === 'KTX'), L = ktx.length ? ktx : plain;
