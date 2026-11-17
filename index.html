@@ -4745,7 +4745,7 @@ window.TRIP_FARE = {"version":"2026-11-17","source":"한국철도공사 KTX 운�
     (ref.one.get(f) || []).forEach(s => cands.push({ sc: score(s.c1, s.c2), legs: 1, km: s.km, q: s.q, train: s.train, cls: s.cls, dk: s.dk, basis: `${s.train} ${s.a}→${s.b} 편도 ${s.cls}${s.note}` }));
     (ref.two.get(f) || []).forEach(([s1, s2]) => cands.push({
       sc: score(s1.c1, s1.c2), legs: 2, km: tripR1(s1.km + s2.km), q: s1.q === '공식' && s2.q === '공식' ? '공식' : '추정', train: s1.train, cls: s1.cls,
-      dk: s1.dk + s2.dk, basis: (s1 === s2 ? `${s1.train} ${s1.a}↔${s1.b} 왕복 ${s1.cls}${s1.note}` : s1.a === s2.a && s1.b === s2.b && s1.train === s2.train
+      same: s1.a === s2.a && s1.b === s2.b, dk: s1.dk + s2.dk, basis: (s1 === s2 ? `${s1.train} ${s1.a}↔${s1.b} 왕복 ${s1.cls}${s1.note}` : s1.a === s2.a && s1.b === s2.b && s1.train === s2.train
         ? `${s1.train} ${s1.a}↔${s1.b} 왕복 ${s1.cls} (${s1.fare.toLocaleString('ko-KR')}${s1.note} + ${s2.fare.toLocaleString('ko-KR')}${s2.note})`
         : `${s1.train} ${s1.a}-${s1.b}${s1.note} + ${s2.train} ${s2.a}-${s2.b}${s2.note} 왕복 ${s1.cls}`)
     }));
@@ -4756,9 +4756,12 @@ window.TRIP_FARE = {"version":"2026-11-17","source":"한국철도공사 KTX 운�
       const top = Math.max(...okc.map(c => c.sc));
       //  운임표 금액에 가까운 설명(파생 단계 dk 가 작은 것)을 먼저 — 그래야 '특실 정차역 할인 편도'가 '입석 왕복'보다 앞선다
       const best = okc.filter(c => c.sc === top).sort((x, y) => x.dk - y.dk || (x.cls !== '일반') - (y.cls !== '일반') || (x.q !== '공식') - (y.q !== '공식') || (x.train !== 'KTX') - (y.train !== 'KTX'));
-      // 장소로 못 가릴 때(C)는 운임표의 금액 그대로인 후보가 있으면 그것만 봄 — 정차역 변형으로 우연히 같아진 금액 때문에 흐려지지 않게
-      const dk0 = Math.min(...best.map(c => c.dk)), exact = best.filter(c => c.dk === dk0);
-      const kms = exact.map(c => c.km), spread = (Math.max(...kms) - Math.min(...kms)) / Math.max(...kms), c = top === 2 ? best[0] : exact[0];
+      // 같은 금액을 설명하는 가장 단순한 방법부터: 운임표 금액 그대로(dk 0) → 편도 한 장 → 같은 구간 왕복 → 서로 다른 두 구간 왕복
+      //  (예: 서울→서울 41,300 은 '광명-동대구 편도'와 '광명-대전 + 대전-수서 왕복' 둘 다 맞지만 편도로 본다)
+      const tier = x => (x.legs === 1 ? 0 : x.same ? 1 : 2);
+      const dk0 = Math.min(...best.map(c => c.dk)), lo = best.filter(c => c.dk === dk0);
+      const t0 = Math.min(...lo.map(tier)), exact = lo.filter(c => tier(c) === t0);
+      const kms = exact.map(c => c.km), spread = (Math.max(...kms) - Math.min(...kms)) / Math.max(...kms), c = exact[0];
       const tag = (c.dk >= TRIP_SEAT_DK ? '(좌석 종류 가정)' : '') + (c.q === '공식' ? '' : '(거리 추정)');
       if (top === 2) return out('B', 'B 운임표+구간 일치' + tag, c.legs, c.km, c.basis);
       if (!od.length && spread <= 0.05) return out('C', 'C 운임표만 일치' + tag, c.legs, c.km, c.basis);
