@@ -4578,6 +4578,9 @@ window.TRIP_FARE = {"version":"2026-11-17","source":"한국철도공사 KTX 운�
   // 강릉선 역 — 서울역 기점 영업거리(km). 국토교통부고시 제2017-428호 철도거리표(위키백과 '강릉선 KTX' 역 목록에서 옮김) ·
   //  코레일 운영노선 '원주~강릉 120.7km'(2026-09-01 기준)와 대조함. 기준표(@trip-ref)의 거리표에는 강릉선 역이 없어 여기에 둠
   const TRIP_GANG_KM = { 강릉: 223.2, 진부: 182.9, 평창: 166.6, 둔내: 146.6, 횡성: 126.0 };
+  // 동대구–강릉 동해선 직통(2025-01-01 개통) 거리 추정: 동대구–가천 7.1 + 대구선 29.0 + 영천–모량 26.3 + 신모량–포항 35.0 + 포항–삼척 161.0 + 삼척–동해 12.9 + 동해–강릉 45.1
+  //  코레일 역키로정(2024-12-31)·운영노선 기준, 대구선 길이만 미확인. 강릉선(서울–강릉) 구간이 아니므로 기본 계수(경부선 기준)를 씀
+  const TRIP_DONGHAE_KM = 316.4, TRIP_DONGHAE_FROM = '2025-01-01';
   const TRIP_GANG_FARE = 27600;              // 서울–강릉 KTX 일반실 편도 — 편도·왕복을 가르는 데만 씀(역별 운임은 거리에 비례한다고 봄)
   const TRIP_STN_CITY = { 서울: '서울', 용산: '서울', 광명: '서울', 수서: '서울', 영등포: '서울', 동대구: '대구', 서대구: '대구', 오송: '세종' };
   const TRIP_NORTH = ['서울', '용산', '광명', '천안아산', '오송', '대전', '김천구미', '영등포'];   // 서대구 기준 북쪽 역
@@ -4698,13 +4701,13 @@ window.TRIP_FARE = {"version":"2026-11-17","source":"한국철도공사 KTX 운�
       }
       const one = (feed ? feed.fare : 0) + gFare, legs = f < 1.5 * one ? 1 : 2;
       const k1 = feed ? feed.km * legs : 0, k2 = kmG * legs, km = tripR1(k1 + k2), kg = Math.round((k1 * ref.factors.rail + k2 * ref.factors.gangneung) * 1000) / 1000;
-      const direct = !!feed && feed.c1 !== feed.c2 && [feed.c1, feed.c2].includes('대구') && f < 0.6 * one;   // 서울 경유 편도보다 훨씬 싸면 동해선 직통일 수 있음
+      // 대구에서 강릉역으로 가는데 서울 경유 편도보다 훨씬 싸면 동해선 직통으로 봄(개통 뒤 출장만 · 날짜를 모르면 포함) — 거리는 추정, 계수는 기본(경부선 기준)
+      const direct = !!feed && [feed.c1, feed.c2].includes('대구') && far === '강릉' && f < 0.6 * one && (!row.date || String(row.date) >= TRIP_DONGHAE_FROM);
+      if (direct) return { grade: 'D', gradeLabel: 'D 추정 · 경로 확인 필요', legs: 1, km: TRIP_DONGHAE_KM, factor: ref.factors.rail, kg: Math.round(TRIP_DONGHAE_KM * ref.factors.rail * 1000) / 1000, check: true,
+        basis: `동해선 직통 편도(추정): 동대구-강릉 ${TRIP_DONGHAE_KM}km(계수 ${ref.factors.rail}) · 교통비가 서울 경유 편도(${Math.round(one).toLocaleString('ko-KR')})보다 크게 낮음` };
       const way = legs === 2 ? '왕복' : '편도', a = within ? gs[gs.length - 1] : '서울';
-      const r = { grade: 'D', gradeLabel: 'D 추정' + (direct ? ' · 경로 확인 필요' : ''), legs, km, factor: km ? Math.round(kg / km * 10000) / 10000 : factor, kg,
-        basis: `강릉선 ${way}: ` + (feed ? `${feed.a}-${feed.b} ${feed.km}km(계수 ${ref.factors.rail}) + ` : '') + `${a}-${far} ${kmG}km(계수 ${ref.factors.gangneung})` +
-          (direct ? ' · 교통비가 서울 경유 편도보다 크게 낮음(동해선 직통 가능성)' : '') };
-      if (direct) r.check = true;
-      return r;
+      return { grade: 'D', gradeLabel: 'D 추정', legs, km, factor: km ? Math.round(kg / km * 10000) / 10000 : factor, kg,
+        basis: `강릉선 ${way}: ` + (feed ? `${feed.a}-${feed.b} ${feed.km}km(계수 ${ref.factors.rail}) + ` : '') + `${a}-${far} ${kmG}km(계수 ${ref.factors.gangneung})` };
     }
     // 판정기준표에 '왕복 운임 × 2'로 올라 있는 금액(174,000 = 87,000 × 2)은 여기서 확정하지 않고 아래 왕복 횟수 판정으로 보냄
     const doubled = g => { const a = ref.J.get(g), b = ref.J.get(g / 2); return !!(a && b && /↔/.test(b.label) && a.km === b.km && a.train === b.train); };
