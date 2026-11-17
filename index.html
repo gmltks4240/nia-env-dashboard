@@ -4576,7 +4576,7 @@ window.TRIP_FARE = {"version":"2026-11-17","source":"한국철도공사 KTX 운�
   const TRIP_RATE = 43500 / 286.7;           // 운임 역산: 원/km (동대구–서울 일반실)
   const TRIP_STOP_STEPS = 5;                 // 정차역 할인 단계 수 (0.2% × 1~5)
   const TRIP_SEAT_DK = 9;                    // 입석·자유석은 정차역 변형보다 뒤에 보도록 주는 가중치
-  const TRIP_DK_MAX = TRIP_SEAT_DK + TRIP_STOP_STEPS;   // 여기까지만 운임표 일치로 인정 — 왕복 두 편 모두 입석·자유석인 조합은 추정(D)으로 남김
+  const TRIP_DK_MAX = 2 * (TRIP_SEAT_DK + TRIP_STOP_STEPS);   // 왕복 두 편 모두 입석·자유석인 조합까지 인정 (2026-11-17 사용자 확인: 입석+좌석도, 전부 입석도 있음)
   const TRIP_KM_CAP = 573.4 * 1.5;           // 운임 역산 상한 (km)
   // 강릉선 역 — 서울역 기점 영업거리(km). 국토교통부고시 제2017-428호 철도거리표(위키백과 '강릉선 KTX' 역 목록에서 옮김) ·
   //  코레일 운영노선 '원주~강릉 120.7km'(2026-09-01 기준)와 대조함. 기준표(@trip-ref)의 거리표에는 강릉선 역이 없어 여기에 둠
