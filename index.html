@@ -4565,7 +4565,7 @@ window.TRIP_REF = {"version":"2026-11-13","source":"한국철도공사 철도운
   /* @model-end */
 
   /* @trip-start ── 출장(철도) Scope 3 산정 (순수 함수: 검증 스크립트에서도 이 코드를 그대로 사용) ── */
-  // 한 행 = 출장 1건(1인) · 기본 왕복, 왕복 1회가 상한 · 교통비 0원은 미이동으로 제외
+  // 한 행 = 출장 1건(1인) · 기본 왕복 1회 · 교통비가 왕복 운임의 n배이고 출장 일수가 n일 이상이면 왕복 n회 · 교통비 0원은 미이동으로 제외
   // 판정 등급  A 업무상 확정(판정기준표) → B 운임표+구간 일치 → C 운임표만 일치 → D 추정
   const TRIP_RATE = 43500 / 286.7;           // 운임 역산: 원/km (동대구–서울 일반실)
   const TRIP_KM_CAP = 573.4 * 1.5;           // 운임 역산 상한 (km)
@@ -4640,7 +4640,9 @@ window.TRIP_REF = {"version":"2026-11-13","source":"한국철도공사 철도운
     const J = new Map(REF.judgment.map(j => [j.fare, j]));
     return { one, two, byCity, J, pairs: new Map(), factors: REF.factors, version: REF.version };
   }
-  //  row : { origin, via, dest, fare }  →  { grade, gradeLabel, legs, km, factor, kg, basis }
+  //  row : { origin, via, dest, fare, days }  →  { grade, gradeLabel, legs, km, factor, kg, basis, check? }
+  //  왕복 횟수: 대개 1회. 교통비가 왕복 운임(등급 A·B·C)의 정확히 n배(2~5)면 n회 후보 — 출장 일수가 n일 이상일 때만 n회로 산정하고,
+  //  일수가 모자라거나 일수를 모르면 일수만큼(모르면 1회)만 산정하고 check 로 표시해 사람이 확인
   function classifyRail(row, ref, placeMap) {
     const f = Math.round(Number(row.fare) || 0);
     if (f <= 0) return { grade: '제외', gradeLabel: '제외(교통비 0원)', legs: 0, km: 0, factor: 0, kg: 0, basis: '교통비 0원 — 미이동' };
@@ -4648,7 +4650,10 @@ window.TRIP_REF = {"version":"2026-11-13","source":"한국철도공사 철도운
     const gang = O.includes('강릉선') || D.includes('강릉선'), factor = gang ? ref.factors.gangneung : ref.factors.rail;
     const out = (grade, gradeLabel, legs, km, basis) => ({ grade, gradeLabel, legs, km, factor, kg: Math.round(km * factor * 1000) / 1000, basis });
     if (gang) return out('D', 'D 추정', f < 40000 ? 1 : 2, tripR1(f / TRIP_RATE), '강릉선: 운임÷km당 운임');
-    const j = ref.J.get(f);
+    // 판정기준표에 '왕복 운임 × 2'로 올라 있는 금액(174,000 = 87,000 × 2)은 여기서 확정하지 않고 아래 왕복 횟수 판정으로 보냄
+    const doubled = g => { const a = ref.J.get(g), b = ref.J.get(g / 2); return !!(a && b && /↔/.test(b.label) && a.km === b.km && a.train === b.train); };
+    const base = f => {
+    const j = doubled(f) ? null : ref.J.get(f);
     if (j) return out('A', j.kmQ === '공식' ? 'A 업무상 확정' : 'A 업무상 확정(거리 추정)', j.legs, j.km, `${j.train} ${j.label}`);
     const score = (c1, c2) => (O.includes(c1) && D.includes(c2)) || (O.includes(c2) && D.includes(c1)) ? 2 : [c1, c2].some(c => O.includes(c) || D.includes(c)) ? 1 : 0;
     const cands = [];
@@ -4673,6 +4678,20 @@ window.TRIP_REF = {"version":"2026-11-13","source":"한국철도공사 철도운
       return out('D', 'D 추정', legs, tripR1(s.km * legs), `구간 ${s.a}-${s.b} 거리 적용(운임 불일치, 기준 편도 ${s.fare.toLocaleString('ko-KR')})`);
     }
     return out('D', 'D 추정', f < 65000 ? 1 : 2, tripR1(Math.min(f / TRIP_RATE, TRIP_KM_CAP)), '운임÷km당 운임(151.7원/km)');
+    };
+    const r0 = base(f);
+    if (r0.grade !== 'D') return r0;
+    for (let k = 2; k <= 5; k++) {
+      if (f % k) continue;
+      const rb = base(f / k);
+      if (rb.grade === 'D' || rb.legs !== 2 || !/↔|왕복/.test(rb.basis)) continue;
+      const days = Number(row.days) >= 1 ? Math.floor(Number(row.days)) : null, n = Math.min(k, days || 1), check = n < k;
+      const r = out(rb.grade, rb.gradeLabel + (n > 1 ? ` · 왕복 ${n}회` : '') + (check ? ' · 횟수 확인 필요' : ''), 2 * n, tripR1(rb.km * n),
+        `${rb.basis} × ${n}회 (교통비 = 왕복 운임 × ${k} · 출장 ${days ? days + '일' : '일수 모름'})`);
+      if (check) r.check = true;
+      return r;
+    }
+    return r0;
   }
   /* 운임 대조 — 분류(사람·AI·규칙)가 맞는지 교통비로 검산. 장소를 정하는 데는 쓰지 않음(등급 B가 자기 자신을 확인하게 되므로) */
   // 그 금액이 가리키는 도시쌍 — 판정기준표에 있으면 그 구간 하나, 없으면 같은 금액의 편도 운임·두 구간 합 전부
@@ -4729,6 +4748,9 @@ window.TRIP_REF = {"version":"2026-11-13","source":"한국철도공사 철도운
     const hi = grid.slice(0, 6).findIndex(r => { const h = (r || []).map(norm); return h.includes('출발지') && h.includes('목적지') && h.includes('교통편') && h.includes('교통비'); });
     if (hi < 0) return { rows: [], error: `'${name}' 시트는 출장 양식이 아니에요 (머리글에 출발지·목적지·교통편·교통비가 있어야 해요)` };
     const h = grid[hi].map(norm), col = k => h.indexOf(k), iS = h.findIndex(x => /시작일/.test(x));
+    // 출장 일수: '일' 칸(머리글이 두 줄이면 아랫줄에 있음) → 없으면 시작일·종료일로 계산 → 그래도 없으면 null(왕복 1회로 봄)
+    const h2 = (grid[hi + 1] || []).map(norm), iDay = h.indexOf('일') >= 0 ? h.indexOf('일') : h2.indexOf('일');
+    const iEnd = [h, h2].map(x => x.findIndex(v => /종료일/.test(v))).find(i => i >= 0) ?? -1;
     const c = { o: col('출발지'), v: col('경유지'), d: col('목적지'), m: col('교통편'), f: col('교통비'), s: iS >= 0 ? iS : 1 };
     const toDate = v => {
       if (v instanceof Date) return isNaN(v) ? '' : new Date(v.getTime() - v.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
@@ -4741,8 +4763,11 @@ window.TRIP_REF = {"version":"2026-11-13","source":"한국철도공사 철도운
     grid.slice(hi + 1).forEach(r => {
       if (!r || !(Number(String(r[0] ?? '').replace(/,/g, '')) > 0) || norm(r[c.m]) === '교통편') return;
       const date = toDate(r[c.s]), fare = Number(String(r[c.f] ?? '').replace(/,/g, ''));
+      const end = iEnd >= 0 ? toDate(r[iEnd]) : '', dn = iDay >= 0 ? Number(String(r[iDay] ?? '').trim() || NaN) : NaN;
+      const span = date && end ? Math.round((Date.parse(end) - Date.parse(date)) / 86400000) + 1 : NaN;
+      const days = dn >= 1 ? Math.floor(dn) : span >= 1 ? span : null;
       rows.push({ year: sheetYear || date.slice(0, 4), seq: Number(String(r[0]).replace(/,/g, '')), date, origin: String(r[c.o] ?? '').trim(), via: c.v >= 0 ? String(r[c.v] ?? '').trim() : '',
-        dest: String(r[c.d] ?? '').trim(), mode: norm(r[c.m]), fare: Number.isFinite(fare) ? fare : 0 });
+        dest: String(r[c.d] ?? '').trim(), mode: norm(r[c.m]), fare: Number.isFinite(fare) ? fare : 0, days });
     });
     return { rows, error: rows.length ? '' : `'${name}' 시트에 출장 행이 없어요` };
   }

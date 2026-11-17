@@ -34,7 +34,7 @@ def open_engine(pw):
     page.set_content("<!doctype html><title>trip</title>")
     page.add_script_tag(content=ref_source())
     page.add_script_tag(content=trip_source() + "\nwindow.__ref = tripBuildRef(window.TRIP_REF);"
-                        "\nwindow.__c = (o, d, f, via, pm) => classifyRail({ origin: o, dest: d, via: via || '', fare: f }, window.__ref, pm || {});"
+                        "\nwindow.__c = (o, d, f, via, pm, days) => classifyRail({ origin: o, dest: d, via: via || '', fare: f, days }, window.__ref, pm || {});"
                         "\nwindow.__parse = tripParseSheet; window.__sum = tripSummarize;"
                         "\nwindow.__pairs = f => tripFarePairs(f, window.__ref).map(p => [...p].sort().join('-'));"
                         "\nwindow.__ev = (rows, pm) => Object.fromEntries(tripPlaceEvidence(rows, window.__ref, pm || {}));"
@@ -47,7 +47,7 @@ def run():
         br, page = open_engine(pw)
         errors = []
         page.on("pageerror", lambda e: errors.append(str(e)))
-        c = lambda o, d, f, via="", pm=None: page.evaluate("([o,d,f,v,pm]) => __c(o,d,f,v,pm)", [o, d, f, via, pm or {}])
+        c = lambda o, d, f, via="", pm=None, days=None: page.evaluate("([o,d,f,v,pm,n]) => __c(o,d,f,v,pm,n)", [o, d, f, via, pm or {}, days])
 
         H.test_name("A 업무상 확정")
         r = c("대구", "서울", 87000)
@@ -56,8 +56,31 @@ def run():
         H.near(r["kg"], 12.557, 0.001, "573.4 × 0.0219 = 12.557 kg")
         r = c("서울", "서울", 43500)
         H.ok(r["grade"] == "A" and r["legs"] == 1 and r["km"] == 286.7, f"서울→서울 43,500 → 편도 286.7km (선이동 관행) — {r}")
+
+        H.test_name("왕복 횟수 (대개 1회 · 교통비가 왕복 운임의 n배이고 출장이 n일 이상이면 n회)")
+        r = c("대구", "서울", 174000, days=3)
+        H.ok(r["grade"] == "A" and r["legs"] == 4 and r["km"] == 1146.8 and not r.get("check"), f"174,000 · 3일 → 왕복 2회 1,146.8km — {r['gradeLabel']} {r['km']}")
+        H.near(r["kg"], 25.115, 0.001, "1,146.8 × 0.0219 = 25.115 kg")
+        r = c("대구", "서울", 174000, days=2)
+        H.ok(r["legs"] == 4 and r["km"] == 1146.8, "174,000 · 2일 → 왕복 2회 (날마다 오간 경우)")
+        r = c("대구", "서울", 174000, days=1)
+        H.ok(r["grade"] == "A" and r["legs"] == 2 and r["km"] == 573.4 and r.get("check") and "확인 필요" in r["gradeLabel"], f"174,000 · 당일 → 왕복 1회 + 확인 필요 — {r['gradeLabel']}")
         r = c("대구", "서울", 174000)
-        H.ok(r["grade"] == "A" and r["legs"] == 2 and r["km"] == 573.4, "174,000 → 왕복 1회 상한")
+        H.ok(r["legs"] == 2 and r["km"] == 573.4 and r.get("check"), "174,000 · 일수 모름 → 왕복 1회 + 확인 필요")
+        r = c("대구", "서울", 261000, days=5)
+        H.ok(r["grade"] == "A" and r["legs"] == 6 and r["km"] == 1720.2, f"261,000 · 5일 → 왕복 3회 — {r['km']}")
+        r = c("대구", "서울", 261000, days=2)
+        H.ok(r["legs"] == 4 and r["km"] == 1146.8 and r.get("check"), "261,000 · 2일 → 일수만큼 2회 + 확인 필요")
+        r = c("대구", "세종", 99200, days=2)
+        H.ok(r["grade"] == "B" and r["legs"] == 4 and r["km"] == 648, f"99,200 대구→세종 · 2일 → 동대구↔오송 왕복 2회 648km — {r['basis']}")
+        r = c("대구", "서울", 87000, days=5)
+        H.ok(r["legs"] == 2 and r["km"] == 573.4 and not r.get("check"), "87,000 · 5일 → 금액이 1회분이면 길어도 왕복 1회")
+        r = c("대구", "서울", 121800, days=3)
+        H.ok(r["legs"] == 2 and r["km"] == 573.4 and not r.get("check"), "121,800 · 3일 → 특실 왕복 1회 (2회 아님)")
+        r = c("대구", "서울", 87000 * 2 + 100, days=3)
+        H.ok(r["grade"] == "D" and r["km"] == 573.4, "정확한 배수가 아니면 지금처럼 D·왕복 1회")
+
+        H.test_name("A 업무상 확정 (계속)")
         r = c("대구", "성남", 37000)
         H.ok(r["grade"] == "A" and "거리 추정" in r["gradeLabel"] and r["km"] == 269.2, f"SRT 수서 37,000 → 269.2km·거리 추정 — {r['gradeLabel']}")
 
@@ -113,6 +136,10 @@ def run():
         H.ok(len(p["rows"]) == 2 and not p["error"], f"행 2개 — {len(p['rows'])}")
         a = p["rows"][0]
         H.ok(a["date"] == "2024-01-02" and a["year"] == "2024" and a["mode"] == "철도운임" and a["fare"] == 87000, f"날짜·교통편·교통비 — {a}")
+        H.ok(a["days"] == 2 and p["rows"][1]["days"] == 1, f"출장 일수는 '일' 칸(머리글 아랫줄)에서 — {a['days']}, {p['rows'][1]['days']}")
+        g2 = [["번호", "출장시작일", "출장종료일", "출발지", "목적지", "교통편", "교통비"], [1, "2025-03-04", "2025-03-06", "대구", "서울", "철도운임", 174000], [2, "2025-03-04", "", "대구", "서울", "철도운임", 174000]]
+        p2 = page.evaluate("g => __parse('x', g)", g2)
+        H.ok(p2["rows"][0]["days"] == 3 and p2["rows"][1]["days"] is None, f"'일' 칸이 없으면 시작일·종료일로, 그것도 없으면 모름 — {[r['days'] for r in p2['rows']]}")
         H.ok(p["rows"][1]["origin"] == "본원", "장소 앞뒤 공백 제거")
         p = page.evaluate("g => __parse('Sheet1', g)", [["날짜", "사업장", "전력"], ["2024-01", "대구", 100]])
         H.ok(not p["rows"] and "출장 양식이 아니에요" in p["error"], f"다른 양식은 안내 — {p['error']}")
