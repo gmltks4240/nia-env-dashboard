@@ -4569,6 +4569,10 @@ window.TRIP_REF = {"version":"2026-11-13","source":"한국철도공사 철도운
   // 판정 등급  A 업무상 확정(판정기준표) → B 운임표+구간 일치 → C 운임표만 일치 → D 추정
   const TRIP_RATE = 43500 / 286.7;           // 운임 역산: 원/km (동대구–서울 일반실)
   const TRIP_KM_CAP = 573.4 * 1.5;           // 운임 역산 상한 (km)
+  // 강릉선 역 — 서울역 기점 영업거리(km). 국토교통부고시 제2017-428호 철도거리표(위키백과 '강릉선 KTX' 역 목록에서 옮김) ·
+  //  코레일 운영노선 '원주~강릉 120.7km'(2026-09-01 기준)와 대조함. 기준표(@trip-ref)의 거리표에는 강릉선 역이 없어 여기에 둠
+  const TRIP_GANG_KM = { 강릉: 223.2, 진부: 182.9, 평창: 166.6, 둔내: 146.6, 횡성: 126.0 };
+  const TRIP_GANG_FARE = 27600;              // 서울–강릉 KTX 일반실 편도 — 편도·왕복을 가르는 데만 씀(역별 운임은 거리에 비례한다고 봄)
   const TRIP_STN_CITY = { 서울: '서울', 용산: '서울', 광명: '서울', 수서: '서울', 영등포: '서울', 동대구: '대구', 서대구: '대구', 오송: '세종' };
   const TRIP_NORTH = ['서울', '용산', '광명', '천안아산', '오송', '대전', '김천구미', '영등포'];   // 서대구 기준 북쪽 역
   // 표준 지점(도시) — AI 분류 함수도 이 목록 안에서만 고름
@@ -4649,7 +4653,28 @@ window.TRIP_REF = {"version":"2026-11-13","source":"한국철도공사 철도운
     const O = tripCities(row.origin, placeMap), D = [...new Set([...tripCities(row.dest, placeMap), ...tripCities(row.via, placeMap)])];
     const gang = O.includes('강릉선') || D.includes('강릉선'), factor = gang ? ref.factors.gangneung : ref.factors.rail;
     const out = (grade, gradeLabel, legs, km, basis) => ({ grade, gradeLabel, legs, km, factor, kg: Math.round(km * factor * 1000) / 1000, basis });
-    if (gang) return out('D', 'D 추정', f < 40000 ? 1 : 2, tripR1(f / TRIP_RATE), '강릉선: 운임÷km당 운임');
+    if (gang) {
+      // 타는 역·내리는 역을 추정: 강릉선 쪽은 장소 글자의 역(여럿이면 가장 먼 역 · 글자에 없으면 강릉), 반대쪽은 그 도시에서 서울까지 간 뒤 강릉선으로 갈아탐
+      // 계수는 구간별로: 서울까지는 기본 계수, 서울–강릉선 역만 강릉선 계수
+      const stn = t => (String(t ?? '').match(/강릉|진부|평창|둔내|횡성/g) || []);
+      const gs = [...new Set([row.origin, row.dest, row.via].flatMap(stn))].sort((a, b) => TRIP_GANG_KM[b] - TRIP_GANG_KM[a]);
+      const far = gs[0] || '강릉', others = [...new Set([...O, ...D])].filter(c => c !== '강릉선');
+      const feed = others.filter(c => c !== '서울').flatMap(c => (ref.byCity.get(tripPairKey(c, '서울')) || []).filter(s => s.cls === '일반' && s.train === 'KTX'))
+        .sort((x, y) => y.km - x.km || y.fare - x.fare)[0];
+      const within = !others.length && O.includes('강릉선') && D.includes('강릉선') && gs.length >= 2;
+      if (!feed && !others.includes('서울') && !within)   // 반대쪽이 어딘지 모름 → 운임으로 거리 역산
+        return out('D', 'D 추정', f < 40000 ? 1 : 2, tripR1(Math.min(f / TRIP_RATE, TRIP_KM_CAP)), `강릉선(${far}): 반대쪽 장소를 몰라 운임÷km당 운임`);
+      const kmG = within ? tripR1(TRIP_GANG_KM[far] - TRIP_GANG_KM[gs[gs.length - 1]]) : TRIP_GANG_KM[far];
+      const one = (feed ? feed.fare : 0) + TRIP_GANG_FARE * kmG / TRIP_GANG_KM.강릉, legs = f < 1.5 * one ? 1 : 2;
+      const k1 = feed ? feed.km * legs : 0, k2 = kmG * legs, km = tripR1(k1 + k2), kg = Math.round((k1 * ref.factors.rail + k2 * ref.factors.gangneung) * 1000) / 1000;
+      const direct = !!feed && feed.c1 !== feed.c2 && [feed.c1, feed.c2].includes('대구') && f < 0.6 * one;   // 서울 경유 편도보다 훨씬 싸면 동해선 직통일 수 있음
+      const way = legs === 2 ? '왕복' : '편도', a = within ? gs[gs.length - 1] : '서울';
+      const r = { grade: 'D', gradeLabel: 'D 추정' + (direct ? ' · 경로 확인 필요' : ''), legs, km, factor: km ? Math.round(kg / km * 10000) / 10000 : factor, kg,
+        basis: `강릉선 ${way}: ` + (feed ? `${feed.a}-${feed.b} ${feed.km}km(계수 ${ref.factors.rail}) + ` : '') + `${a}-${far} ${kmG}km(계수 ${ref.factors.gangneung})` +
+          (direct ? ' · 교통비가 서울 경유 편도보다 크게 낮음(동해선 직통 가능성)' : '') };
+      if (direct) r.check = true;
+      return r;
+    }
     // 판정기준표에 '왕복 운임 × 2'로 올라 있는 금액(174,000 = 87,000 × 2)은 여기서 확정하지 않고 아래 왕복 횟수 판정으로 보냄
     const doubled = g => { const a = ref.J.get(g), b = ref.J.get(g / 2); return !!(a && b && /↔/.test(b.label) && a.km === b.km && a.train === b.train); };
     const base = f => {
