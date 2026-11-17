@@ -4632,12 +4632,13 @@ window.TRIP_FARE = {"version":"2026-11-17","source":"한국철도공사 KTX 운�
     const segs = [], have = new Set();
     //  special : 숫자 = 운임표의 특실 금액 · true = 일반실 × 1.4 산식(운임표에 없는 옛 기준표 행) · false = 특실 없음
     //  vary : 같은 구간이라도 열차의 정차역 수에 따라 금액이 조금씩 다름 — 운임표의 금액에서 파생시켜 함께 둠
-    //    'stops' (SRT · 2026-09 통합 뒤 KTX) 중간 정차역 4개부터 1개당 0.2% 할인(100원 단위 반올림) → 0.2~1.0%
+    //    'stops' (SRT · 2026-09 통합 뒤 KTX) 중간 정차역 4개부터 1개당 0.2% 할인(100원 미만 버림) → 0.2~1.0%
     //    'nonstop' (통합 전 KTX) 도중 정차역 2개 이하 열차 0.6% 할증 (2025년판 운임표 주석)
     const add = (a, b, fare, train, special, vary) => {
       const d = dist(a, b), base = { a, b, train, km: d?.km ?? null, q: d?.q ?? null }, seen = new Set([fare]);
       segs.push({ ...base, fare, cls: '일반', dk: 0, note: '' });
-      const alt = (rate, dk, note) => { const v = Math.round(fare * rate / 100) * 100; if (!seen.has(v)) { seen.add(v); segs.push({ ...base, fare: v, cls: '일반', dk, note }); } };
+      // 할인은 100원 미만 버림(39,000 → 38,766 → 38,700), 할증은 반올림(43,500 → 43,761 → 43,800)
+      const alt = (rate, dk, note) => { const v = (rate < 1 ? Math.floor(fare * rate / 100 + 1e-9) : Math.round(fare * rate / 100)) * 100; if (!seen.has(v)) { seen.add(v); segs.push({ ...base, fare: v, cls: '일반', dk, note }); } };
       if (vary === 'stops') for (let k = 1; k <= TRIP_STOP_STEPS; k++) alt(1 - 0.002 * k, k, ` 정차역 할인 ${(0.2 * k).toFixed(1)}%`);
       if (vary === 'nonstop') alt(1.006, 1, ' 무정차 할증 0.6%');
       if (special === true) segs.push({ ...base, fare: Math.round(fare * 1.4 / 100 + 1e-9) * 100, cls: '특실(×1.4 산식)', dk: 0, note: '' });
