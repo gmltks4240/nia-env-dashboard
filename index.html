@@ -10,8 +10,8 @@
 <link rel="preconnect" href="https://yyvfxecvcgfvqpydhqsh.supabase.co" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"></noscript>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap"></noscript>
 <script src="vendor/chart.umd.min.js"></script>
 <script src="vendor/anime.min.js"></script>
 <script>window.anime || document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.2/anime.min.js"><\/script>');</script>
@@ -71,8 +71,8 @@
   --t-ui:background var(--dur-1) var(--ease-out),color var(--dur-1) var(--ease-out),
          border-color var(--dur-1) var(--ease-out),opacity var(--dur-1) var(--ease-out),
          box-shadow var(--dur-1) var(--ease-out),transform var(--dur-1) var(--ease-out);
-  --font:'Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif;
-  --fdata:'Inter','Segoe UI',Roboto,'Helvetica Neue',Arial,'Malgun Gothic',sans-serif;
+  --font:'IBM Plex Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  --fdata:'IBM Plex Sans','IBM Plex Sans KR','Segoe UI',Roboto,Arial,'Malgun Gothic',sans-serif;
   color-scheme: dark;
 }
 
@@ -134,7 +134,7 @@ input:focus,select:focus{outline:2px solid var(--focus);outline-offset:2px}
 #db-unavail{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:32px 24px;text-align:center;width:calc(100% - 32px);max-width:480px;margin:60px auto 0;box-shadow:var(--shadow-md)}
 #db-unavail h2{margin-bottom:8px;font-size:18px}
 #db-unavail p{color:var(--muted);font-size:13px;margin-bottom:20px}
-.btn-retry{background:var(--accent);color:#fff;border-radius:8px;padding:10px 28px;font-size:14px;font-weight:600;transition:var(--t-ui)}
+.btn-retry{background:var(--accent);color:var(--bg);border-radius:8px;padding:10px 28px;font-size:14px;font-weight:600;transition:var(--t-ui)}
 .btn-retry:hover{opacity:.88}
 
 /* ── 헤더 ────────────────────────────────────────────── */
@@ -158,7 +158,7 @@ header{background:var(--surface);color:var(--text);padding:0 20px;border-bottom:
 .tab-btn{padding:14px 18px;font-size:14px;font-weight:500;color:var(--muted);border-bottom:2px solid transparent;transition:var(--t-ui);white-space:nowrap;display:flex;align-items:center;gap:6px}
 .tab-btn:hover{color:var(--text)}
 .tab-btn.active{color:var(--text);border-bottom-color:var(--accent);font-weight:600}   /* 신호는 밑줄 하나로 */
-.tab-badge{background:var(--accent);color:#fff;border-radius:10px;font-size:11px;font-weight:500;padding:1px 8px;min-width:22px;text-align:center;line-height:1.6}
+.tab-badge{background:var(--accent);color:var(--bg);border-radius:10px;font-size:11px;font-weight:500;padding:1px 8px;min-width:22px;text-align:center;line-height:1.6}
 .tab-btn:not(.active) .tab-badge{background:var(--border2);color:var(--text2)}
 
 /* ── 레이아웃 ────────────────────────────────────────── */
@@ -179,7 +179,7 @@ header{background:var(--surface);color:var(--text);padding:0 20px;border-bottom:
 .kpi-label{font-size:11px;font-weight:500;color:var(--muted);margin-bottom:4px}
 .kpi-value{font-family:var(--fdata);font-size:24px;font-weight:600;line-height:1;margin-bottom:2px}
 .kpi-unit{font-size:11px;color:var(--muted)}
-.kpi-sub{font-size:10px;color:var(--muted);margin-top:4px}
+.kpi-sub{font-size:11px;color:var(--muted);margin-top:4px}
 .kpi-target{grid-column:1/-1}
 .kpi-target-inner{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-top:10px}
 /* 가로형 에너지 KPI */
@@ -331,8 +331,8 @@ button.sb-btn:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
 .rm-ms .rm-sub2.bad{color:var(--red)}
 .rm-ms.now{border-color:var(--green)}
 .rm-ms.over{border-color:var(--red)}
-.rm-ms.goal{border-left:3px solid #0F766E}
-.rm-ms.goal.amber{border-left-color:#FBBF24}
+.rm-ms.goal{border-color:color-mix(in srgb,var(--teal) 55%,var(--border))}
+.rm-ms.goal.amber{border-color:color-mix(in srgb,var(--amber) 55%,var(--border))}
 .rm-ms .rm-law{font-size:11px;font-weight:500;color:var(--amber)}
 .rm-ms .rm-law.tent{color:color-mix(in srgb,var(--amber) 55%,var(--muted));font-style:italic}
 .rm-ms .rm-law.warn{font-style:normal;color:var(--amber)}
@@ -598,7 +598,7 @@ button.st:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
 /* ── 서브탭 ──────────────────────────────────────────── */
 .subtab-nav{display:flex;gap:8px;margin-bottom:20px}
 .subtab-btn{padding:8px 18px;border:1px solid var(--border);border-radius:16px;font-size:13px;font-weight:500;color:var(--muted);transition:var(--t-ui)}
-.subtab-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.subtab-btn.active{background:var(--sel-bg);border-color:var(--border2);color:var(--text)}
 
 /* ── 2단계: 기타 지표·연도 마감·로드맵·변경 이력 ─────────── */
 .setup-card{background:var(--surface);border:1px dashed var(--border2);border-radius:var(--radius);padding:16px 20px;margin-bottom:16px;font-size:13px;color:var(--text2);line-height:1.7}
@@ -647,7 +647,7 @@ button.st:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
 .rm-ok{color:var(--green);font-weight:600}
 .rm-over{color:var(--red);font-weight:600}
 .btn-sm:disabled{opacity:.4;cursor:not-allowed}
-.btn-lock{background:var(--accent);color:#fff;border:1px solid var(--accent)}
+.btn-lock{background:var(--accent);color:var(--bg);border:1px solid var(--accent)}
 .btn-lock:hover:not(:disabled){opacity:.88}
 .log-tbl td{font-size:12px;vertical-align:top}
 .log-tbl td:first-child{white-space:nowrap;font-family:var(--fdata)}
@@ -700,12 +700,12 @@ button.st:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
 :is(#sec-ghg,#y-sec-ghg) .kpi-u{display:none}
 :is(#sec-ghg,#y-sec-ghg) .kpi-label{font-size:14px;font-weight:600;color:var(--text);text-transform:none;letter-spacing:0;margin-bottom:8px;display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
 :is(#sec-ghg,#y-sec-ghg) .kpi-label small{font-size:11px;font-weight:500;color:var(--muted)}
-:is(#sec-ghg,#y-sec-ghg) .kpi-card{border-top-width:4px}
 .dec{font-size:.62em;font-weight:600;letter-spacing:0;color:var(--text2)}
 .kpi-h .dec{font-size:.7em}
 .rm-ms b .dec{font-size:.8em}
 .sec-unit{text-align:right;font-size:12px;font-weight:500;color:var(--muted);margin:-6px 2px 6px}
 :is(#sec-ghg,#y-sec-ghg) .kpi-row .kpi-value{font-size:24px}
+#sec-ghg .kpi-grid-lead>.kpi-total .kpi-row .kpi-value{font-size:32px}   /* 넷 중 대표 숫자 */
 /* 실적 조회: 구역 제목도 크고 굵게 (올해 현황과 같은 모양) */
 :is(#tab-history,#tab-roadmap) .kpi-section-hd{font-size:14px;font-weight:600;color:var(--text);text-transform:none;letter-spacing:0;padding-bottom:8px;margin-bottom:12px}
 :is(#tab-history,#tab-roadmap) .kpi-section-hd .hd-note{font-size:12px;font-weight:500;color:var(--text2)}
@@ -716,11 +716,11 @@ button.st:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
 #tab-history .chart-card h3,#tab-history .chart-hd h3,#tab-roadmap .chart-card h3,#tab-roadmap .chart-hd h3{font-size:14px}
 /* 목표·로드맵 탭 */
 #tab-roadmap .hy-pick select{font-family:var(--font);font-size:14px;font-weight:600;letter-spacing:0;padding:4px 4px}
-.rmap-badge{font-size:11px;font-weight:500;color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 45%,transparent);border-radius:12px;padding:2px 8px}
+.rmap-badge{font-size:11px;font-weight:500;color:var(--text2);border:1px solid var(--border);border-radius:12px;padding:2px 8px}
 .gs-cards{display:grid;grid-template-columns:repeat(var(--gs-n,4),minmax(0,1fr));gap:10px;margin-bottom:14px}
 @media(max-width:1023px){.gs-cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
-.gs-card{min-width:0;background:var(--surface2);border:1px solid transparent;border-left:4px solid var(--border2);border-radius:var(--radius);padding:12px 12px;box-shadow:var(--shadow)}
-.gs-card.ok{border-left-color:var(--green)}.gs-card.no{border-left-color:var(--red)}
+.gs-card{min-width:0;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:12px 12px;box-shadow:var(--shadow)}
+.gs-card.ok{border-color:color-mix(in srgb,var(--green) 55%,var(--border))}.gs-card.no{border-color:color-mix(in srgb,var(--red) 55%,var(--border))}
 .gs-card .gs-k{font-size:12px;font-weight:500;color:var(--text2);display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap}
 .gs-scope{display:inline-flex;align-items:center;gap:2px;font-size:10px;font-weight:500}
 .gs-scope i{font-style:normal;padding:1px 6px;border-radius:8px;background:var(--surface2);color:var(--text2);border:1px solid var(--border)}
@@ -1217,7 +1217,7 @@ table.main-tbl.bulk-tbl td.bk-none{color:var(--border2);text-align:center}
 .inline-err .ic{margin-top:.15em}
 input.is-invalid,select.is-invalid,textarea.is-invalid{border-color:var(--bad)!important;box-shadow:0 0 0 3px color-mix(in srgb,var(--bad) 28%,transparent)!important;background-color:rgba(242,106,112,.08)!important}
 .save-info{font-size:12px;color:var(--muted)}
-.btn-primary{background:var(--accent);color:#fff;border-radius:8px;padding:10px 24px;font-size:14px;font-weight:600;transition:var(--t-ui)}
+.btn-primary{background:var(--accent);color:var(--bg);border-radius:8px;padding:10px 24px;font-size:14px;font-weight:600;transition:var(--t-ui)}
 .btn-primary:hover{opacity:.88}
 .btn-primary:disabled{opacity:.45;cursor:not-allowed}
 
@@ -1255,7 +1255,7 @@ table.main-tbl tr:hover td{background:var(--surface2)}
 .btn-pag{padding:4px 14px;border:1px solid var(--border);border-radius:6px;font-size:13px;font-weight:500;color:var(--text2);background:var(--surface);transition:var(--t-ui)}
 .btn-pag:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
 .btn-pag:disabled{opacity:.4;cursor:not-allowed}
-.btn-pag.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn-pag.active{background:var(--sel-bg);color:var(--text);border-color:var(--border2)}
 
 /* ── 모달 ────────────────────────────────────────────── */
 .modal-overlay{position:fixed;inset:0;background:rgba(8,12,22,.6);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px}
@@ -1390,10 +1390,9 @@ table.main-tbl tr:hover td{background:var(--surface2)}
 .evq-op{display:flex;align-items:center;font-family:var(--fdata);font-size:20px;font-weight:600;color:var(--border2)}
 .evq-tot{flex:0 0 236px;display:flex;flex-direction:column;justify-content:center;gap:4px;
   padding:18px 20px;border:1px solid var(--border);border-radius:16px;background:var(--surface);position:relative;overflow:hidden}
-.evq-tot::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--green)}
-.evq-tot.warn::before{background:var(--amber)}
-.evq-tot.bad::before{background:var(--red)}
-.evq-tot.na::before{background:var(--border2)}
+.evq-tot:not(.warn,.bad,.na){border-color:color-mix(in srgb,var(--green) 55%,var(--border))}
+.evq-tot.warn{border-color:color-mix(in srgb,var(--amber) 55%,var(--border))}
+.evq-tot.bad{border-color:color-mix(in srgb,var(--red) 55%,var(--border))}
 .evq-tot .et-k{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:500;color:var(--muted);letter-spacing:.3px}
 .evq-tot .et-v{display:flex;align-items:baseline;gap:4px;margin-top:2px;font-family:var(--fdata);font-size:40px;font-weight:600;
   line-height:1.05;color:var(--text);font-variant-numeric:tabular-nums}
@@ -1443,14 +1442,14 @@ table.main-tbl tr:hover td{background:var(--surface2)}
 .ev-sum .es-d .eb.no::before{content:'✗';color:var(--red)}
 /* 지표별 전망 카드 */
 .eval-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
-.ev-card{position:relative;padding:14px 16px 12px;border:1px solid transparent;border-top:3px solid var(--border2);border-radius:12px;background:var(--surface2);cursor:pointer;transition:border-color var(--dur-1) var(--ease-out),box-shadow var(--dur-1) var(--ease-out),transform var(--dur-2) var(--ease-out)}
+.ev-card{position:relative;padding:14px 16px 12px;border:1px solid var(--border);border-radius:12px;background:var(--surface2);cursor:pointer;transition:border-color var(--dur-1) var(--ease-out),box-shadow var(--dur-1) var(--ease-out),transform var(--dur-2) var(--ease-out)}
 .ev-card[data-calc]::after{content:'';position:absolute;right:11px;bottom:10px;width:14px;height:14px;opacity:.35;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' stroke='currentColor' stroke-width='1.8' stroke-linecap='round' viewBox='0 0 24 24'%3E%3Ccircle cx='10.5' cy='10.5' r='6'/%3E%3Cpath d='M15 15l5.5 5.5'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' stroke='currentColor' stroke-width='1.8' stroke-linecap='round' viewBox='0 0 24 24'%3E%3Ccircle cx='10.5' cy='10.5' r='6'/%3E%3Cpath d='M15 15l5.5 5.5'/%3E%3C/svg%3E") center/contain no-repeat}
 .ev-card[data-calc]:hover::after{opacity:.8}
 .ev-card:hover{border-color:var(--accent);box-shadow:var(--shadow-md)}
 .ev-card:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
-.ev-card.ok{border-top-color:var(--green)}
-.ev-card.no{border-top-color:var(--red)}
-.ev-card.na{border-top-color:var(--border2);cursor:default}
+.ev-card.ok{border-color:color-mix(in srgb,var(--green) 55%,var(--border))}
+.ev-card.no{border-color:color-mix(in srgb,var(--red) 55%,var(--border))}
+.ev-card.na{cursor:default}
 .ev-card .ec-k{display:flex;align-items:baseline;justify-content:space-between;gap:8px;font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px}
 .ev-card .ec-k em{font-style:normal;font-size:11px;font-weight:500;color:var(--muted);white-space:nowrap}
 .ev-card .ec-v{display:flex;align-items:baseline;gap:4px;font-family:var(--fdata);font-size:20px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums}
@@ -1571,9 +1570,8 @@ table.main-tbl tr:hover td{background:var(--surface2)}
 /* 점수 히어로 (경영평가 계량 카드) — 받은 점수 / 만점 + 판정 + 막대 */
 .cscore{margin-bottom:16px;padding:16px 18px 14px;border:1px solid var(--border2);border-radius:12px;
   background:linear-gradient(180deg,var(--surface2) 0%,var(--surface) 100%);position:relative;overflow:hidden}
-.cscore::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--border2)}
-.cscore.ok::before{background:var(--green)}
-.cscore.no::before{background:var(--red)}
+.cscore.ok{border-color:color-mix(in srgb,var(--green) 55%,var(--border))}
+.cscore.no{border-color:color-mix(in srgb,var(--red) 55%,var(--border))}
 .cscore .cq-top{display:flex;align-items:baseline;flex-wrap:wrap;justify-content:space-between;gap:6px 14px}
 .cscore .cq-v{display:flex;align-items:baseline;gap:6px;font-family:var(--fdata);font-size:32px;font-weight:600;
   line-height:1.05;color:var(--text);font-variant-numeric:tabular-nums}
@@ -1599,8 +1597,7 @@ table.main-tbl tr:hover td{background:var(--surface2)}
 /* 목표와 견주기 (예측·실적 vs 목표) — 팝업 맨 위 판정 줄 */
 .calc-sum .cvs{flex:1 0 100%;margin:6px 0 4px}
 .cvs{margin:-2px 0 16px;padding:12px 16px 12px;border:1px solid var(--border2);border-radius:12px;background:var(--surface2);position:relative;overflow:hidden}
-.cvs::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--border2)}
-.cvs.ok::before{background:var(--green)}.cvs.no::before{background:var(--red)}
+.cvs.ok{border-color:color-mix(in srgb,var(--green) 55%,var(--border))}.cvs.no{border-color:color-mix(in srgb,var(--red) 55%,var(--border))}
 .cvs-row{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 12px}
 .cvs-k{font-size:12px;font-weight:500;color:var(--text2)}
 .cvs-row>b{font-family:var(--fdata);font-size:20px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums}
@@ -1946,8 +1943,8 @@ body:has(#tab-home.active) .btn-login{border-color:var(--h-line);color:var(--h-p
 /* 여러 개가 오면 덮어쓰지 않고 쌓인다 (최대 3) — 새것이 아래, 오래된 것이 위로 밀림 */
 .toasts{position:fixed;bottom:24px;right:24px;z-index:999;display:flex;flex-direction:column;gap:8px;align-items:flex-end;pointer-events:none}
 .toasts .toast{position:static;pointer-events:auto;max-width:min(420px,calc(100vw - 32px))}
-.toast.ok{border-left:3px solid var(--green)}
-.toast.err{border-left:3px solid var(--red)}
+.toast.ok{border-color:color-mix(in srgb,var(--green) 55%,var(--border))}
+.toast.err{border-color:color-mix(in srgb,var(--red) 55%,var(--border))}
 
 /* ── 반응형 ──────────────────────────────────────────── */
 @media(max-width:767px){
@@ -2127,7 +2124,7 @@ body.intro-min .site-info .si-head{grid-row:auto}
 
 /* 온실가스 카드 아래 월별 미니 막대 — 실적(진하게) · 예측(옅게) · 전년 같은 달(회색 눈금) */
 :is(#sec-ghg,#y-sec-ghg) .kpi-card{display:flex;flex-direction:column}
-.kpi-total{--mbc:var(--teal)}.kpi-scope1{--mbc:var(--orange)}.kpi-scope2{--mbc:var(--accent)}.kpi-scope3{--mbc:var(--indigo)}
+.kpi-total{--mbc:var(--teal)}.kpi-scope1{--mbc:var(--orange)}.kpi-scope2{--mbc:var(--chart-s2)}.kpi-scope3{--mbc:var(--indigo)}
 .kpi-mb{margin-top:auto;padding-top:10px}
 .kpi-mb:empty{display:none}
 .mb{display:flex;align-items:stretch;gap:2px;height:32px;border-bottom:1px solid var(--border2)}
@@ -2578,7 +2575,7 @@ table.main-tbl tbody tr:hover>td,.sb-tbl tbody tr:hover>td{background:rgba(255,2
   <details class="kpi-section fold-sec" id="sec-ghg" open>
     <summary class="kpi-section-hd">온실가스 배출 <span class="hd-note" id="ghg-period">올해 누적</span></summary>
     <div class="sec-unit" id="ghg-unit">단위: tCO₂eq</div>
-    <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr)">
+    <div class="kpi-grid kpi-grid-lead" style="grid-template-columns:minmax(0,1.5fr) repeat(3,minmax(0,1fr))">
       <div class="kpi-card kpi-total kpi-click" role="button" tabindex="0" data-calc="k-total">
         <div class="kpi-label">총 온실가스 <small>Scope 1+2</small></div>
         <div class="kpi-row"><div class="kpi-value num" id="k-total">—</div><span class="kpi-u">tCO₂eq</span></div>
@@ -5028,7 +5025,7 @@ table.main-tbl tbody tr:hover>td,.sb-tbl tbody tr:hover>td{background:rgba(255,2
       const maxAbs = Math.max(0, ...items.map(([, v]) => Math.abs(v))), d = maxAbs >= 100 ? 0 : maxAbs >= 10 ? 1 : 2;
       const f = o.kind === 'pct' ? fmtPct : v => fmt(v, d);
       ctx.save();
-      ctx.font = `600 ${size}px 'Inter','Noto Sans KR',sans-serif`;
+      ctx.font = `600 ${size}px 'IBM Plex Sans','IBM Plex Sans KR',sans-serif`;
       ctx.fillStyle = cssVar('--chart-label');
       // 글자 둘레에 배경색 테두리: 선·격자가 지나가도 숫자가 또렷하게
       ctx.strokeStyle = cssVar('--surface'); ctx.lineWidth = 3; ctx.lineJoin = 'round';
@@ -5267,6 +5264,7 @@ table.main-tbl tbody tr:hover>td,.sb-tbl tbody tr:hover>td{background:rgba(255,2
 
   function buildCharts() {
     Chart.defaults.maintainAspectRatio = false; // 높이는 .chart-box가 정함
+    Chart.defaults.font.family = cssVar('--fdata');   // 축·범례 글자도 화면과 같은 글꼴
     if (!Chart.registry.plugins.get('barLabels')) Chart.register(barLabelPlugin);
     if (!Chart.registry.plugins.get('colBand')) Chart.register(colBandPlugin);
     Object.values(CHARTS).forEach(set => Object.values(set).flat().forEach(c => c && c.destroy()));   // em = 차트 여러 개
