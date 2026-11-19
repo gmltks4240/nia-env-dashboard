@@ -334,7 +334,7 @@ button.sb-btn:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
 .rm-ms.goal{border-color:color-mix(in srgb,var(--teal) 55%,var(--border))}
 .rm-ms.goal.amber{border-color:color-mix(in srgb,var(--amber) 55%,var(--border))}
 .rm-ms .rm-law{font-size:11px;font-weight:500;color:var(--amber)}
-.rm-ms .rm-law.tent{color:color-mix(in srgb,var(--amber) 55%,var(--muted));font-style:italic}
+.rm-ms .rm-law.tent{color:color-mix(in srgb,var(--amber) 55%,var(--muted))}
 .rm-ms .rm-law.warn{font-style:normal;color:var(--amber)}
 .rm-arrow{align-self:center;color:var(--muted);font-size:13px}
 .rm-panels{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px}
@@ -440,7 +440,7 @@ button.sb-btn:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
 .om-row.sc .om-k{padding-left:12px;font-weight:600;color:var(--vio)}
 .om-y{font-family:var(--fdata);font-size:10px;color:var(--muted);text-align:center}
 .om-y.m5{color:var(--text2);font-weight:600}
-.om-c{display:block;height:20px;padding:0;border:1px solid transparent;border-radius:4px;background:var(--surface2)}
+.om-c{display:block;height:24px;padding:0;border:1px solid transparent;border-radius:4px;background:var(--surface2)}
 button.om-c{cursor:pointer}
 .om-c.ok{background:color-mix(in srgb,var(--green) 55%,transparent)}
 .om-c.no{background:color-mix(in srgb,var(--red) 58%,transparent)}
@@ -486,7 +486,7 @@ button.o-fit:focus-visible{outline:2px solid var(--vio);outline-offset:2px}
   .om-y:not(.m5){visibility:hidden}
   .om-y{font-size:10px;letter-spacing:-.03em}
   .om-y.m5{font-weight:500}
-  .om-c{height:16px;border-radius:4px}
+  .om-c{height:28px;border-radius:4px}   /* 폭이 11px 남짓이라 높이로 누르기 쉽게 */
 }
 /* 목표·로드맵 그래프 아래 전망 한 줄 — 누르면 📈 전망 탭 */
 .ol-link{display:flex;align-items:center;flex-wrap:wrap;gap:4px 12px;margin-top:14px;padding:8px 12px;border:1px dashed var(--border2);border-radius:10px;font-size:12px;color:var(--text2);cursor:pointer;transition:border-color var(--dur-1) var(--ease-out)}
@@ -529,7 +529,7 @@ table.main-tbl.rmg-tbl{min-width:1000px}
 table.main-tbl.rmg-tbl th,table.main-tbl.rmg-tbl td{padding:8px 12px;white-space:nowrap}
 table.main-tbl.rmg-tbl th{text-transform:none;letter-spacing:0}
 table.main-tbl.rmg-tbl th.rmg-g{text-align:center;color:var(--text2);font-size:11px}
-.rmg-tbl th.rmg-g small{font-weight:500;color:var(--muted);margin-left:4px}
+.rmg-tbl th.rmg-g small{font-size:10px;font-weight:500;color:var(--muted);margin-left:4px}
 .rmg-tbl th.rmg-g.law{box-shadow:inset 0 3px 0 var(--amber)}
 .rmg-tbl th.rmg-g.own{box-shadow:inset 0 3px 0 var(--teal)}
 .rmg-tbl th.rmg-g.act{box-shadow:inset 0 3px 0 var(--accent)}
@@ -581,7 +581,8 @@ table.main-tbl.rmg-tbl tbody tr[data-year] td:first-child,table.main-tbl.rmg-tbl
 .status-tbl td.st-site{text-align:left;font-weight:600;color:var(--accent);white-space:nowrap}
 .status-tbl td.st-item{text-align:left;white-space:nowrap;color:var(--text2)}
 .st{display:inline-block;width:16px;height:16px;border-radius:4px;border:1.5px solid transparent;vertical-align:middle;padding:0}
-button.st{cursor:pointer;transition:transform var(--dur-press) var(--ease-out)}
+button.st{position:relative;cursor:pointer;transition:transform var(--dur-press) var(--ease-out)}
+button.st::after{content:"";position:absolute;inset:-5px}   /* 누르는 영역 26px */
 button.st:hover{transform:scale(1.15)}
 button.st:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
 .st-ok{background:var(--green);border-color:var(--green)}
@@ -929,7 +930,7 @@ table.main-tbl.gs-tbl tr:hover td:first-child{background:var(--surface2)}
 .det-hd .hd-seg{margin-left:auto}
 /* 작은 버튼 묶음 (월별/누적 · 에너지원별/거점별) */
 .mini-seg{display:inline-flex;gap:2px;padding:2px;border:1px solid var(--border);border-radius:12px;background:var(--surface);text-transform:none;letter-spacing:0}
-.mini-seg button{padding:2px 10px;border-radius:12px;font-size:12px;font-weight:500;color:var(--text2)}
+.mini-seg button{min-height:24px;padding:2px 10px;border-radius:12px;font-size:12px;font-weight:500;color:var(--text2)}
 .mini-seg button[aria-pressed="true"]{background:var(--sel-bg);color:var(--text)}
 .mini-seg button:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
 #fl-now .fl-f{font-family:var(--fdata,monospace);font-size:12px;color:var(--text)}
@@ -1168,7 +1169,7 @@ table.main-tbl.bulk-tbl td.bk-none{color:var(--border2);text-align:center}
 .m-label{font-size:13px;font-weight:600;color:var(--text);width:48px;white-space:nowrap}
 .m-in{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-family:var(--fdata);font-size:13px;color:var(--text);transition:var(--t-ui)}
 .m-in:focus{border-color:var(--accent);background:var(--surface);outline:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--focus) 28%,transparent)}
-.m-in.has-data{background:#1E3A5F;border-color:#1D4ED8}
+.m-in.has-data{border-color:color-mix(in srgb,var(--accent) 35%,var(--border))}
 .m-ghg{font-family:var(--fdata);font-size:12px;font-weight:500;color:var(--accent);text-align:right;white-space:nowrap;min-width:90px}
 .m-note-in{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-size:12px;color:var(--text);width:100%;transition:var(--t-ui)}
 .m-note-in:focus{border-color:var(--accent);background:var(--surface);outline:none}
@@ -1245,8 +1246,8 @@ table.main-tbl tr:hover td{background:var(--surface2)}
 .btn-sm{padding:4px 12px;font-size:12px;font-weight:500;border-radius:6px;transition:var(--t-ui)}
 .btn-edit{background:var(--surface2);border:1px solid var(--border);color:var(--text2)}
 .btn-edit:hover{border-color:var(--accent);color:var(--accent)}
-.btn-del{background:transparent;border:1px solid #FCA5A5;color:var(--red)}
-.btn-del:hover{background:#FEE2E2}
+.btn-del{background:transparent;border:1px solid var(--border);color:var(--text2)}
+.btn-del:hover{background:var(--bad-bg);border-color:color-mix(in srgb,var(--red) 55%,var(--border));color:var(--red)}
 
 /* ── 페이지네이션 ────────────────────────────────────── */
 .pagination{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-top:1px solid var(--border);background:var(--surface);border-radius:0 0 var(--radius) var(--radius)}
@@ -1468,7 +1469,7 @@ table.main-tbl tr:hover td{background:var(--surface2)}
 .evy .ey-chip.done{border-color:color-mix(in srgb,var(--green) 40%,transparent);color:var(--green)}
 .evy .ey-chip.open{border-color:color-mix(in srgb,var(--amber) 40%,transparent);color:var(--amber)}
 .evy .ey-tot{font-family:var(--fdata);font-weight:600;color:var(--text2);font-variant-numeric:tabular-nums;white-space:nowrap}
-.evy-b{padding:1px 8px;border:1px solid transparent;border-radius:6px;background:none;cursor:pointer;
+.evy-b{min-height:24px;padding:1px 8px;border:1px solid transparent;border-radius:6px;background:none;cursor:pointer;
   font-family:inherit;font-size:11px;color:var(--muted);white-space:nowrap;transition:border-color var(--dur-1) var(--ease-out),color var(--dur-1) var(--ease-out)}
 .evy-b b{font-family:var(--fdata);font-weight:600;color:var(--text2);font-variant-numeric:tabular-nums}
 .evy-b:hover{border-color:var(--border2);color:var(--text2)}
@@ -2177,7 +2178,7 @@ body.intro-min .site-info .si-head{grid-row:auto}
 @media(max-width:767px){.evq-q{align-items:stretch}}   /* 세로로 쌓일 때 비계량 카드도 폭을 꽉 채움 */
 /* ── 탭별 검토 1 · 올해 현황 ───────────────────────────── */
 /* 거점 설명의 판정 칩 (적용 목표 → ✓ 여유 · ✗ 부족) — 누르면 그 목표 카드로 */
-.si-tag.si-v{display:inline-flex;align-items:baseline;gap:4px;font:inherit;font-weight:600;cursor:pointer;padding:1px 8px;border-radius:10px;transition:border-color var(--dur-1) var(--ease-out)}
+.si-tag.si-v{display:inline-flex;align-items:center;min-height:24px;gap:4px;font:inherit;font-weight:600;cursor:pointer;padding:1px 8px;border-radius:10px;transition:border-color var(--dur-1) var(--ease-out)}
 .si-tag.si-v b{font-weight:600;white-space:nowrap}
 .si-tag.si-v.ok{color:var(--green);border-color:color-mix(in srgb,var(--green) 45%,transparent);background:var(--good-bg)}
 .si-tag.si-v.no{color:var(--red);border-color:color-mix(in srgb,var(--red) 45%,transparent);background:var(--bad-bg)}
