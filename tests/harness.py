@@ -4,7 +4,14 @@ Playwright headless + Supabase mock routing
 """
 import json, re, sys, pathlib
 
-HTML = str(pathlib.Path(__file__).resolve().parent.parent / "index.html")
+ROOT = pathlib.Path(__file__).resolve().parent.parent
+HTML = str(ROOT / "index.html")
+SOURCES = ["index.html", "css/app.css", "js/app.js"]   # 화면 뼈대 · 스타일 · 스크립트
+
+
+def source_text():
+    """소스 검사용: index.html 과 나눠 둔 css·js 를 이어 붙인 원문"""
+    return "\n".join((ROOT / f).read_text(encoding="utf-8") for f in SOURCES)
 TS = "2026-09-01T00:00:00+00:00"
 
 
