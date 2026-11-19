@@ -180,19 +180,7 @@ header{background:var(--surface);color:var(--text);padding:0 20px;border-bottom:
 .kpi-value{font-family:var(--fdata);font-size:24px;font-weight:600;line-height:1;margin-bottom:2px}
 .kpi-unit{font-size:11px;color:var(--muted)}
 .kpi-sub{font-size:10px;color:var(--muted);margin-top:4px}
-/* KPI 색상 상단 테두리 */
-.kpi-total{border-top:3px solid #0F766E}
-.kpi-scope1{border-top:3px solid #E65100}
-.kpi-scope2{border-top:3px solid #1B3A6B}
-.kpi-scope3{border-top:3px solid #3040A0}
-.kpi-elec{border-top:3px solid #0891B2}
-.kpi-gas{border-top:3px solid #EA580C}
-.kpi-heat{border-top:3px solid #7C3AED}
-.kpi-gasoline{border-top:3px solid #D97706}
-.kpi-diesel{border-top:3px solid #6D28D9}
-.kpi-waste{border-top:3px solid #3040A0}
-.kpi-re{border-top:3px solid #059669}
-.kpi-target{border-top:3px solid #0F766E;grid-column:1/-1}
+.kpi-target{grid-column:1/-1}
 .kpi-target-inner{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-top:10px}
 /* 가로형 에너지 KPI */
 .kpi-h{display:flex!important;flex-direction:row!important;align-items:center;gap:8px;padding:10px 14px!important}
@@ -204,7 +192,7 @@ header{background:var(--surface);color:var(--text);padding:0 20px;border-bottom:
 .scope-row{display:flex;align-items:stretch;gap:8px;margin-bottom:8px}
 .scope-tag{font-size:10px;font-weight:500;padding:0 8px;border-radius:6px;display:flex;align-items:center;justify-content:center;min-width:56px;letter-spacing:.5px;border:1px solid;white-space:nowrap}
 .scope-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;flex:1}
-.kpi-placeholder{border-top:3px solid var(--border2)!important;opacity:.55}
+.kpi-placeholder{opacity:.55}
 .kpi-placeholder .kpi-value{font-size:10px!important;font-weight:400!important;font-family:var(--font)!important;color:var(--muted)}
 .kpi-placeholder .kpi-unit,.kpi-amt[hidden]{display:none}
 /* 누르면 계산 근거가 뜨는 카드 */
@@ -563,12 +551,11 @@ table.main-tbl.rmg-tbl tbody tr[data-year] td:first-child,table.main-tbl.rmg-tbl
 .det-hd .rmg-long{margin-left:auto}
 .det-hd .rmg-long:not([hidden])+.btn-export{margin-left:0}
 /* 올해 현황 · 실적 조회 */
-.year-chip{font-size:13px;font-weight:600;color:var(--accent);background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:4px 12px}
+.year-chip{font-size:13px;font-weight:600;color:var(--text);background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:4px 12px}
 .kpi-row{display:flex;align-items:baseline;gap:4px;white-space:nowrap}
 .kpi-row .kpi-value{font-size:20px}
 .kpi-u{font-size:11px;color:var(--muted)}
 #card-regen .kpi-sub{line-height:1.5}
-.kpi-save{border-top:3px solid #0D9488}
 .env-grid{display:flex;gap:10px;flex-wrap:nowrap}
 .env-grid>.kpi-card{flex:1 1 0;min-width:0}
 @media(max-width:1023px){.env-grid{flex-wrap:wrap}.env-grid>.kpi-card{flex-basis:calc(50% - 5px)}}
@@ -605,7 +592,6 @@ button.st:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
 .status-legend{display:flex;flex-wrap:wrap;gap:12px;align-items:center;font-size:11px;color:var(--muted);margin-top:8px}
 .status-legend .st{width:11px;height:11px;margin-right:2px}
 .hist-empty{padding:40px;text-align:center;color:var(--muted);background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:16px}
-.tab-banner.hist-banner{background:linear-gradient(135deg,rgba(48,64,160,.22) 0%,rgba(60,72,140,.18) 100%)}
 .bsave{background:#042F2E;color:#5EEAD4}
 
 
@@ -623,11 +609,6 @@ button.st:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
 .setup-card>span{color:var(--muted);font-size:12px}
 .setup-card.compact{padding:10px 14px;font-size:12px}
 .lock-note{color:var(--orange);font-weight:600}
-.kpi-water{border-top:3px solid #0284C7}
-.kpi-ev{border-top:3px solid #16A34A}
-.kpi-pue{border-top:3px solid #7C3AED}
-.kpi-cloud{border-top:3px solid #0EA5E9}
-.kpi-wtgt{border-top:3px solid #475569}
 .kpi-rate{font-size:10px;color:var(--muted);font-weight:500}
 .set-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
 .set-desc{font-size:12px;color:var(--muted);margin:-8px 0 14px;line-height:1.6}
@@ -689,7 +670,7 @@ button.st:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
 .si-head{display:flex;flex-direction:column;align-items:flex-start;gap:4px;grid-row:span 2}
 .si-name{font-size:16px;font-weight:600;color:var(--text)}
 .si-role{font-size:11px;font-weight:500;border-radius:10px;padding:1px 8px;border:1px solid var(--border);color:var(--muted)}
-.si-role.goal{color:var(--accent);border-color:rgba(96,165,250,.45);background:rgba(96,165,250,.10)}
+.si-role.goal{color:var(--text2)}
 .si-role.part{color:#2DD4BF;border-color:rgba(45,212,191,.45);background:rgba(45,212,191,.08)}
 .si-desc{font-size:13px;color:var(--text2);line-height:1.55}
 .si-meta{display:flex;flex-wrap:wrap;align-items:center;gap:4px 6px;font-size:12px;color:var(--text2)}
@@ -810,7 +791,7 @@ table.main-tbl.gs-tbl tr:hover td:first-child{background:var(--surface2)}
 #y-yv>.kpi-section,#y-yv>.fold-sec{margin-bottom:32px}
 #h-year-details{margin-top:32px}
 .fold-sec:not([open])>summary{margin-bottom:0}
-.tgt-site{display:inline-block;font-size:11px;font-weight:500;letter-spacing:.2px;text-transform:none;color:var(--accent);background:rgba(96,165,250,.12);border:1px solid rgba(96,165,250,.35);border-radius:10px;padding:0 8px;margin-left:4px}
+.tgt-site{display:inline-block;font-size:11px;font-weight:500;letter-spacing:.2px;text-transform:none;color:var(--text2);border:1px solid var(--border);border-radius:10px;padding:0 8px;margin-left:4px}
 .tgt-site:empty{display:none}
 
 /* ── 실적 조회 (시각화) ────────────────────────────── */
@@ -850,14 +831,14 @@ table.main-tbl.gs-tbl tr:hover td:first-child{background:var(--surface2)}
 .tgt-scope{font-size:10px;font-weight:500;text-transform:none;letter-spacing:0;color:var(--accent);background:var(--sel-bg,rgba(96,165,250,.14));border-radius:8px;padding:1px 6px;margin-left:4px;white-space:nowrap}
 .tgt-scope:empty{display:none}
 /* 그 거점에 해당하지 않는 목표 칸: 제목만 남기고 '해당 없음' */
-.kpi-card.tgt-na{opacity:.6;border-top-color:var(--border2)!important;display:flex;flex-direction:column}
+.kpi-card.tgt-na{opacity:.6;display:flex;flex-direction:column}
 .kpi-card.tgt-na>*:not(.kpi-label){display:none!important}
 .kpi-card.tgt-na .kpi-label .tgt-scope,.kpi-card.tgt-na .kpi-label .re-verdict{display:none}
 .kpi-card.tgt-na::after{content:'해당 없음';flex:1;display:flex;align-items:center;justify-content:center;min-height:70px;font-size:14px;font-weight:600;color:var(--muted)}
 /* RE100 카드: 제목 옆 달성 여부 · 아래 계산식은 한 줄 */
 #target-grid>.kpi-card,#y-target-grid>.kpi-card{min-width:0}
 #tc-re .kpi-label,#y-tc-re .kpi-label{display:flex;align-items:center;gap:4px 4px;letter-spacing:0;flex-wrap:wrap;min-width:0}
-.re-verdict{font-size:10px;flex:0 1 auto;max-width:100%;font-weight:500;text-transform:none;letter-spacing:-.2px;padding:1px 6px;border-radius:10px;white-space:normal;word-break:keep-all;min-width:0}
+.re-verdict{font-size:10px;flex:0 1 auto;max-width:100%;font-weight:500;text-transform:none;padding:1px 6px;border-radius:10px;white-space:normal;word-break:keep-all;min-width:0}
 .re-verdict:empty{display:none}
 .re-verdict.good{color:var(--green);background:rgba(52,211,153,.14)}
 .re-verdict.bad{color:var(--red);background:rgba(248,113,113,.14)}
@@ -885,7 +866,7 @@ table.main-tbl.gs-tbl tr:hover td:first-child{background:var(--surface2)}
 .h-toc::before{content:'바로가기';flex:none;font-size:11px;font-weight:500;color:var(--muted);margin-right:6px}
 .h-toc a{flex:none;padding:4px 10px;border-radius:12px;font-size:12px;font-weight:500;color:var(--muted);text-decoration:none;white-space:nowrap;transition:color var(--dur-1) var(--ease-out),background var(--dur-1) var(--ease-out)}
 .h-toc a:hover{color:var(--text)}
-.h-toc a.on{color:var(--accent);background:var(--sel-bg)}
+.h-toc a.on{color:var(--text);background:var(--sel-bg)}
 .h-toc a:focus-visible{outline:2px solid var(--focus);outline-offset:-1px}
 .h-anchor,#h-year-view [id^="y-sec-"]{scroll-margin-top:var(--h-stick,150px)}
 #tab-dashboard .fold-sec,#site-breakdown{scroll-margin-top:var(--d-stick,110px)}
@@ -949,7 +930,7 @@ table.main-tbl.gs-tbl tr:hover td:first-child{background:var(--surface2)}
 /* 작은 버튼 묶음 (월별/누적 · 에너지원별/거점별) */
 .mini-seg{display:inline-flex;gap:2px;padding:2px;border:1px solid var(--border);border-radius:12px;background:var(--surface);text-transform:none;letter-spacing:0}
 .mini-seg button{padding:2px 10px;border-radius:12px;font-size:12px;font-weight:500;color:var(--text2)}
-.mini-seg button[aria-pressed="true"]{background:var(--accent);color:var(--bg)}
+.mini-seg button[aria-pressed="true"]{background:var(--sel-bg);color:var(--text)}
 .mini-seg button:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
 #fl-now .fl-f{font-family:var(--fdata,monospace);font-size:12px;color:var(--text)}
 #fl-now .fl-src{font-size:11px;color:var(--text2);line-height:1.45;max-width:340px}
@@ -1986,25 +1967,22 @@ body:has(#tab-home.active) .btn-login{border-color:var(--h-line);color:var(--h-p
 .header-inner{position:relative}
 .loading-mascot{width:110px;height:auto;animation:mascot-bounce .9s ease-in-out infinite alternate}
 @keyframes mascot-bounce{from{transform:translateY(0)}to{transform:translateY(-8px)}}
-.db-mascot{width:80px;height:auto;margin-bottom:12px;animation:mascot-shake 1.8s ease-in-out infinite}
-@keyframes mascot-shake{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}
+.db-mascot{width:80px;height:auto;margin-bottom:12px}
 .empty-mascot{display:block;width:72px;height:auto;margin:0 auto 10px;opacity:.7}
 .section-mascot{float:right;width:72px;height:auto;margin:-8px 0 0 12px;opacity:.85;pointer-events:none}
 @media(max-width:767px){.header-mascot{display:none}}
 /* 대시보드 상단 환영 배너 */
-.welcome-banner{background:linear-gradient(135deg,#0F172A 0%,#1E293B 60%,#0F172A 100%);border-radius:var(--radius);padding:18px 24px;margin-bottom:20px;display:flex;align-items:center;gap:20px;overflow:hidden;position:relative}
-.wb-mascot{width:70px;height:auto;flex-shrink:0;filter:drop-shadow(0 2px 6px rgba(0,0,0,.3))}
+.welcome-banner{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px 24px;margin-bottom:20px;display:flex;align-items:center;gap:20px;overflow:hidden;position:relative}
+.wb-mascot{width:70px;height:auto;flex-shrink:0}
 .wb-text h2{color:#fff;font-size:14px;font-weight:600;margin-bottom:4px}
 .wb-text p{color:rgba(255,255,255,.7);font-size:12px;line-height:1.5;text-wrap:pretty;word-break:keep-all}
 
 /* ── 새 마스코트 CSS ───────────────────────────────── */
-.tab-banner{display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,rgba(27,58,107,.25) 0%,rgba(42,82,152,.2) 100%);border:1px solid rgba(100,140,200,.2);border-radius:10px;padding:12px 18px;margin-bottom:16px}
+.tab-banner{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 18px;margin-bottom:16px}
 .tab-banner strong{display:block;font-size:14px;font-weight:600;color:var(--accent)}
 .tab-banner span{font-size:12px;color:var(--muted);margin-top:2px;display:block}
-.input-banner{border-color:rgba(100,180,100,.2);background:linear-gradient(135deg,rgba(34,100,34,.2) 0%,rgba(34,100,34,.15) 100%)}
-.manage-banner{background:linear-gradient(135deg,rgba(40,50,100,.25) 0%,rgba(50,60,120,.2) 100%)}
-.tab-mascot{width:52px;height:52px;object-fit:contain;flex-shrink:0;filter:drop-shadow(0 2px 4px rgba(0,0,0,.15))}
-.filter-mascot{width:36px;height:36px;object-fit:contain;flex-shrink:0;filter:drop-shadow(0 1px 3px rgba(0,0,0,.1));margin-right:4px}
+.tab-mascot{width:52px;height:52px;object-fit:contain;flex-shrink:0}
+.filter-mascot{width:36px;height:36px;object-fit:contain;flex-shrink:0;margin-right:4px}
 
 /* ── 로그인 · 회원가입 · 승인 대기 ───────────────────────── */
 .auth-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:32px 16px;background:var(--bg)}
@@ -2243,7 +2221,7 @@ body.intro-min .site-info .si-head{grid-row:auto}
 .kpi-est:empty{display:none}
 .mb-x .mb-n{font-family:var(--font);font-size:10px;color:var(--muted)}
 /* 목표 대비 실적: 온실가스 한 장(두 칸) — 막대 = 누적 + 연말 예측 · 눈금 = 자체·법적 · 끝 = 기준배출량 */
-.kpi-card.tgt-ghg{grid-column:span 2;border-top:3px solid #2DD4BF}
+.kpi-card.tgt-ghg{grid-column:span 2}
 .kpi-card:is(.tgt-ghg,.tgt-fam){display:flex;flex-direction:column;gap:2px}
 :is(.tgt-ghg,.tgt-fam) .kpi-label{display:flex;align-items:center;flex-wrap:wrap;gap:4px 6px}
 .tgt-fam .tg-nums span[hidden]{display:none}
@@ -2644,13 +2622,13 @@ table.main-tbl tbody tr:hover>td,.sb-tbl tbody tr:hover>td{background:rgba(255,2
         <div class="tg-chart" id="tg-chart"></div>
         <div class="tg-keys" id="tg-keys"></div>
       </div>
-      <div class="kpi-card kpi-click" id="tc-base" style="border-top:3px solid #64748b" role="button" tabindex="0" data-calc="k-tgt-base">
+      <div class="kpi-card kpi-click" id="tc-base" role="button" tabindex="0" data-calc="k-tgt-base">
         <div class="kpi-label">기준배출량</div>
         <div style="font-size:10px;color:var(--muted);font-weight:600;letter-spacing:.3px;margin-bottom:2px" id="k-tgt-base-yr">올해 적용값</div>
         <div class="kpi-row"><div class="kpi-value num" id="k-tgt-base">—</div><span class="kpi-u">tCO₂eq</span></div>
         <div class="kpi-sub" id="k-tgt-base-sub">대구본원 기준</div>
       </div>
-      <div class="kpi-card kpi-click" id="tc-own" style="border-top:3px solid #1B3A6B" role="button" tabindex="0" data-calc="k-tgt-own">
+      <div class="kpi-card kpi-click" id="tc-own" role="button" tabindex="0" data-calc="k-tgt-own">
         <div class="kpi-label">자체 배출목표</div>
         <div class="kpi-row" style="flex-wrap:wrap">
           <div class="kpi-value num" id="k-tgt-own">—</div><span class="kpi-u">tCO₂eq</span>
@@ -2670,7 +2648,7 @@ table.main-tbl tbody tr:hover>td,.sb-tbl tbody tr:hover>td{background:rgba(255,2
         </div>
         <div class="kpi-sub" id="k-tgt-own-sub"></div>
       </div>
-      <div class="kpi-card kpi-click" id="tc-law" style="border-top:3px solid #1B6B3A" role="button" tabindex="0" data-calc="k-tgt-law">
+      <div class="kpi-card kpi-click" id="tc-law" role="button" tabindex="0" data-calc="k-tgt-law">
         <div class="kpi-label">법적 배출목표</div>
         <div class="kpi-row" style="flex-wrap:wrap">
           <div class="kpi-value num" id="k-tgt-law">—</div><span class="kpi-u">tCO₂eq</span>
@@ -2691,7 +2669,7 @@ table.main-tbl tbody tr:hover>td,.sb-tbl tbody tr:hover>td{background:rgba(255,2
         <div class="kpi-sub" id="k-tgt-law-sub"></div>
       </div>
       <!-- RE100 · 폐기물도 온실가스 카드와 같은 모양: 판정 · 숫자 줄(■ 누적 □ 연말 예측) · 굵은 막대 + 눈금 · 열쇠 -->
-      <div class="kpi-card kpi-click tgt-fam" id="tc-re" style="border-top:3px solid #059669" role="button" tabindex="0" data-calc="k-re-pct">
+      <div class="kpi-card kpi-click tgt-fam" id="tc-re" role="button" tabindex="0" data-calc="k-re-pct">
         <div class="kpi-label"><svg class="ic" aria-hidden="true"><use href="#i-sun"/></svg> RE100 이행률 <span class="re-verdict" id="k-re-verdict"></span></div>
         <div class="tg-nums">
           <span class="cmp-na" id="re-na" hidden>재생에너지 자료가 아직 없어요</span>
@@ -2801,11 +2779,11 @@ table.main-tbl tbody tr:hover>td,.sb-tbl tbody tr:hover>td{background:rgba(255,2
     <div class="scope-row">
       <div class="scope-tag stag-3">Scope 3</div>
       <div class="scope-cards">
-        <div class="kpi-card kpi-click kpi-waste kpi-h" style="border-top-color:#475569" role="button" tabindex="0" data-calc="k-waste-vol-co2">
+        <div class="kpi-card kpi-click kpi-waste kpi-h" role="button" tabindex="0" data-calc="k-waste-vol-co2">
           <div class="kpi-label"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg> 폐기물</div>
           <div class="kv"><div class="kv-main"><div class="kpi-value num" id="k-waste-vol-co2">—</div><div class="kpi-unit">tCO₂eq</div></div><div class="kpi-amt" id="k-waste-vol-amt"><span class="num" id="k-waste-vol">—</span><small>L</small><span class="amt-x" id="k-waste-kg"></span></div></div>
         </div>
-        <div class="kpi-card kpi-h kpi-placeholder" style="border-top:3px solid #7C3AED">
+        <div class="kpi-card kpi-h kpi-placeholder">
           <div class="kpi-label"><svg class="ic" aria-hidden="true"><use href="#i-compass"/></svg> 출장</div>
           <div class="kpi-value" id="k-travel">추후 업데이트 예정</div>
         </div>
