@@ -103,7 +103,10 @@ def run():
     H.test_name("파일 버전")
     import hashlib
     html = (H.ROOT / "index.html").read_text(encoding="utf-8")
-    for rel in ("css/app.css", "js/app.js"):
+    files = H.asset_files()
+    on_disk = sorted({str(p.relative_to(H.ROOT)) for d in ("css", "js") for p in (H.ROOT / d).glob("*.*")})
+    H.ok(sorted(files) == on_disk, f"css·js 폴더의 파일을 index.html 이 전부 불러옴 — 빠진 것 {sorted(set(on_disk) - set(files)) or '없음'}")
+    for rel in files:
         want = hashlib.sha256((H.ROOT / rel).read_bytes()).hexdigest()[:10]
         H.ok(f"{rel}?v={want}" in html, f"{rel}?v= 가 내용 해시와 같음 (어긋나면 python tools/bump_version.py)")
 
