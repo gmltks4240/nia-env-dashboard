@@ -278,6 +278,12 @@
   function buildCharts() {
     Chart.defaults.maintainAspectRatio = false; // 높이는 .chart-box가 정함
     Chart.defaults.font.family = cssVar('--fdata');   // 축·범례 글자도 화면과 같은 글꼴
+    // 글꼴 파일은 화면을 막지 않게 늦게 불러오므로(media=print → all) 차트가 먼저 그려질 수 있다.
+    // 글꼴이 도착하면 축 너비를 다시 재고 한 번 다시 그린다 (안 하면 다음 갱신까지 기본 글꼴로 남음)
+    if (!buildCharts.fontHook && document.fonts?.addEventListener) {
+      buildCharts.fontHook = true;
+      document.fonts.addEventListener('loadingdone', () => Object.values(Chart.instances).forEach(c => c.update('none')));
+    }
     if (!Chart.registry.plugins.get('barLabels')) Chart.register(barLabelPlugin);
     if (!Chart.registry.plugins.get('colBand')) Chart.register(colBandPlugin);
     Object.values(CHARTS).forEach(set => Object.values(set).flat().forEach(c => c && c.destroy()));   // em = 차트 여러 개
