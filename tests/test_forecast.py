@@ -16,8 +16,8 @@ MOS = [f"{m:02d}" for m in range(1, 13)]
 
 
 def model_source():
-    """index.html 에서 모델 순수 함수만 꺼낸다."""
-    src = HTML.read_text(encoding="utf-8")
+    """js/app.js 에서 모델 순수 함수만 꺼낸다."""
+    src = H.source_text()
     m = re.search(r"/\* @model-start.*?\*/(.*?)/\* @model-end \*/", src, re.S)
     assert m, "@model-start … @model-end 블록을 찾지 못했습니다"
     return m.group(1)

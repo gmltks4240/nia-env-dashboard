@@ -12,7 +12,7 @@ import re
 
 import harness as H
 
-_RAW = (pathlib.Path(__file__).resolve().parent.parent / "index.html").read_text(encoding="utf-8")
+_RAW = H.source_text()   # index.html + css/app.css + js/app.js
 # 주석 안의 설명 문구를 선언으로 오인하지 않게 걷어낸다 (/* … */ 와 줄 끝 //)
 SRC = re.sub(r"//[^\n]*", "", re.sub(r"/\*.*?\*/", "", _RAW, flags=re.S))
 
@@ -64,7 +64,7 @@ def run():
 
     # ── 묶음 B: 대문자 라벨 없음 · 팝업 진입 애니메이션 · 입력 포커스 링 ──
     H.test_name("컴포넌트")
-    css = SRC[SRC.index("<style>"):SRC.index("</style>")]
+    css = (H.ROOT / "css/app.css").read_text(encoding="utf-8")   # 스타일은 따로 나눠 둠
     H.ok("text-transform:uppercase" not in css, "대문자 변환 라벨 없음 (자간 벌린 대문자는 템플릿 티)")
     H.ok("@keyframes modal-in" in css and "animation:modal-in" in css, "팝업 진입 애니메이션")
     H.ok("color-mix(in srgb,var(--focus)" in css, "입력 포커스 링이 --focus 토큰")
@@ -98,5 +98,13 @@ def run():
         zeros = dict(re.findall(r"(--dur-[a-z0-9]+):\s*([0-9]+)ms", m.group(1)))
         H.ok(zeros and all(v == "0" for v in zeros.values()),
              f"길이 토큰이 모두 0 — {zeros}")
+
+    # ── 나눠 둔 파일의 ?v= 가 내용과 맞는가 (GitHub Pages 10분 캐시에서 옛 파일과 섞이지 않게) ──
+    H.test_name("파일 버전")
+    import hashlib
+    html = (H.ROOT / "index.html").read_text(encoding="utf-8")
+    for rel in ("css/app.css", "js/app.js"):
+        want = hashlib.sha256((H.ROOT / rel).read_bytes()).hexdigest()[:10]
+        H.ok(f"{rel}?v={want}" in html, f"{rel}?v= 가 내용 해시와 같음 (어긋나면 python tools/bump_version.py)")
 
     return H.summary()
