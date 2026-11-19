@@ -11,8 +11,17 @@
 > |---|---|---|
 > | `index.html` | 1,558 | 화면 뼈대 (HTML · SVG 스프라이트 · 옛 브라우저 안내) |
 > | `css/app.css` | 2,357 | 스타일 전체 |
-> | `js/app.js` | 8,472 | 앱 로직 전체 (한 덩어리 그대로 — 기능별로 나누는 건 다음 단계) |
+> | `js/core.js` | 937 | 상수 · 계산 헬퍼 · Supabase · 로그인 · 입력자 이력 · 기상 |
+> | `js/ui.js` | 145 | 토스트 · 로딩 단추 · 확인 창 등 공통 부품 |
+> | `js/charts.js` | 541 | Chart.js 설정 · 플러그인 · 차트 헬퍼 |
+> | `js/dashboard.js` | 1,342 | 올해 현황 · 실적 조회 (`renderYearView`) |
+> | `js/home.js` | 470 | 메인 · 경영평가 점수 |
+> | `js/outlook.js` | 2,033 | 목표·로드맵 · 전망 |
+> | `js/input.js` | 873 | 데이터 입력 · 일괄 입력 |
+> | `js/manage.js` | 837 | 데이터 관리 · 설정 · 변경 이력 |
+> | `js/main.js` | 1,318 | 탭·필터 이벤트 · 수정/삭제 · `boot()` — 반드시 마지막 |
 > | `img/*.png` | 10장 | 마스코트·로고 (예전엔 base64로 박혀 있었음) |
+> | (불러오는 순서) | | `index.html` 맨 아래 `core → ui → charts → dashboard → home → outlook → input → manage → main`. 최상위 `const`·`let`·`function`은 모든 파일이 함께 씀(한 덩어리 async 함수였던 것을 벗기고 순서 그대로 나눔). 나누기 전 브라우저 기본 이름과 겹치는 최상위 이름 0개, 앞 파일이 불러올 때 뒤 파일 함수를 부르는 곳 0곳을 문법 분석으로 확인 |
 > | `tools/bump_version.py` | | css·js 를 고친 뒤 실행 → `index.html`의 `?v=`를 내용 해시로. GitHub Pages 10분 캐시에서 옛 파일과 섞이지 않게. 어긋나면 `test_design_system`이 알려 줌 |
 
 | 구간 | 줄 | 내용 |
