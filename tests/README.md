@@ -32,6 +32,13 @@ python tests/test_ghg_factors.py
 | `test_forecast.py` | 기상연동 예측 모델 (같은 달 평균·기온 민감도 복원·추세 보정·추세 상한·학습연도 1개) — 화면 없이 모델 함수만 검증 |
 | `test_design_system.py` | 디자인 시스템 규칙 (반픽셀 글자 금지·모서리 둥글기 가족·transition 토큰과 곡선·움직임 줄이기) — 화면 없이 CSS 선언만 검사 |
 | `test_skeleton_rings.py` | 스켈레톤 로딩, RE100/EV 링, 삭제·되돌리기·확정 |
+| `test_keyboard.py` | 버튼처럼 동작하는 카드·줄이 Tab 으로 닿고, Enter·Space 가 클릭과 같고, 포커스 테두리가 보이는지 |
+
+## GitHub 에서 자동 실행
+
+`.github/workflows/tests.yml` — PR 을 올리거나 `main` 에 합칠 때마다 위 전체가 돌고,
+결과가 PR 화면에 ✓ / ✗ 로 뜹니다. 실패한 채로 합치지 못하게 하려면 저장소
+**Settings → Rules → Rulesets** 에서 `main` 에 "Require status checks to pass" 를 켜고 `tests` 를 고르면 됩니다.
 
 ## 종료 코드
 
