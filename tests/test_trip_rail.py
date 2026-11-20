@@ -29,7 +29,9 @@ def ref_source():
     assert f, "@trip-fare-start … @trip-fare-end 블록을 찾지 못했습니다"
     n = re.search(r"<!-- @trip-seen-start -->\s*<script>(.*?)</script>\s*<!-- @trip-seen-end -->", src, re.S)
     assert n, "@trip-seen-start … @trip-seen-end 블록을 찾지 못했습니다"
-    return m.group(1) + "\n" + f.group(1) + "\n" + n.group(1)
+    lb = re.search(r"<!-- @trip-labels-start -->\s*<script>(.*?)</script>\s*<!-- @trip-labels-end -->", src, re.S)
+    assert lb, "@trip-labels-start … @trip-labels-end 블록을 찾지 못했습니다"
+    return m.group(1) + "\n" + f.group(1) + "\n" + n.group(1) + "\n" + lb.group(1)
 
 
 def open_engine(pw):
@@ -98,7 +100,7 @@ def run():
         r = c("대구", "서울", 80400)
         H.ok(r["grade"] == "A" and r["km"] == 555.9, f"80,400 = KTX 43,500 + SRT 36,900 → 555.9km — {r['basis']} {r['km']}")
         r = c("대구", "서울", 60900)
-        H.ok(r["grade"] == "A" and r["legs"] == 1 and r["km"] == 286.7 and "특실" in r["basis"], f"60,900 → 특실 편도 — {r['basis']}")
+        H.ok(r["grade"] == "B" and "특실" not in r["basis"], f"60,900 → 일반실·입석으로 설명되는 후보가 있으면 특실은 보지 않는다(특실은 마지막 수단) — {r['gradeLabel']} {r['basis']}")
         r = c("대구", "서울", 121800)
         H.ok(r["legs"] == 2 and r["km"] == 573.4, f"121,800 → 왕복 1회 — {r['gradeLabel']}")
 
@@ -156,7 +158,7 @@ def run():
         r = c("대구", "세종", 44600)
         H.ok(r["grade"] == "A" and r["km"] == 324, f"9월 이후 44,600 = 22,300 × 2 → 동대구↔오송 왕복 — {r['basis']}")
         r = c("대구", "서울", 56600)
-        H.ok(r["grade"] == "A" and r["legs"] == 1 and "특실" in r["basis"], f"9월 이후 특실 편도는 56,600 (일반실 × 1.4 가 아님) — {r['basis']}")
+        H.ok(r["grade"] in ("B", "C") and r["legs"] == 1 and "특실" in r["basis"] and "특실 가정" in r["gradeLabel"], f"9월 이후 56,600 = 특실 편도 — 다른 설명이 없어 마지막 수단으로 쓰고 B(특실 가정) — {r['gradeLabel']}")
         r = c("대구", "서울", 87000)
         H.ok(r["grade"] == "D" and r["km"] == 573.4, "9월 이후에는 옛 판정기준(87,000 → A)을 쓰지 않음 · 구간 거리로 추정")
         r = c("대구", "강릉", 133200)
@@ -164,9 +166,9 @@ def run():
         H.test_name("좌석 종류 (입석 15% 할인 · 자유석 5% 할인)")
         on("")
         r = c("대구", "서울", 60800)
-        H.ok(r["grade"] == "A" and r["legs"] == 1 and r["km"] == 286.7 and "특실" in r["basis"], f"60,800 = 43,400(43,100 + 무정차 할증 0.6%) × 1.4 → A·편도 특실 — {r['basis']}")
+        H.ok(r["grade"] == "B" and r["legs"] == 1 and r["km"] == 286.7 and "특실 가정" in r["gradeLabel"], f"60,800 = 43,400(43,100 + 무정차 할증 0.6%) × 1.4 — 다른 설명이 없어 마지막 수단으로 B(특실 가정) — {r['gradeLabel']}")
         r = c("대구", "서울", 60600)
-        H.ok(r["grade"] == "A" and r["legs"] == 1 and r["km"] == 286.7 and "특실" in r["basis"], f"60,600 = 오송 환승 43,300 × 1.4 → A·편도 특실 — {r['basis']}")
+        H.ok(r["grade"] == "B" and r["legs"] == 1 and r["km"] == 286.7 and "특실 가정" in r["gradeLabel"], f"60,600 = 오송 환승 43,300 × 1.4 — 마지막 수단으로 B(특실 가정) — {r['gradeLabel']}")
         r = c("대구", "서울", 56600, days=None)
         H.ok(r["grade"] in ("B", "D"), "통합 전 56,600 은 통합 뒤 특실 금액이라 여기서는 안 맞아도 된다")
         r = c("대구", "세종", 40900)
@@ -247,9 +249,24 @@ def run():
         r = c("대구", "천안아산", 58600)
         H.ok(r["grade"] == "A" and r["km"] == 381.4, f"전 구간 운임표: 대구→천안아산 58,600 = 29,300 × 2 → A — {r['basis']}")
         r = c("대구", "김천구미", 13200)
-        H.ok(r["grade"] == "A" and r["legs"] == 1 and "특실" in r["basis"], f"짧은 구간 특실은 운임표 금액(8,400 + 최저 요금 4,800 = 13,200) — {r['basis']}")
+        H.ok(r["legs"] == 1 and "특실" in r["basis"] and r["grade"] != "A", f"짧은 구간 특실은 운임표 금액(8,400 + 최저 요금 4,800 = 13,200) — 특실은 A 가 아님 — {r['gradeLabel']} {r['basis']}")
         r = c("대구", "서울", 60900)
-        H.ok(r["grade"] == "A" and "특실" in r["basis"] and "산식" not in r["basis"], "60,900 특실은 산식이 아니라 운임표에서")
+        H.ok("특실" not in r["basis"], "60,900 은 입석 설명이 먼저 — 특실은 마지막 수단")
+        # 특실로만 설명되는 금액: 일반실·입석·자유석 후보가 없으면 특실을 쓰되 A 는 아님
+        r = c("대구", "서울", 60300)
+        H.ok(r["grade"] != "A", f"60,300 — 특실은 A 로 올리지 않음 — {r['gradeLabel']} {r['basis']}")
+
+        H.test_name("사용자 확인 라벨 (L1 · 2026-11-20)")
+        on("2026-08-26")
+        r = c("경주", "세종", 43000)
+        H.ok(r["grade"] == "A" and r["gradeLabel"] == "A 업무상 확정(사용자 확인)" and r["legs"] == 2 and r["km"] == 332.5 and r["label"] == "L1", f"경주→세종 43,000 = SRT 경주–오송 27,500 + KTX 오송–용산 입석 15,500 → 332.5km — {r['gradeLabel']} {r['km']}")
+        H.near(r["kg"], 7.282, 0.001, "332.5 × 0.0219 = 7.282 kg")
+        r = c("경주", "세종", 43100)
+        H.ok(r.get("label") is None, "금액이 다르면 라벨을 쓰지 않음")
+        on("2026-10-05")
+        r = c("경주", "세종", 43000)
+        H.ok(r.get("label") is None, "라벨은 운임 개편 전(period=전) 행에만")
+        on("")
 
         H.test_name("장소 사전")
         r0 = c("비상임감사집무실", "서울", 43100)
