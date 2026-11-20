@@ -4789,9 +4789,11 @@ window.TRIP_LABELS = {"version":"2026-11-20","items":[
     O.forEach(co => D.forEach(cd => { if (co !== cd) od.push(...(ref.byCity.get(tripPairKey(co, cd)) || [])); }));
     //  가는 편·오는 편이 모두 입석·자유석인 왕복은 후보로 만들지 않는다 (2026-11-20 사용자 확인: 그런 출장은 실제로 없다 — 11-17 의 '전부 입석도 있음' 은 철회).
     //  한쪽만 할인 좌석인 왕복(입석+일반실)은 그대로 둔다. 남겨 두면 멀쩡한 금액이 '설명이 여러 개'라 내려간다 (60,900 이 특실 편도 286.7km 가 아닌 입석 두 편 왕복 546.8km 로 잡혔음)
-    const okAll = cands.filter(c => c.dk <= TRIP_DK_MAX && !(c.legs === 2 && c.seats.length === 2)), okGen = okAll.filter(c => c.cls === '일반');
-    //  특실은 마지막에 찾는다 (사용자 확인 2026-11-20: 특실은 왠만하면 없다) — 일반실·입석·자유석 후보가 장소 일치 정도에서 뒤지지 않으면 특실 후보는 보지 않는다
-    const okc = okGen.length && Math.max(...okGen.map(c => c.sc)) >= Math.max(...okAll.map(c => c.sc)) ? okGen : okAll;
+    const okAll = cands.filter(c => c.dk <= TRIP_DK_MAX && !(c.legs === 2 && c.seats.length === 2));
+    //  후보가 여럿이면 가정 개수가 적은 설명부터 (f7aaad4 의 원칙 복구, 2026-11-20 — 사용자가 세 차례 확정: 60,900 은 특실 편도다).
+    //  '특실은 왠만하면 없다'를 특실 후보를 뒤로 미루는 분기로 구현했더니 특실 편도(좌석 가정 1개)가 입석 두 편 왕복(2개)에 졌다.
+    //  특실이 드물다는 사실은 2순위 선호로만 쓴다 — 아래 best 정렬: 파생 단계 dk(가정 수) → 일반실 > 입석·자유석 > 특실 → 대표역·공식거리 → KTX
+    const okc = okAll;
     if (okc.length) {
       const top = Math.max(...okc.map(c => c.sc));
       //  운임표 금액에 가까운 설명(파생 단계 dk 가 작은 것)을 먼저 — 그래야 '특실 정차역 할인 편도'가 '입석 왕복'보다 앞선다
