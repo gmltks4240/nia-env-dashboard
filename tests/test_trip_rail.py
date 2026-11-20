@@ -364,6 +364,17 @@ def run():
             got = ct(text)
             H.ok(sorted(got) == sorted(want), f"{why}: {text} → {got}")
 
+        H.test_name("입석·자유석 왕복은 후보가 아니다 (2026-11-20)")
+        on("")
+        r = c("대구", "서울", 60900)
+        H.ok("입석" not in r["basis"], f"60,900 은 입석 왕복으로 설명되지 않는다 — {r['basis']}")
+        #  62,700 = SRT 동대구–수서 입석 31,400 + 서대구–수서 입석 31,300 → 변경 전에는 '두 편 모두 입석 왕복' 으로 B 였다
+        r = c("대구", "서울", 62700)
+        both = r["legs"] == 2 and r["basis"].count("입석") + r["basis"].count("자유석") >= 2
+        H.ok(not both, f"62,700 — 두 편 모두 할인 좌석인 왕복은 후보에서 빠진다 — {r['gradeLabel']} {r['basis']}")
+        r = c("대구", "세종", 40900)
+        H.ok(r["legs"] == 2 and "입석" in r["basis"], f"대구→세종 40,900 — 한쪽만 입석인 왕복은 그대로 남는다 — {r['basis']}")
+
         H.ok(not errors, f"JS 오류 없음 — {errors[:2]}")
         br.close()
     return H.summary()

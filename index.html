@@ -4592,7 +4592,7 @@ window.TRIP_LABELS = {"version":"2026-11-20","items":[
   const TRIP_STOP_STEPS = 5;                 // 정차역 할인 단계 수 (0.2% × 1~5)
   const TRIP_SEAT_DK = 9;                    // 입석·자유석은 정차역 변형보다 뒤에 보도록 주는 가중치
   const TRIP_A_KM_TOL = 0.02;                // A 로 볼 때 다른 설명과의 거리 차이 허용 폭 (2%)
-  const TRIP_DK_MAX = 2 * (TRIP_SEAT_DK + TRIP_STOP_STEPS);   // 왕복 두 편 모두 입석·자유석인 조합까지 인정 (2026-11-17 사용자 확인: 입석+좌석도, 전부 입석도 있음)
+  const TRIP_DK_MAX = 2 * (TRIP_SEAT_DK + TRIP_STOP_STEPS);   // 폭은 그대로 — 왕복에서 한 편만 입석·자유석인 조합이 이 안에 들어와야 한다 (두 편 모두 할인 좌석인 왕복은 classifyRail 에서 후보로 만들지 않음)
   const TRIP_KM_CAP = 573.4 * 1.5;           // 운임 역산 상한 (km)
   // 강릉선 역 — 서울역 기점 영업거리(km). 국토교통부고시 제2017-428호 철도거리표(위키백과 '강릉선 KTX' 역 목록에서 옮김) ·
   //  코레일 운영노선 '원주~강릉 120.7km'(2026-09-01 기준)와 대조함. 기준표(@trip-ref)의 거리표에는 강릉선 역이 없어 여기에 둠
@@ -4787,7 +4787,9 @@ window.TRIP_LABELS = {"version":"2026-11-20","items":[
     }));
     const od = [];
     O.forEach(co => D.forEach(cd => { if (co !== cd) od.push(...(ref.byCity.get(tripPairKey(co, cd)) || [])); }));
-    const okAll = cands.filter(c => c.dk <= TRIP_DK_MAX), okGen = okAll.filter(c => c.cls === '일반');
+    //  가는 편·오는 편이 모두 입석·자유석인 왕복은 후보로 만들지 않는다 (2026-11-20 사용자 확인: 그런 출장은 실제로 없다 — 11-17 의 '전부 입석도 있음' 은 철회).
+    //  한쪽만 할인 좌석인 왕복(입석+일반실)은 그대로 둔다. 남겨 두면 멀쩡한 금액이 '설명이 여러 개'라 내려간다 (60,900 이 특실 편도 286.7km 가 아닌 입석 두 편 왕복 546.8km 로 잡혔음)
+    const okAll = cands.filter(c => c.dk <= TRIP_DK_MAX && !(c.legs === 2 && c.seats.length === 2)), okGen = okAll.filter(c => c.cls === '일반');
     //  특실은 마지막에 찾는다 (사용자 확인 2026-11-20: 특실은 왠만하면 없다) — 일반실·입석·자유석 후보가 장소 일치 정도에서 뒤지지 않으면 특실 후보는 보지 않는다
     const okc = okGen.length && Math.max(...okGen.map(c => c.sc)) >= Math.max(...okAll.map(c => c.sc)) ? okGen : okAll;
     if (okc.length) {
