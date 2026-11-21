@@ -1120,6 +1120,18 @@ table.main-tbl.bulk-tbl td.bk-none{color:var(--border2);text-align:center}
 .basis-h4{font-size:13px;font-weight:600;color:var(--text2)}
 .basis-note{font-size:11px;color:var(--muted);margin-top:8px;line-height:1.6}
 .basis-tbl-wrap{box-shadow:none}
+/* Scope 3 출장 — 화면 (js/trip-ui.js) */
+.trip-tag{font-size:12px;font-weight:500;color:var(--muted);margin-left:6px}
+.trip-info{margin-top:10px;min-height:18px}
+.trip-info.err{color:var(--red)}
+.trip-h4-row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin:18px 0 8px}
+.trip-acts{display:flex;align-items:center;gap:8px}
+.trip-note{margin:8px 0 0}
+.trip-scroll{overflow-x:auto}
+.trip-lead{margin:0 0 8px}
+#sub-trip select{font-size:12px;padding:2px 6px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text)}
+#trip-review th,#trip-review td:not(:nth-child(6)):not(:nth-child(7)){white-space:nowrap}
+.trip-mk.ok{color:var(--ok)}.trip-mk.warn{color:var(--warn)}.trip-mk.bad{color:var(--bad);font-weight:600}
 .mini-tbl{width:100%;border-collapse:collapse;font-size:12px}
 .mini-tbl th{background:var(--surface2);color:var(--muted);font-weight:500;font-size:11px;text-align:left;padding:6px 10px;border-bottom:1px solid var(--border);white-space:nowrap}
 .mini-tbl td{padding:6px 10px;border-bottom:1px solid var(--border);color:var(--text2)}

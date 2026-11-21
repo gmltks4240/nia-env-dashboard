@@ -33,6 +33,8 @@ python tests/test_ghg_factors.py
 | `test_design_system.py` | 디자인 시스템 규칙 (반픽셀 글자 금지·모서리 둥글기 가족·transition 토큰과 곡선·움직임 줄이기) — 화면 없이 CSS 선언만 검사 |
 | `test_skeleton_rings.py` | 스켈레톤 로딩, RE100/EV 링, 삭제·되돌리기·확정 |
 | `test_keyboard.py` | 버튼처럼 동작하는 카드·줄이 Tab 으로 닿고, Enter·Space 가 클릭과 같고, 포커스 테두리가 보이는지 |
+| `test_trip_rail.py` | 출장(철도) Scope 3 산정 (판정 등급 A~D·A 확대 기준(운임표·반복 확인·자유석·선이동)·거리·계수·0원 제외·왕복 횟수·강릉선 역 추정·기간별 운임표·정차역 할인·좌석 종류·장소 키워드·장소 사전·엑셀 시트 읽기·운임 대조) — 화면 없이 `js/trip-engine.js` 만 검증 |
+| `test_trip_ui.py` | 출장(Scope 3) 화면 — 업로드·요약, 장소 분류 검토표(출처·확신·운임 대조·보기·CSV), AI 분류 함수(실패·응답·모름·50개씩 묶음), 사람 확정, 장소 사전 읽기(편집자만·1,000줄 이상), 저장, SQL 실행 전, Scope 3 카드 |
 
 ## GitHub 에서 자동 실행
 

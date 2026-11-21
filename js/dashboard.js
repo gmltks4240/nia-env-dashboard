@@ -288,6 +288,9 @@
     $$('k-s2').innerHTML    = hasE ? bigNum(s2) : '—';
     $$('k-waste').innerHTML = !wy.length ? '—' : wGhgNA ? '<span class="cmp-na">미산정</span>' : bigNum(wGhg);
     $$('k-waste-sub').textContent = wy.length ? `폐기물 ${fq(wTon)} ton · 소각 기준` : '-';
+    // 출장(철도)은 거점 구분 없이 전사 기준 — 카드 숫자(폐기물)에 더하지 않고 따로 보여 줌
+    const tripEl = $$('k-trip-sub'), tb = tripBatches.find(b => String(b.year) === String(year) && b.mode === 'rail' && b.summary);
+    if (tripEl) { tripEl.hidden = !tb; tripEl.textContent = tb ? `출장(철도) ${fq(tb.summary.kg / 1000)} tCO₂eq · 전사 · 추정 ${tb.summary.n ? Math.round(tb.summary.D / tb.summary.n * 100) : 0}%` : ''; }
     if (hasE) {
       setYoy('k-total-yoy', yoy(r => isEmit(r.type)));
       setYoy('k-s1-yoy', yoy(isScope('Scope 1')));

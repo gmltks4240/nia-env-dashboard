@@ -868,6 +868,9 @@
   window.addEventListener('drop', e => {
     if (!hasFiles(e)) return;
     e.preventDefault(); dragDepth = 0; showDrop(false);
-    if (appOn()) bulkFromFiles(e.dataTransfer.files);
+    if (!appOn()) return;
+    // 출장 화면을 보고 있을 때 놓은 파일은 출장 산정으로 (js/trip-ui.js)
+    if ($('tab-input').classList.contains('active') && !$('sub-trip').hidden) tripRun(e.dataTransfer.files[0]);
+    else bulkFromFiles(e.dataTransfer.files);
   });
 

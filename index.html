@@ -16,7 +16,7 @@
 <script src="vendor/anime.min.js"></script>
 <script>window.anime || document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.2/anime.min.js"><\/script>');</script>
 <script>window.Chart || document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"><\/script>');</script>
-<link rel="stylesheet" href="css/app.css?v=c9f6608417">
+<link rel="stylesheet" href="css/app.css?v=ae09e1d3f5">
 </head>
 <body>
 <!-- 선 아이콘 모음 (currentColor · 굵기 1.8) -->
@@ -244,6 +244,7 @@
         <div class="kpi-label">Scope 3 <small>기타 간접</small></div>
         <div class="kpi-row"><div class="kpi-value num" id="k-waste">—</div><span class="kpi-u">tCO₂eq</span></div>
         <div class="kpi-sub" id="k-waste-sub">종량제 봉투 기준</div>
+        <div class="kpi-sub" id="k-trip-sub" hidden></div>
         <div class="kpi-sub kpi-yoy" id="k-waste-yoy"></div>
         <div class="kpi-mb" id="k-waste-mb"></div>
       </div>
@@ -921,6 +922,7 @@
     <button class="subtab-btn" data-sub="waste"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg> 폐기물</button>
     <button class="subtab-btn" data-sub="metrics"><svg class="ic" aria-hidden="true"><use href="#i-sprout"/></svg> 기타 지표</button>
     <button class="subtab-btn" data-sub="bulk"><svg class="ic" aria-hidden="true"><use href="#i-upload"/></svg> 일괄 입력</button>
+    <button class="subtab-btn" data-sub="trip"><svg class="ic" aria-hidden="true"><use href="#i-compass"/></svg> 출장 (Scope 3)</button>
   </div>
 
   <!-- 에너지 월별 입력 -->
@@ -1203,6 +1205,42 @@
       </details>
     </div>
   </div>
+
+  <!-- 출장 배출량(Scope 3): 출장 엑셀 → 장소 분류 → 운임 기준 판정 → 미리보기 → 저장 -->
+  <div id="sub-trip" hidden>
+    <div class="input-card">
+      <h3><svg class="ic" aria-hidden="true"><use href="#i-compass"/></svg> 출장 배출량 자동 산정 <small class="trip-tag">Scope 3 · 철도</small></h3>
+      <p class="set-desc">관내출장 엑셀(연도별 시트)이나 CSV를 올리면 출발지·목적지를 분류하고, 철도 출장을 운임 기준으로 판정해 배출량을 계산해요. 저장하기 전에 결과를 먼저 확인해요.<br>
+        교통비 0원은 이동하지 않은 것으로 보고 빼요 · 철도 외 교통편(항공·자가차량·버스)은 아직 산정하지 않아요</p>
+      <div class="drop-zone" id="trip-drop" role="button" tabindex="0" aria-label="출장 엑셀·CSV 파일을 끌어다 놓거나 눌러서 선택">
+        <div class="dz-icon" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-file"/></svg></div>
+        <b>출장 엑셀·CSV를 끌어다 놓거나 눌러서 선택</b>
+        <span>엑셀(xlsx, xls) · CSV · 연도는 시트 이름이나 출장시작일에서 읽어요</span>
+        <input type="file" id="trip-file" accept=".xlsx,.xls,.csv,.tsv,.txt" hidden>
+      </div>
+      <p class="save-info trip-info" id="trip-info" role="status"></p>
+      <div id="trip-out" hidden>
+        <div class="trip-h4-row"><h4 class="basis-h4">연도별 산정 결과</h4>
+          <span class="trip-acts">
+            <button class="btn-export" id="trip-dl" type="button"><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg> 행별 결과 CSV</button>
+            <button class="btn-primary" id="trip-save" type="button" data-need="edit">저장</button>
+          </span></div>
+        <div class="trip-scroll"><table class="mini-tbl" id="trip-summary"></table></div>
+        <p class="set-desc trip-note">A 업무상 확정(판정기준표) · B 운임표와 구간이 모두 일치 · C 운임표만 일치 · D 추정(구간 거리 또는 운임 역산) · 계수 0.0219 kgCO₂eq/인·km (강릉선 0.0716)</p>
+        <div class="trip-h4-row"><h4 class="basis-h4">장소 분류 검토 <small id="trip-rv-n"></small></h4>
+          <span class="trip-acts">
+            <label for="trip-rv-filter" class="save-info">보기</label>
+            <select id="trip-rv-filter"><option value="need">확인 필요</option><option value="ai">AI 분류</option><option value="rule">규칙 분류</option><option value="human">사람 확정</option><option value="all">전체</option></select>
+            <button class="btn-export" id="trip-rv-dl" type="button"><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg> 검토표 CSV</button>
+          </span></div>
+        <p class="set-desc trip-lead">분류는 사람 확정 → AI → 키워드 규칙 순으로 써요. 장소를 정하지 못하면 그 출장은 운임만으로 판정해요.<br>
+          '운임 대조'는 그 장소로 간 출장의 교통비가 운임표의 어느 구간과 같은지 본 것이에요 · '다름'은 틀렸다는 뜻이 아니라 먼저 볼 곳이에요 · 지점을 고르면 '사람 확정'으로 남고 바로 다시 계산해요.</p>
+        <div class="trip-scroll"><table class="mini-tbl" id="trip-review"></table></div>
+        <div class="trip-h4-row"><h4 class="basis-h4">추정(D)이 많은 운임</h4></div>
+        <p class="set-desc trip-lead">판정기준표나 운임표에 없는 금액이에요. 건수가 큰 것부터 확인해 주세요.</p>
+        <div class="trip-scroll"><table class="mini-tbl" id="trip-dtop"></table></div>
+      </div>
+    </div>
 </section>
 
 <!-- ══ 탭 3: 데이터 관리 ═══════════════════════════════ -->
@@ -1554,14 +1592,18 @@
 })();
 </script>
 <!-- 앱 스크립트: 순서가 중요함 (core → … → main). 고친 뒤 python tools/bump_version.py -->
-<script src="js/core.js?v=bbf8414dcb"></script>
+<script src="js/core.js?v=128230c536"></script>
 <script src="js/ui.js?v=c739ec486e"></script>
 <script src="js/charts.js?v=20a470c56d"></script>
-<script src="js/dashboard.js?v=e8c63c1e6c"></script>
+<script src="js/dashboard.js?v=91ab144abc"></script>
 <script src="js/home.js?v=df711fd461"></script>
 <script src="js/outlook.js?v=ca3dbcb0d8"></script>
-<script src="js/input.js?v=140bdb7958"></script>
+<script src="js/input.js?v=0513e1512f"></script>
 <script src="js/manage.js?v=2c50ace550"></script>
+<!-- Scope 3 출장: 데이터 → 엔진 → 화면 순서 -->
+<script src="js/trip-data.js?v=01b3bfe72b"></script>
+<script src="js/trip-engine.js?v=7e479da94a"></script>
+<script src="js/trip-ui.js?v=620768387f"></script>
 <script src="js/main.js?v=b2aa894898"></script>
 </body>
 </html>

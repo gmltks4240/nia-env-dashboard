@@ -769,6 +769,7 @@
       sbAll('waste', 'date.desc'),
       optional(sbAll('env_metrics', 'period.desc')),
       optional(sb('GET', 'env_settings', '?select=*')),
+      loadTripBatches(),   // Scope 3 출장 (js/trip-ui.js)
     ]);
     // 자료 지문: 자동 새로고침 때 바뀐 게 없으면 화면을 다시 그리지 않으려고 (그래프가 1분마다 다시 자라나지 않게)
     dataSig = hashStr(JSON.stringify([eData, wData, mData, sData]));
