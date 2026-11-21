@@ -270,7 +270,7 @@ r = c("대구", "부산", 87000)
 H.ok(r["grade"] != "A" and "기관 판정기준" in r["gradeLabel"], f"기관 기준표 금액만 맞으면 A 아님, 거리는 기준표 값 — {r['gradeLabel']} {r['km']}")
 r = c("비상임감사집무실", "서울", 43100)
 H.ok(r["grade"] != "A", f"장소를 모르면 금액이 맞아도 A 아님 — {r['gradeLabel']}")
-r = c("대구", "서울", 87000, days=3)
+r = c("대구", "서울", 174000, days=4)
 H.ok(r["grade"] != "A", f"왕복 n회(n≥2)는 가정이므로 A 아님 — {r['gradeLabel']} {r['legs']}")
 ```
 
