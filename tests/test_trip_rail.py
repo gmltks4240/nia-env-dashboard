@@ -65,24 +65,27 @@ def run():
         H.near(r["km"], 573.4, 0.01, "거리 573.4km")
         H.near(r["kg"], 12.557, 0.001, "573.4 × 0.0219 = 12.557 kg")
         r = c("서울", "서울", 43500)
-        H.ok(r["grade"] == "A" and r["legs"] == 1 and r["km"] == 286.7, f"서울→서울 43,500 → 편도 286.7km (선이동 관행) — {r}")
+        #  2026-11-20 재정의: 선이동 관행(서울→서울 = 본원 구간)은 가정이므로 A 가 아니다. 금액이 기관 판정기준표에 있어 등급만 B 로 내리고 거리는 기준표 값 그대로
+        H.ok(r["grade"] == "B" and "기관 판정기준" in r["gradeLabel"] and r["legs"] == 1 and r["km"] == 286.7,
+             f"서울→서울 43,500 → 선이동은 A 가 아니고 기준표 거리 286.7km — {r['gradeLabel']} {r['km']}")
 
         H.test_name("왕복 횟수 (대개 1회 · 교통비가 왕복 운임의 n배이고 출장이 n일 이상이면 n회)")
         r = c("대구", "서울", 174000, days=3)
-        H.ok(r["grade"] == "A" and r["legs"] == 4 and r["km"] == 1146.8 and not r.get("check"), f"174,000 · 3일 → 왕복 2회 1,146.8km — {r['gradeLabel']} {r['km']}")
+        #  왕복 n회(n ≥ 2)는 교통비 배수와 일수로 추론한 가정이라 A 가 아니다(설계서 §4) — 거리는 종전과 같다
+        H.ok(r["grade"] == "B" and r["legs"] == 4 and r["km"] == 1146.8 and not r.get("check"), f"174,000 · 3일 → 왕복 2회 1,146.8km · 가정이므로 B — {r['gradeLabel']} {r['km']}")
         H.near(r["kg"], 25.115, 0.001, "1,146.8 × 0.0219 = 25.115 kg")
         r = c("대구", "서울", 174000, days=2)
         H.ok(r["legs"] == 4 and r["km"] == 1146.8, "174,000 · 2일 → 왕복 2회 (날마다 오간 경우)")
         r = c("대구", "서울", 174000, days=1)
-        H.ok(r["grade"] == "A" and r["legs"] == 2 and r["km"] == 573.4 and r.get("check") and "확인 필요" in r["gradeLabel"], f"174,000 · 당일 → 왕복 1회 + 확인 필요 — {r['gradeLabel']}")
+        H.ok(r["grade"] == "B" and r["legs"] == 2 and r["km"] == 573.4 and r.get("check") and "확인 필요" in r["gradeLabel"], f"174,000 · 당일 → 왕복 1회 + 확인 필요 — {r['gradeLabel']}")
         r = c("대구", "서울", 174000)
         H.ok(r["legs"] == 2 and r["km"] == 573.4 and r.get("check"), "174,000 · 일수 모름 → 왕복 1회 + 확인 필요")
         r = c("대구", "서울", 261000, days=5)
-        H.ok(r["grade"] == "A" and r["legs"] == 6 and r["km"] == 1720.2, f"261,000 · 5일 → 왕복 3회 — {r['km']}")
+        H.ok(r["grade"] == "B" and r["legs"] == 6 and r["km"] == 1720.2, f"261,000 · 5일 → 왕복 3회 — {r['km']}")
         r = c("대구", "서울", 261000, days=2)
         H.ok(r["legs"] == 4 and r["km"] == 1146.8 and r.get("check"), "261,000 · 2일 → 일수만큼 2회 + 확인 필요")
         r = c("대구", "세종", 99200, days=2)
-        H.ok(r["grade"] == "A" and r["legs"] == 4 and r["km"] == 648, f"99,200 대구→세종 · 2일 → 동대구↔오송 왕복 2회 648km — {r['basis']}")
+        H.ok(r["grade"] == "B" and r["legs"] == 4 and r["km"] == 648, f"99,200 대구→세종 · 2일 → 동대구↔오송 왕복 2회 648km — {r['basis']}")
         r = c("대구", "서울", 87000, days=5)
         H.ok(r["legs"] == 2 and r["km"] == 573.4 and not r.get("check"), "87,000 · 5일 → 금액이 1회분이면 길어도 왕복 1회")
         r = c("대구", "서울", 121800, days=3)
@@ -90,15 +93,16 @@ def run():
         r = c("대구", "서울", 87000 * 2 + 100, days=3)
         H.ok(r["grade"] == "D" and r["km"] == 573.4, "정확한 배수가 아니면 지금처럼 D·왕복 1회")
 
-        H.test_name("A 업무상 확정 (계속)")
+        H.test_name("기관 판정기준표는 거리 공급원 (2026-11-20)")
         r = c("대구", "성남", 37000)
-        H.ok(r["grade"] == "A" and "거리 추정" in r["gradeLabel"] and r["km"] == 269.2, f"SRT 수서 37,000 → 269.2km·거리 추정 — {r['gradeLabel']}")
+        #  수서 구간은 공식 거리표에 없어 ④(공식 거리)에서 탈락한다 — 등급은 B, 거리는 기준표의 269.2km
+        H.ok(r["grade"] == "B" and "기관 판정기준" in r["gradeLabel"] and "거리 추정" in r["gradeLabel"] and r["km"] == 269.2, f"SRT 수서 37,000 → 269.2km·거리 추정 — {r['gradeLabel']}")
 
         H.test_name("B 운임표+구간 일치")
         r = c("대구", "세종", 49600)
         H.ok(r["grade"] == "A" and r["legs"] == 2 and r["km"] == 324, f"49,600 대구→세종 → 동대구↔오송 왕복 324km — {r['basis']} {r['km']}")
         r = c("대구", "서울", 80400)
-        H.ok(r["grade"] == "A" and r["km"] == 555.9, f"80,400 = KTX 43,500 + SRT 36,900 → 555.9km — {r['basis']} {r['km']}")
+        H.ok(r["grade"] == "B" and "거리 추정" in r["gradeLabel"] and r["km"] == 555.9, f"80,400 = KTX 43,500 + SRT 36,900 → 555.9km · 수서 구간은 추정 거리라 A 아님 — {r['basis']} {r['km']}")
         r = c("대구", "서울", 60900)
         H.ok(r["legs"] == 1 and r["km"] == 286.7 and "입석" not in r["basis"],
              f"60,900 → 특실 편도 286.7km (입석 왕복 아님) · 2026-11-20 사용자 확인: 양쪽 모두 할인 좌석인 왕복은 없다 · 등급은 작업 5 에서 정한다 — {r['basis']} {r['km']}")
@@ -165,7 +169,8 @@ def run():
         r = c("대구", "세종", 44600)
         H.ok(r["grade"] == "A" and r["km"] == 324, f"9월 이후 44,600 = 22,300 × 2 → 동대구↔오송 왕복 — {r['basis']}")
         r = c("대구", "서울", 56600)
-        H.ok(r["grade"] in ("B", "C") and r["legs"] == 1 and "특실" in r["basis"] and "특실 가정" in r["gradeLabel"], f"9월 이후 56,600 = 특실 편도 — 다른 설명이 없어 마지막 수단으로 쓰고 B(특실 가정) — {r['gradeLabel']}")
+        #  2026-11-20 재정의: 운임표에 적힌 특실 금액은 가정이 아니고 좌석 종류는 거리를 바꾸지 않는다(설계서 §2.1) → A
+        H.ok(r["grade"] == "A" and r["legs"] == 1 and "특실" in r["basis"] and r["gradeLabel"] == "A 업무상 확정(운임표 특실)", f"9월 이후 56,600 = 운임표 특실 편도 → A — {r['gradeLabel']}")
         r = c("대구", "서울", 87000)
         H.ok(r["grade"] == "D" and r["km"] == 573.4, "9월 이후에는 옛 판정기준(87,000 → A)을 쓰지 않음 · 구간 거리로 추정")
         r = c("대구", "강릉", 133200)
@@ -181,7 +186,7 @@ def run():
         r = c("대구", "세종", 40900)
         H.ok(r["grade"] == "B" and r["legs"] == 2 and 300 < r["km"] < 330 and "입석" in r["basis"] and "좌석 종류 가정" in r["gradeLabel"], f"40,900 → 좌석 + 입석 왕복 · 등급에 좌석 가정 표시 — {r['gradeLabel']} {r['basis']}")
         r = c("대구", "세종", 48400)
-        H.ok(r["grade"] == "B" and r["legs"] == 2 and r["km"] == 324 and "자유석" in r["basis"], f"48,400 = 24,800 + 23,600(자유석) → 왕복 — {r['basis']}")
+        H.ok(r["grade"] == "A" and r["legs"] == 2 and r["km"] == 324 and "자유석" in r["basis"], f"48,400 = 24,800 + 23,600(자유석) → 왕복 · 좌석 종류는 거리를 바꾸지 않아 A — {r['gradeLabel']} {r['basis']}")
         r = c("대구", "서울", 87000)
         H.ok("좌석 종류 가정" not in r["gradeLabel"], "운임표 금액 그대로인 행에는 좌석 가정 표시가 없음")
         r = c("대구", "서울", 61800)
@@ -212,10 +217,11 @@ def run():
         H.ok(r["grade"] == "A" and r["legs"] == 1 and r["km"] == 286.7, "43,800 = 43,500 무정차 할증 0.6% → 편도")
         on("")
         r = c("서울", "서울", 41300)
-        H.ok(r["grade"] == "A" and "선이동" in r["gradeLabel"] and r["legs"] == 1 and r["km"] == 286.7 and "서울" in r["basis"] and "자유석" in r["basis"],
-             f"서울→서울 41,300 = 43,500 의 자유석 — 광명 좌석(41,300)과도 같은 금액이지만 서울역 자유석으로 봄 (2026-11-17 사용자 확인) · 선이동이라 A — {r['gradeLabel']} {r['basis']}")
+        #  선이동 관행은 2026-11-20 재정의에서 가정으로 보아 A 에서 빠졌다. 후보 선택(본원 구간 우선)은 그대로여서 거리는 286.7km
+        H.ok(r["grade"] == "C" and r["legs"] == 1 and r["km"] == 286.7 and "서울" in r["basis"] and "자유석" in r["basis"],
+             f"서울→서울 41,300 = 43,500 의 자유석 — 광명 좌석(41,300)과도 같은 금액이지만 서울역 자유석으로 봄 (2026-11-17 사용자 확인) · 선이동이라 A 는 아님 — {r['gradeLabel']} {r['basis']}")
         r = c("서울", "서울", 43800)
-        H.ok(r["grade"] == "A" and "선이동" in r["gradeLabel"] and r["legs"] == 1 and r["km"] == 286.7, f"서울→서울 행은 본원(대구)과의 구간으로 봄 — 선이동 관행 — {r['gradeLabel']} {r['basis']}")
+        H.ok(r["grade"] == "C" and r["legs"] == 1 and r["km"] == 286.7, f"서울→서울 행은 본원(대구)과의 구간으로 보되 선이동은 A 가 아님 — {r['gradeLabel']} {r['basis']}")
 
         H.test_name("A 업무상 확정 — 공식 운임표로 구간·횟수가 하나로 정해지는 행 (2026-11-18)")
         on("2025-05-01")
@@ -224,25 +230,28 @@ def run():
         r = c("대구", "세종", 46900)
         H.ok(r["grade"] == "A" and "할증/정차역" in r["gradeLabel"], f"46,900 = 24,800 + SRT 22,100 — 정차역 할인 파생이지만 1,453번 나와서 A — {r['gradeLabel']}")
         r = c("대구", "서울", 41300)
-        H.ok(r["grade"] == "A" and "서울역 자유석" in r["gradeLabel"], f"대구→서울 41,300 = 서울역 자유석(사용자 확인) → A — {r['gradeLabel']}")
+        #  좌석 종류(자유석·입석)는 거리를 바꾸지 않아 더 이상 A 탈락 사유가 아니다 — 구간이 확정됐으므로 A(좌석 종류)
+        H.ok(r["grade"] == "A" and r["gradeLabel"] == "A 업무상 확정(좌석 종류)", f"대구→서울 41,300 = 자유석 → A(좌석 종류) — {r['gradeLabel']}")
         r = c("대구", "세종", 48400)
-        H.ok(r["grade"] == "B" and "좌석 종류 가정" in r["gradeLabel"], f"대구–세종 자유석은 확인받지 않아 B 그대로 — {r['gradeLabel']}")
+        H.ok(r["grade"] == "A" and r["gradeLabel"] == "A 업무상 확정(좌석 종류)", f"대구–세종 자유석도 같은 근거로 A — 사용자 확인이 있는 구간만 열어 두지 않는다 — {r['gradeLabel']}")
         r = c("대구", "세종", 40000)
-        H.ok(r["grade"] == "B", "입석이 들어간 설명은 A 로 올리지 않음")
+        #  서대구 구간은 공식 거리표에 없다 → ④(공식 거리)에서 탈락. 입석이라서가 아니다
+        H.ok(r["grade"] == "B" and "거리 추정" in r["gradeLabel"], f"40,000 은 서대구 추정 거리라 A 가 아님(입석 때문이 아니다) — {r['gradeLabel']} {r['basis']}")
         r = c("서울", "서울", 147400)
-        H.ok(r["grade"] != "A", f"같은 도시 행이라도 본원(대구)과의 구간이 아니면 선이동 A 로 보지 않음 — {r['gradeLabel']} {r['basis']}")
+        H.ok(r["grade"] != "A", f"같은 도시로 적힌 행은 구간이 확정되지 않아 A 가 아님 — {r['gradeLabel']} {r['basis']}")
         r = c("어딘가", "모르는곳", 49600)
         H.ok(r["grade"] == "C", "장소를 모르면 금액이 맞아도 A 가 아님 (운임으로 장소를 정하지 않는다)")
         r = c("대구", "서울", 78000)
-        H.ok(r["grade"] == "A" and r["km"] == 573.4, f"78,000 = 34,500 + 43,500 — 자유석을 가정한 다른 설명(555.9km)이 있어도 운임표만으로 설명되면 A — {r['gradeLabel']}")
-        # 파생 금액이 자료에 한두 번만 나오면 B (TRIP_SEEN 에 없음)
-        seen_once = page.evaluate("""() => { const k = Object.keys(window.TRIP_SEEN.keys); return k.length > 100 && !window.TRIP_SEEN.keys['대구|서울|전|43700']; }""")
-        r = c("대구", "서울", 43700)
-        H.ok(seen_once and r["grade"] != "A", f"반복 확인되지 않은 파생 금액(43,700)은 A 로 올리지 않음 — {r['gradeLabel']} {r['basis']}")
+        #  ③ 은 ② 를 통과한 후보 전체를 본다(설계서 §4) — 자유석 설명(555.9km)이 573.4km 와 2% 넘게 벌어지므로 횟수·거리가 하나로 정해지지 않는다
+        H.ok(r["grade"] == "B" and r["km"] == 573.4, f"78,000 = 34,500 + 43,500 — 거리가 다른 자유석 설명(555.9km)이 함께 있어 A 가 아니다 — {r['gradeLabel']}")
+        #  파생 금액의 반복 확인(TRIP_SEEN)은 더 이상 등급 조건이 아니다 — 할증·정차역 할인은 거리를 바꾸지 않으므로(설계서 §2.1).
+        #  seenKey 는 생성 도구가 라벨 우선순위를 세는 데 계속 쓰므로 그대로 채운다
+        r = c("대구", "세종", 46900)
+        H.ok(r["grade"] == "A" and "할증/정차역" in r["gradeLabel"] and r.get("seenKey") == "대구|세종|전|46900", f"파생 금액도 A 이고 seenKey 는 계속 채운다 — {r['gradeLabel']} {r.get('seenKey')}")
         r = c("대구", "서울", 173600, days=3)
-        H.ok(r["grade"] == "A" and r["legs"] == 4, f"173,600 = 86,800 × 2 · 3일 — 왕복 2회가 36번 반복돼 A — {r['gradeLabel']}")
+        H.ok(r["grade"] == "B" and r["legs"] == 4 and r["km"] == 1146.8, f"173,600 = 86,800 × 2 · 3일 — 왕복 2회는 가정이라 B(거리는 그대로) — {r['gradeLabel']}")
         r = c("대구", "서울", 173600, days=1)
-        H.ok(r["grade"] == "B" and r.get("check"), f"같은 금액이라도 당일이면 횟수 확인 필요로 B — {r['gradeLabel']}")
+        H.ok(r["grade"] == "B" and r.get("check"), f"같은 금액이라도 당일이면 횟수 확인 필요 — {r['gradeLabel']}")
         on("")
         r = c("모르는곳", "어딘가", 49600)
         H.ok(r["grade"] == "C" and r["km"] == 324, f"장소를 모를 때는 운임표 금액 그대로인 후보(동대구↔오송 왕복)가 정차역 변형 후보보다 먼저 — {r['basis']}")
@@ -256,10 +265,10 @@ def run():
         r = c("대구", "천안아산", 58600)
         H.ok(r["grade"] == "A" and r["km"] == 381.4, f"전 구간 운임표: 대구→천안아산 58,600 = 29,300 × 2 → A — {r['basis']}")
         r = c("대구", "김천구미", 13200)
-        H.ok(r["legs"] == 1 and "특실" in r["basis"] and r["grade"] != "A", f"짧은 구간 특실은 운임표 금액(8,400 + 최저 요금 4,800 = 13,200) — 특실은 A 가 아님 — {r['gradeLabel']} {r['basis']}")
-        # 특실로만 설명되는 금액: 일반실·입석·자유석 후보가 없으면 특실을 쓰되 A 는 아님
+        H.ok(r["legs"] == 1 and "특실" in r["basis"] and r["grade"] == "A" and "운임표 특실" in r["gradeLabel"], f"짧은 구간 특실도 운임표 금액(8,400 + 최저 요금 4,800 = 13,200)이면 A — {r['gradeLabel']} {r['basis']}")
+        #  운임표에 적힌 특실 금액은 가정이 아니다 — 60,300 은 옛 기준표의 동대구–서울 특실 운임(dk 0)
         r = c("대구", "서울", 60300)
-        H.ok(r["grade"] != "A", f"60,300 — 특실은 A 로 올리지 않음 — {r['gradeLabel']} {r['basis']}")
+        H.ok(r["grade"] == "A" and r["gradeLabel"] == "A 업무상 확정(운임표 특실)" and r["km"] == 286.7, f"60,300 — 운임표 특실이므로 A — {r['gradeLabel']} {r['basis']}")
 
         H.test_name("사용자 확인 라벨 (L1 · 2026-11-20)")
         on("2026-08-26")
@@ -372,6 +381,10 @@ def run():
         H.ok(cities("에가", pm2) == [], "confidence 가 없으면 high 가 아니므로 미확정(high 만 확정)")
         H.ok(cities("비가", pm2) == [], "points 가 없으면 돌려줄 지점이 없어 미확정")
         H.ok(cities("공가", pm2) == [], "points 를 비운 high 는 '거점 없음' — 모름과 똑같이 구간을 정할 수 없으므로 미확정이 맞다")
+        #  '에가·비가·공가' 는 TRIP_PAT 에 걸리지 않는 이름이라 "사전에서 미확정"과 "키워드 규칙으로 내려가 우연히 빈 배열"이 구별되지 않는다.
+        #  키워드에 걸리는 이름으로 한 번 더 — 사전 항목이 있으면 키워드 규칙으로 내려가지 않는다는 것을 잠근다
+        H.ok(cities("대구", {"대구": {"points": [], "confidence": "high"}}) == [],
+             "키워드에 걸리는 이름이라도 사전이 '거점 없음'이면 미확정 — 키워드 규칙으로 내려가지 않는다")
         H.ok(cities("널가", pm2) == [] and cities("대구", {"대구": None}) == ["대구"],
              "사전 값이 null 이면 항목이 없는 것으로 보아 키워드 규칙으로 — 안 걸리는 이름은 [], 걸리는 이름은 그 도시")
         # 49,600 원: 대구→서울 운임표(43,800)와 맞지 않는 금액 — 출발지가 확정이면 구간 거리를 적용하고, 미확정이면 운임만으로 구간을 추정한다
@@ -419,6 +432,36 @@ def run():
         r = c("대구", "서울", 109100)   # 48,300(운임표 특실) + 60,800(43,400 × 1.4 산식)
         H.ok(r.get("x14") is True and r["legs"] == 2 and r["km"] == 573.4,
              f"두 구간 중 한 편만 ×1.4 산식이어도 x14 가 선다 — 그래서 이 행은 작업 5 에서 A 가 되지 않는다 — x14={r.get('x14')} {r['legs']}회 {r['km']}km {r['basis']}")
+
+        H.test_name("새 A 정의 — 구간·횟수가 무가정으로 확정 (2026-11-20)")
+        on("")
+        r = c("대구", "서울", 43100)
+        H.ok(r["grade"] == "A" and r["km"] == 286.7, f"정차역 할인 금액도 장소가 맞으면 A — {r['gradeLabel']} {r['basis']}")
+        r = c("대구", "서울", 60900)
+        H.ok(r["grade"] == "A" and r["legs"] == 1 and r["km"] == 286.7, f"운임표 특실 편도는 A — {r['gradeLabel']}")
+        r = c("대구", "서울", 60800)
+        H.ok(r["grade"] != "A", f"×1.4 산식 특실은 A 가 아니다 — {r['gradeLabel']}")
+        r = c("서울", "서울", 43500)
+        H.ok(r["grade"] != "A", f"선이동(서울→서울)은 A 가 아니다 — {r['gradeLabel']}")
+        r = c("대구", "부산", 87000)
+        H.ok(r["grade"] != "A" and "기관 판정기준" in r["gradeLabel"], f"기관 기준표 금액만 맞으면 A 아님, 거리는 기준표 값 — {r['gradeLabel']} {r['km']}")
+        r = c("비상임감사집무실", "서울", 43100)
+        H.ok(r["grade"] != "A", f"장소를 모르면 금액이 맞아도 A 아님 — {r['gradeLabel']}")
+        #  87,000 은 43,500 × 2 = 왕복 1회다. 왕복 1회는 산술이라 가정으로 보지 않는다(설계서 §4) → 일수와 무관하게 A.
+        #  (브리프 Step 1 은 이 금액을 '왕복 n회' 로 적었으나 n ≥ 2 가 되는 금액은 174,000 이다 — 설계서 §4 를 따랐다)
+        r = c("대구", "서울", 87000, days=3)
+        H.ok(r["grade"] == "A" and r["legs"] == 2 and r["km"] == 573.4, f"왕복 1회는 가정이 아니므로 A — {r['gradeLabel']} {r['legs']}")
+        r = c("대구", "서울", 174000, days=3)
+        H.ok(r["grade"] != "A" and r["legs"] == 4 and r["km"] == 1146.8, f"왕복 n회(n≥2)는 가정이므로 A 아님 — {r['gradeLabel']} {r['legs']}")
+        #  Ruling I — 왕복 n회 경로(base(f/k))의 x14 전파: 218,200 = 109,100 × 2 이고 109,100 = 48,300(운임표 특실) + 60,800(43,400 × 1.4 산식)
+        r = c("대구", "서울", 218200, days=3)
+        H.ok(r.get("x14") is True and r["grade"] != "A", f"왕복 n회 경로에서도 ×1.4 산식 표시가 전파되고 A 가 아니다 — x14={r.get('x14')} {r['gradeLabel']}")
+        #  ② 가 허용하는 것: 운임표에 적힌 특실 금액(60,900 = 동대구–서울 특실 운임)과 입석·자유석 (16,400 = 대전–동대구 19,300 의 입석 15% 할인, 공식 거리 126.9km)
+        r = c("대구", "서울", 60900)
+        H.ok(r["grade"] == "A" and r["gradeLabel"] == "A 업무상 확정(운임표 특실)", f"운임표 특실은 ② 를 통과한다 — {r['gradeLabel']}")
+        r = c("대구", "대전", 16400)
+        H.ok(r["grade"] == "A" and r["gradeLabel"] == "A 업무상 확정(좌석 종류)" and r["legs"] == 1 and r["km"] == 126.9 and "입석" in r["basis"],
+             f"입석도 ② 를 통과한다 — 종전에는 대구–서울 자유석만 예외적으로 A 였다 — {r['gradeLabel']} {r['basis']}")
 
         H.ok(not errors, f"JS 오류 없음 — {errors[:2]}")
         br.close()
