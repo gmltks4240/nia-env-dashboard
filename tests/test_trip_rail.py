@@ -104,8 +104,8 @@ def run():
         r = c("대구", "서울", 80400)
         H.ok(r["grade"] == "B" and "거리 추정" in r["gradeLabel"] and r["km"] == 555.9, f"80,400 = KTX 43,500 + SRT 36,900 → 555.9km · 수서 구간은 추정 거리라 A 아님 — {r['basis']} {r['km']}")
         r = c("대구", "서울", 60900)
-        H.ok(r["legs"] == 1 and r["km"] == 286.7 and "입석" not in r["basis"],
-             f"60,900 → 특실 편도 286.7km (입석 왕복 아님) · 2026-11-20 사용자 확인: 양쪽 모두 할인 좌석인 왕복은 없다 · 등급은 작업 5 에서 정한다 — {r['basis']} {r['km']}")
+        H.ok(r["legs"] == 1 and r["km"] == 286.7 and "특실" in r["basis"] and "왕복" not in r["basis"].replace("입석 왕복이 아니다", ""),
+             f"60,900 → 특실 편도 286.7km (입석 왕복 아님 · 지금은 L2 라벨이 못 박는다) · 2026-11-20 사용자 확인: 양쪽 모두 할인 좌석인 왕복은 없다 · 등급은 작업 5 에서 정한다 — {r['basis']} {r['km']}")
         H.test_name("후보 선택은 가정 개수 최소 (f7aaad4 복구) — 특실을 뒤로 미루지 않는다")
         r = c("대구", "서울", 60900)
         H.ok(r["legs"] == 1 and r["km"] == 286.7 and "특실" in r["basis"], f"60,900 → 특실 편도 286.7km (좌석 가정 1개가 입석 왕복 2개를 이긴다) — {r['basis']} {r['km']}")
@@ -281,6 +281,19 @@ def run():
         r = c("경주", "세종", 43000)
         H.ok(r.get("label") is None, "라벨은 운임 개편 전(period=전) 행에만")
         on("")
+
+        H.test_name("라벨 — 방향 무관 · L2 (2026-11-20)")
+        on("2026-08-26")
+        r = c("세종", "경주", 43000)
+        H.ok(r["label"] == "L1" and r["km"] == 332.5, f"라벨은 방향이 반대여도 맞는다 — {r['gradeLabel']} {r['km']}")
+        on("")
+        r = c("대구", "서울", 60900)
+        H.ok(r["label"] == "L2" and r["legs"] == 1 and r["km"] == 286.7, f"L2 — 대구–서울 특실 편도 286.7km — {r['gradeLabel']}")
+        H.ok(r["gradeLabel"] == "A 업무상 확정(사용자 확인)", f"라벨 경로를 통과(규칙만이면 '운임표 특실') — {r['gradeLabel']}")
+        r = c("서울", "대구", 60900)
+        H.ok(r["label"] == "L2", "L2 도 역방향 일치")
+        r = c("대구", "서울", 60300)
+        H.ok(r.get("label") is None and r["gradeLabel"] == "A 업무상 확정(운임표 특실)", f"60,300 은 라벨 아님 — {r['gradeLabel']}")
 
         H.test_name("장소 사전")
         r0 = c("비상임감사집무실", "서울", 43100)
@@ -458,7 +471,9 @@ def run():
         H.ok(r.get("x14") is True and r["grade"] != "A", f"왕복 n회 경로에서도 ×1.4 산식 표시가 전파되고 A 가 아니다 — x14={r.get('x14')} {r['gradeLabel']}")
         #  ② 가 허용하는 것: 운임표에 적힌 특실 금액(60,900 = 동대구–서울 특실 운임)과 입석·자유석 (16,400 = 대전–동대구 19,300 의 입석 15% 할인, 공식 거리 126.9km)
         r = c("대구", "서울", 60900)
-        H.ok(r["grade"] == "A" and r["gradeLabel"] == "A 업무상 확정(운임표 특실)", f"운임표 특실은 ② 를 통과한다 — {r['gradeLabel']}")
+        H.ok(r["grade"] == "A" and r["gradeLabel"] == "A 업무상 확정(사용자 확인)", f"운임표 특실 60,900 은 L2 라벨이 먼저 A 로 확정한다 — {r['gradeLabel']}")
+        r = c("대구", "서울", 60300)
+        H.ok(r["grade"] == "A" and r["gradeLabel"] == "A 업무상 확정(운임표 특실)", f"라벨이 없는 운임표 특실(60,300)은 규칙으로 ② 를 통과한다 — {r['gradeLabel']}")
         r = c("대구", "대전", 16400)
         H.ok(r["grade"] == "A" and r["gradeLabel"] == "A 업무상 확정(좌석 종류)" and r["legs"] == 1 and r["km"] == 126.9 and "입석" in r["basis"],
              f"입석도 ② 를 통과한다 — 종전에는 대구–서울 자유석만 예외적으로 A 였다 — {r['gradeLabel']} {r['basis']}")

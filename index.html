@@ -4006,9 +4006,10 @@ window.TRIP_SEEN = {"version":"2026-11-18","source":"관내출장 철도 행 202
 <!-- @trip-labels-start -->
 <script>
 /* 출장(철도) 사용자 확인 라벨 — 사용자가 실제 이동을 알고 달아 준 설명. 직접 추가하세요 (장소명은 넣지 않습니다)
-   key = '출발도시→목적도시|교통비' (도시는 TRIP_POINTS 이름, 여러 도시면 +) · period = 전(2026-08-31까지) / 후(2026-09-01부터) · km = 두 구간 이상이면 합계 */
+   key = 방향 무관 — 출발·경유·목적 도시를 중복 없이 모아 가나다순으로 '|' 로 잇고 끝에 '|교통비' (예: '경주|세종|43000'). 대구→서울과 서울→대구는 같은 키 (2026-11-20) · period = 전(2026-08-31까지) / 후(2026-09-01부터) · km = 두 구간 이상이면 합계 */
 window.TRIP_LABELS = {"version":"2026-11-20","items":[
-  {"id":"L1","key":"경주→세종|43000","period":"전","legs":2,"km":332.5,"basis":"SRT 경주–오송 27,500(정차역 할인 0.6%) + KTX 오송–용산 입석 15,500(18,200 × 0.85) — 세종 방문 뒤 용산(서울)으로 이어 간 편도 두 장","confirmed":"2026-11-20"}
+  {"id":"L1","key":"경주|세종|43000","period":"전","legs":2,"km":332.5,"basis":"SRT 경주–오송 27,500(정차역 할인 0.6%) + KTX 오송–용산 입석 15,500(18,200 × 0.85) — 세종 방문 뒤 용산(서울)으로 이어 간 편도 두 장","confirmed":"2026-11-20"},
+  {"id":"L2","key":"대구|서울|60900","period":"전","legs":1,"km":286.7,"basis":"KTX 동대구→서울 편도 특실 (운임표 60,900) — 입석 왕복이 아니다","confirmed":"2026-11-20"}
 ]};
 </script>
 <!-- @trip-labels-end -->
@@ -4745,10 +4746,11 @@ window.TRIP_LABELS = {"version":"2026-11-20","items":[
     const gang = O.includes('강릉선') || D.includes('강릉선'), factor = gang ? ref.factors.gangneung : ref.factors.rail;
     //  x14: 특실 금액이 '일반실 × 1.4' 산식에서 나왔는가 — 후보에서만 올라온다(작업 5 의 aLabel 이 !c.x14 로 쓴다)
     const out = (grade, gradeLabel, legs, km, basis, x14 = false) => ({ grade, gradeLabel, legs, km, factor, kg: Math.round(km * factor * 1000) / 1000, basis, x14 });
-    //  사용자가 확인한 설명(라벨) — [출발 도시 → 목적 도시 | 교통비 | 운임 개편 전/후]로 찾아 그대로 쓴다. 장소명은 들어 있지 않다(@trip-labels 블록)
+    //  사용자가 확인한 설명(라벨) — [도시 모음(방향 무관) | 교통비 | 운임 개편 전/후]로 찾아 그대로 쓴다. 장소명은 들어 있지 않다(@trip-labels 블록)
     const labs = typeof window !== 'undefined' && window.TRIP_LABELS;
     if (labs) {
-      const lk = `${O.join('+')}→${D.join('+')}|${f}`, hit = labs.items.find(l => l.key === lk && (!l.period || l.period === period));
+      const lk = `${[...new Set([...O, ...D])].sort().join('|')}|${f}`,   // 방향 무관(2026-11-20)
+         hit = labs.items.find(l => l.key === lk && (!l.period || l.period === period));
       if (hit) return { ...out('A', 'A 업무상 확정(사용자 확인)', hit.legs, hit.km, hit.basis), label: hit.id };
     }
     if (gang) {
