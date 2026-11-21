@@ -363,6 +363,17 @@ def run():
         H.ok(cities("다셋", pm) == [], "unknown 은 미확정")
         H.ok(cities("라넷", pm) == ["서울"], "옛 배열 형식은 확정으로 본다(하위호환)")
         H.ok(cities("대구", pm) == ["대구"], "사전에 없으면 키워드 규칙(확정)")
+        # 엣지 — "거점 없음"(points 비움: 원주·춘천 등 철도 거점이 없는 지역)도 미확정과 똑같이 []. 둘 다 구간을 정할 수 없어 A 가 될 수 없다(2026-11-20).
+        #   엔진 확인: 거점없음 high(points 비움) → cities=[] → C 운임표만 일치
+        #             모름 unknown              → cities=[] → C
+        #             low(points 있음)          → cities=[] → C
+        #             확정 high(points 있음)     → cities=['대구'] → A 업무상 확정(운임표)
+        pm2 = {"에가": {"points": ["서울"]}, "비가": {"confidence": "high"}, "공가": {"points": [], "confidence": "high"}, "널가": None}
+        H.ok(cities("에가", pm2) == [], "confidence 가 없으면 high 가 아니므로 미확정(high 만 확정)")
+        H.ok(cities("비가", pm2) == [], "points 가 없으면 돌려줄 지점이 없어 미확정")
+        H.ok(cities("공가", pm2) == [], "points 를 비운 high 는 '거점 없음' — 모름과 똑같이 구간을 정할 수 없으므로 미확정이 맞다")
+        H.ok(cities("널가", pm2) == [] and cities("대구", {"대구": None}) == ["대구"],
+             "사전 값이 null 이면 항목이 없는 것으로 보아 키워드 규칙으로 — 안 걸리는 이름은 [], 걸리는 이름은 그 도시")
         # 49,600 원: 대구→서울 운임표(43,800)와 맞지 않는 금액 — 출발지가 확정이면 구간 거리를 적용하고, 미확정이면 운임만으로 구간을 추정한다
         rh = c("가하나", "서울", 49600, "", {"가하나": {"points": ["대구"], "confidence": "high"}})
         rl = c("가하나", "서울", 49600, "", {"가하나": {"points": ["대구"], "confidence": "low"}})
