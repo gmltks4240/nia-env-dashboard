@@ -44,7 +44,7 @@ def open_engine(pw):
                         "\nwindow.__parse = tripParseSheet; window.__sum = tripSummarize;"
                         "\nwindow.__pairs = f => tripFarePairs(f, window.__ref).map(p => [...p].sort().join('-'));"
                         "\nwindow.__ev = (rows, pm) => Object.fromEntries(tripPlaceEvidence(rows, window.__ref, pm || {}));"
-                        "\nwindow.__mark = tripEvidenceMark; window.__cities = t => tripCities(t, {});")
+                        "\nwindow.__mark = tripEvidenceMark; window.__cities = (t, pm) => tripCities(t, pm || {});")
     return br, page
 
 
@@ -344,12 +344,30 @@ def run():
 
         H.test_name("키워드 규칙 추가분 (2026-11-18)")
         cc = lambda t: page.evaluate("t => __cities(t)", t)
+        cities = lambda t, pm: page.evaluate("([t, pm]) => __cities(t, pm)", [t, pm])
         for t, want in (("경산", ["대구"]), ("자택(경산시)", ["대구"]), ("국회의사당", ["서울"]), ("행정안전부 회의실", ["세종"]), ("과학기술정보통신부", ["세종"]),
                         ("식품의약품안전처 회의실", ["세종"]), ("한국프레스센터", ["서울"]), ("가산디지털단지", ["서울"]), ("의정부", ["서울"]), ("사울", ["서울"]),
                         ("새종", ["세종"]), ("댜구", ["대구"]), ("소상공인시장진흥공단 회의실", ["대전"]), ("한국도로공사", ["김천구미"]), ("진해", ["창원"])):
             H.ok(cc(t) == want, f"{t} → {want} — {cc(t)}")
         H.ok(cc("ETRI 서울사무소") == ["서울"], f"ETRI 서울사무소는 대전이 아니라 서울 — {cc('ETRI 서울사무소')}")
         H.ok(cc("ETRI") == ["대전"], "ETRI(본원) → 대전")
+
+        H.test_name("장소 확정은 confidence high 만 (2026-11-20)")
+        on("")
+        pm = {"가하나": {"points": ["서울"], "confidence": "high"},
+              "나둘": {"points": ["서울"], "confidence": "low"},
+              "다셋": {"points": ["서울"], "confidence": "unknown"},
+              "라넷": ["서울"]}
+        H.ok(cities("가하나", pm) == ["서울"], "high 는 확정")
+        H.ok(cities("나둘", pm) == [], "low 는 미확정")
+        H.ok(cities("다셋", pm) == [], "unknown 은 미확정")
+        H.ok(cities("라넷", pm) == ["서울"], "옛 배열 형식은 확정으로 본다(하위호환)")
+        H.ok(cities("대구", pm) == ["대구"], "사전에 없으면 키워드 규칙(확정)")
+        # 49,600 원: 대구→서울 운임표(43,800)와 맞지 않는 금액 — 출발지가 확정이면 구간 거리를 적용하고, 미확정이면 운임만으로 구간을 추정한다
+        rh = c("가하나", "서울", 49600, "", {"가하나": {"points": ["대구"], "confidence": "high"}})
+        rl = c("가하나", "서울", 49600, "", {"가하나": {"points": ["대구"], "confidence": "low"}})
+        H.ok(rh["km"] == 286.7 and "동대구-서울" in rh["basis"], f"high 면 출발지가 대구로 확정 — {rh['km']}km {rh['basis']}")
+        H.ok(rl["km"] != rh["km"] and "동대구-서울" not in rl["basis"], f"같은 금액·장소명이라도 low 면 출발지 미확정 — 산정이 달라짐 — {rl['km']}km {rl['basis']}")
 
         H.test_name("키워드 규칙의 함정")
         ct = lambda t: page.evaluate("t => __cities(t)", t)
