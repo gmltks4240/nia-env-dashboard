@@ -377,6 +377,17 @@ def run():
         r = c("대구", "세종", 40900)
         H.ok(r["legs"] == 2 and "입석" in r["basis"], f"대구→세종 40,900 — 한쪽만 입석인 왕복은 그대로 남는다 — {r['basis']}")
 
+        H.test_name("×1.4 산식 특실과 운임표 특실 구분 (2026-11-21)")
+        on("")
+        r = c("대구", "서울", 60800)   # 43,400(43,100 + 0.6% 할증) × 1.4 — 산식
+        H.ok(r.get("x14") is True, f"60,800 은 ×1.4 산식에서 나온 특실 — {r['basis']}")
+        r = c("대구", "서울", 60900)   # 운임표의 특실 금액
+        H.ok(r.get("x14") is False and "특실" in r["basis"] and r["legs"] == 1, f"60,900 은 운임표의 특실 금액 — {r['basis']}")
+        r = c("대구", "서울", 41300)   # 특실이 아닌 일반 금액
+        H.ok(r.get("x14") is False, f"일반실 금액은 x14 false — {r['basis']}")
+        r = c("대구", "부산", 33600)   # 두 구간 합
+        H.ok(r.get("x14") is False and r["legs"] == 2 and "특실" in r["basis"], f"대구→부산 33,600 = 운임표 특실 16,800 × 2 — x14={r.get('x14')} {r['basis']}")
+
         H.ok(not errors, f"JS 오류 없음 — {errors[:2]}")
         br.close()
     return H.summary()

@@ -4678,7 +4678,9 @@ window.TRIP_LABELS = {"version":"2026-11-20","items":[
         if (vary === 'nonstop') arr.push([r100(f0 * 1.006), 1, ' 무정차 할증 0.6%']);   // 2025년판 주석: 도중 정차역 2개 이하 열차는 운임·요금의 0.6% 할증
         return arr;
       };
-      const mk = cls => { const seen = new Set(); return (v, dk, note, seat = '') => { if (!(v > 0) || seen.has(v)) return; seen.add(v); segs.push({ ...base, fare: v, cls, dk, note, seat }); }; };
+      //  s14: 이 금액이 '일반실 × 1.4' 산식에서 나왔는가(2026-11-21). 산식은 코레일 공식 특실 운임표와 대조되지 않은 가정이라 A 가 될 수 없다 — 운임표에 적힌 특실 금액은 가정이 아니다.
+      //   cls 만으로는 못 가른다: 운임표에 특실이 있는 구간도 plain × 1.4 를 같은 '특실' 로 넣는다.
+      const mk = (cls, s14 = false, seen = new Set()) => { return (v, dk, note, seat = '') => { if (!(v > 0) || seen.has(v)) return; seen.add(v); segs.push({ ...base, fare: v, cls, dk, note, seat, s14 }); }; };
       const plain = genStops(fare), putG = mk('일반');
       plain.forEach(([v, dk, note]) => putG(v, dk, note));
       //  입석·자유석은 운임표 금액(정차역 변형 전)에서만 파생시킨다 — 변형까지 겹쳐 쓰면 우연히 맞는 금액이 너무 늘어난다
@@ -4686,9 +4688,10 @@ window.TRIP_LABELS = {"version":"2026-11-20","items":[
       //  특실 = 운임표의 특실 금액 + 일반실 금액 × 1.4 (특실요금 = 운임의 40%, 100원 단위)
       //   할증·할인이 붙은 일반실에서도 다시 계산한다: 60,800 = 43,400(43,100 + 0.6% 할증) × 1.4
       if (special) {
-        const tbl = special !== true, putS = mk(tbl ? '특실' : '특실(×1.4 산식)');
+        const tbl = special !== true, sSeen = new Set(), putS = mk(tbl ? '특실' : '특실(×1.4 산식)', !tbl, sSeen), putF = mk('특실', true, sSeen);   // 운임표 특실은 s14 false, 산식은 true
         if (tbl) genStops(special).forEach(([v, dk, note]) => putS(v, dk, note));
-        plain.forEach(([v, dk, note]) => putS(r100(v * 1.4), dk + (tbl ? 1 : 0), note + (tbl && note ? ' (일반실 × 1.4)' : '')));
+        //  putF 는 putS 와 같은 seen 을 쓴다 — 운임표 특실과 금액이 같으면 기존처럼 운임표 쪽(s14 false)이 남고 산식 쪽은 건너뛴다(후보 집합 불변)
+        plain.forEach(([v, dk, note]) => (tbl ? putF : putS)(r100(v * 1.4), dk + (tbl ? 1 : 0), note + (tbl && note ? ' (일반실 × 1.4)' : '')));
       }
     };
     (rows || []).forEach(([a, b, fare, sp]) => { have.add(tripPairKey(a, b) + '|' + fare); add(a, b, fare, 'KTX', sp || false, legacy ? 'nonstop' : 'stops'); });
@@ -4736,7 +4739,8 @@ window.TRIP_LABELS = {"version":"2026-11-20","items":[
     if (f <= 0) return { grade: '제외', gradeLabel: '제외(교통비 0원)', legs: 0, km: 0, factor: 0, kg: 0, basis: '교통비 0원 — 미이동' };
     const O = tripCities(row.origin, placeMap), D = [...new Set([...tripCities(row.dest, placeMap), ...tripCities(row.via, placeMap)])];
     const gang = O.includes('강릉선') || D.includes('강릉선'), factor = gang ? ref.factors.gangneung : ref.factors.rail;
-    const out = (grade, gradeLabel, legs, km, basis) => ({ grade, gradeLabel, legs, km, factor, kg: Math.round(km * factor * 1000) / 1000, basis });
+    //  x14: 특실 금액이 '일반실 × 1.4' 산식에서 나왔는가 — 후보에서만 올라온다(작업 5 의 aLabel 이 !c.x14 로 쓴다)
+    const out = (grade, gradeLabel, legs, km, basis, x14 = false) => ({ grade, gradeLabel, legs, km, factor, kg: Math.round(km * factor * 1000) / 1000, basis, x14 });
     //  사용자가 확인한 설명(라벨) — [출발 도시 → 목적 도시 | 교통비 | 운임 개편 전/후]로 찾아 그대로 쓴다. 장소명은 들어 있지 않다(@trip-labels 블록)
     const labs = typeof window !== 'undefined' && window.TRIP_LABELS;
     if (labs) {
@@ -4778,10 +4782,10 @@ window.TRIP_LABELS = {"version":"2026-11-20","items":[
     if (j) return out('A', j.kmQ === '공식' ? 'A 업무상 확정(기관 판정기준)' : 'A 업무상 확정(기관 판정기준)(거리 추정)', j.legs, j.km, `${j.train} ${j.label}`);
     const score = (c1, c2) => (O.includes(c1) && D.includes(c2)) || (O.includes(c2) && D.includes(c1)) ? 2 : [c1, c2].some(c => O.includes(c) || D.includes(c)) ? 1 : 0;
     const cands = [];
-    (ref.one.get(f) || []).forEach(s => cands.push({ sc: score(s.c1, s.c2), legs: 1, km: s.km, q: s.q, train: s.train, cls: s.cls, dk: s.dk, main: s.main, c1: s.c1, c2: s.c2, seats: [s.seat].filter(Boolean), basis: `${s.train} ${s.a}→${s.b} 편도 ${s.cls}${s.note}` }));
+    (ref.one.get(f) || []).forEach(s => cands.push({ sc: score(s.c1, s.c2), legs: 1, km: s.km, q: s.q, train: s.train, cls: s.cls, dk: s.dk, main: s.main, c1: s.c1, c2: s.c2, seats: [s.seat].filter(Boolean), x14: !!s.s14, basis: `${s.train} ${s.a}→${s.b} 편도 ${s.cls}${s.note}` }));
     (ref.two.get(f) || []).forEach(([s1, s2]) => cands.push({
       sc: score(s1.c1, s1.c2), legs: 2, km: tripR1(s1.km + s2.km), q: s1.q === '공식' && s2.q === '공식' ? '공식' : '추정', train: s1.train, cls: s1.cls,
-      same: s1.a === s2.a && s1.b === s2.b, main: s1.main && s2.main, dk: s1.dk + s2.dk, c1: s1.c1, c2: s1.c2, seats: [s1.seat, s2.seat].filter(Boolean), basis: (s1 === s2 ? `${s1.train} ${s1.a}↔${s1.b} 왕복 ${s1.cls}${s1.note}` : s1.a === s2.a && s1.b === s2.b && s1.train === s2.train
+      same: s1.a === s2.a && s1.b === s2.b, main: s1.main && s2.main, dk: s1.dk + s2.dk, c1: s1.c1, c2: s1.c2, seats: [s1.seat, s2.seat].filter(Boolean), x14: !!(s1.s14 || s2.s14), basis: (s1 === s2 ? `${s1.train} ${s1.a}↔${s1.b} 왕복 ${s1.cls}${s1.note}` : s1.a === s2.a && s1.b === s2.b && s1.train === s2.train
         ? `${s1.train} ${s1.a}↔${s1.b} 왕복 ${s1.cls} (${s1.fare.toLocaleString('ko-KR')}${s1.note} + ${s2.fare.toLocaleString('ko-KR')}${s2.note})`
         : `${s1.train} ${s1.a}-${s1.b}${s1.note} + ${s2.train} ${s2.a}-${s2.b}${s2.note} 왕복 ${s1.cls}`)
     }));
@@ -4834,9 +4838,9 @@ window.TRIP_LABELS = {"version":"2026-11-20","items":[
         return 'A 업무상 확정(' + why + (top === 2 ? '' : ' · 선이동') + ')' + (c.q === '공식' ? '' : '(거리 추정)');
       })();
       const keep = r => { if (seenKey) r.seenKey = seenKey; r.pair = tripPairKey(c.c1, c.c2); return r; };   // seenKey: 생성 도구(tools/build_trip_seen.py)가 반복 횟수를 세는 열쇠
-      if (aLabel) return keep(out('A', aLabel, c.legs, c.km, c.basis));
-      if (top === 2) return keep(out('B', 'B 운임표+구간 일치' + tag, c.legs, c.km, c.basis));
-      if (!od.length && spread <= 0.05) return out('C', 'C 운임표만 일치' + tag, c.legs, c.km, c.basis);
+      if (aLabel) return keep(out('A', aLabel, c.legs, c.km, c.basis, c.x14));
+      if (top === 2) return keep(out('B', 'B 운임표+구간 일치' + tag, c.legs, c.km, c.basis, c.x14));
+      if (!od.length && spread <= 0.05) return out('C', 'C 운임표만 일치' + tag, c.legs, c.km, c.basis, c.x14);
     }
     // 운임 불일치 — 출발·목적 도시의 구간 거리를 쓰고, 기준 편도 운임의 1.5배 미만이면 편도
     const plain = od.filter(s => s.cls === '일반'), ktx = plain.filter(s => s.train === 'KTX'), L = ktx.length ? ktx : plain;
@@ -4861,7 +4865,7 @@ window.TRIP_LABELS = {"version":"2026-11-20","items":[
       const demote = newRule && (check || !seen || !seen.keys[nKey]);   // 기관 판정기준(174,000 등)은 종전처럼 A 에 '횟수 확인 필요'만 붙인다
       const g = demote ? 'B' : rb.grade, gl = demote ? 'B 운임표+구간 일치' : rb.gradeLabel;
       const r = out(g, gl + (n > 1 ? ` · 왕복 ${n}회` : '') + (check ? ' · 횟수 확인 필요' : ''), 2 * n, tripR1(rb.km * n),
-        `${rb.basis} × ${n}회 (교통비 = 왕복 운임 × ${k} · 출장 ${days ? days + '일' : '일수 모름'})`);
+        `${rb.basis} × ${n}회 (교통비 = 왕복 운임 × ${k} · 출장 ${days ? days + '일' : '일수 모름'})`, rb.x14);
       if (check) r.check = true;
       if (newRule && !check) r.seenKey = nKey;
       return r;
