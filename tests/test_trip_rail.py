@@ -386,7 +386,10 @@ def run():
         r = c("대구", "서울", 41300)   # 특실이 아닌 일반 금액
         H.ok(r.get("x14") is False, f"일반실 금액은 x14 false — {r['basis']}")
         r = c("대구", "부산", 33600)   # 두 구간 합
-        H.ok(r.get("x14") is False and r["legs"] == 2 and "특실" in r["basis"], f"대구→부산 33,600 = 운임표 특실 16,800 × 2 — x14={r.get('x14')} {r['basis']}")
+        H.ok(r.get("x14") is False and r["legs"] == 2 and "특실" in r["basis"], f"두 구간이어도 산식이 없으면 x14 는 서지 않는다(왕복이면 무조건 true 인 버그 방지) — 대구→부산 33,600 = 운임표 특실 16,800 × 2 — x14={r.get('x14')} {r['basis']}")
+        r = c("대구", "서울", 109100)   # 48,300(운임표 특실) + 60,800(43,400 × 1.4 산식)
+        H.ok(r.get("x14") is True and r["legs"] == 2 and r["km"] == 573.4,
+             f"두 구간 중 한 편만 ×1.4 산식이어도 x14 가 선다 — 그래서 이 행은 작업 5 에서 A 가 되지 않는다 — x14={r.get('x14')} {r['legs']}회 {r['km']}km {r['basis']}")
 
         H.ok(not errors, f"JS 오류 없음 — {errors[:2]}")
         br.close()
