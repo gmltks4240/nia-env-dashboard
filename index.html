@@ -4749,8 +4749,11 @@ window.TRIP_LABELS = {"version":"2026-11-20","items":[
     //  사용자가 확인한 설명(라벨) — [도시 모음(방향 무관) | 교통비 | 운임 개편 전/후]로 찾아 그대로 쓴다. 장소명은 들어 있지 않다(@trip-labels 블록)
     const labs = typeof window !== 'undefined' && window.TRIP_LABELS;
     if (labs) {
-      const lk = `${[...new Set([...O, ...D])].sort().join('|')}|${f}`,   // 방향 무관(2026-11-20)
-         hit = labs.items.find(l => l.key === lk && (!l.period || l.period === period));
+      const cities = [...new Set([...O, ...D])].sort(), lk = `${cities.join('|')}|${f}`;   // 방향 무관(2026-11-20)
+      //  도시가 둘 이상인 라벨은 출발·목적 도시가 겹치지 않을 때만 — 서울→(경유 대구)→서울 같은 왕복 모양 행이 편도 라벨로 접혀
+      //  거리가 2배 틀린 A 가 되는 것을 막는다(2026-11-21). 도시 하나짜리 라벨(서울→서울 선이동)에는 겹침 요건이 없다
+      const apart = cities.length < 2 || !O.some(x => D.includes(x));
+      const hit = apart && labs.items.find(l => l.key === lk && (!l.period || l.period === period));
       if (hit) return { ...out('A', 'A 업무상 확정(사용자 확인)', hit.legs, hit.km, hit.basis), label: hit.id };
     }
     if (gang) {

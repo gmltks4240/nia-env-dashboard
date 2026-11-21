@@ -303,6 +303,17 @@ def run():
         r = c("대구", "서울", 60900)
         H.ok(r.get("label") is None, f"L2 는 운임 개편 전(period=전) 행에만 — {r['gradeLabel']}")
         on("")
+        r = c("서울", "서울", 60900, "대구")
+        H.ok(r.get("label") is None, f"서울→(경유 대구)→서울 은 도시 집합이 L2 와 같아도 라벨을 받지 않는다(왕복 모양) — {r['gradeLabel']} {r['km']}")
+        #  실제 값(2026-11-21 확인): 라벨을 막아도 규칙 엔진이 운임표 특실 편도 286.7km A 로 같은 결과를 낸다 — 규칙 쪽 문제로 컨트롤러에 보고
+        H.ok(r["gradeLabel"] == "A 업무상 확정(운임표 특실)" and r["km"] == 286.7, f"라벨 없이 규칙 경로로 간다 — {r['gradeLabel']} {r['km']}")
+        r = c("대구 서울", "서울", 60900)
+        H.ok(r.get("label") is None, "출발에 대구·서울, 목적 서울 — 겹치므로 라벨 없음")
+        #  도시 하나짜리 라벨에는 겹침 요건이 없다 — 테스트 안에서만 임시 라벨을 주입한다
+        page.evaluate("() => { window.__labsKeep = window.TRIP_LABELS; window.TRIP_LABELS = { items: [{ id: 'T1', key: '서울|99900', period: '전', legs: 1, km: 100, basis: '테스트용' }] }; }")
+        r = c("서울", "서울", 99900)
+        labs_on()
+        H.ok(r.get("label") == "T1" and r["km"] == 100, f"도시 1개 라벨은 서울→서울 선이동 행도 받는다 — {r.get('label')} {r['km']}")
         r = c("대구", "서울", 60300)
         H.ok(r.get("label") is None and r["gradeLabel"] == "A 업무상 확정(운임표 특실)", f"60,300 은 라벨 아님 — {r['gradeLabel']}")
 
