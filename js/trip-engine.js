@@ -363,9 +363,11 @@
     const norm = v => String(v ?? '').replace(/\s/g, '');
     const hi = grid.slice(0, 6).findIndex(r => { const h = (r || []).map(norm); return h.includes('출발지') && h.includes('목적지') && h.includes('교통편') && h.includes('교통비'); });
     if (hi < 0) return { rows: [], error: `'${name}' 시트는 출장 양식이 아니에요 (머리글에 출발지·목적지·교통편·교통비가 있어야 해요)` };
-    const h = grid[hi].map(norm), col = k => h.indexOf(k), iS = h.findIndex(x => /시작일/.test(x));
+    const h = grid[hi].map(norm), col = k => h.indexOf(k);
     // 출장 일수: '일' 칸(머리글이 두 줄이면 아랫줄에 있음) → 없으면 시작일·종료일로 계산 → 그래도 없으면 null(왕복 1회로 봄)
     const h2 = (grid[hi + 1] || []).map(norm), iDay = h.indexOf('일') >= 0 ? h.indexOf('일') : h2.indexOf('일');
+    // 출장시작일도 머리글 아랫줄에 있을 수 있다 (2026-11-23 양식: 윗줄 '출장시간' · 아랫줄 '출장시작일')
+    const iS = [h, h2].map(x => x.findIndex(v => /시작일/.test(v))).find(i => i >= 0) ?? -1;
     const iEnd = [h, h2].map(x => x.findIndex(v => /종료일/.test(v))).find(i => i >= 0) ?? -1;
     const c = { o: col('출발지'), v: col('경유지'), d: col('목적지'), m: col('교통편'), f: col('교통비'), s: iS >= 0 ? iS : 1 };
     const toDate = v => {
@@ -377,12 +379,15 @@
     const sheetYear = /^\d{4}$/.test(String(name).trim()) ? String(name).trim() : '';
     const rows = [];
     grid.slice(hi + 1).forEach(r => {
-      if (!r || !(Number(String(r[0] ?? '').replace(/,/g, '')) > 0) || norm(r[c.m]) === '교통편') return;
+      if (!r || norm(r[c.m]) === '교통편' || !norm(r[c.m])) return;   // 머리글 아랫줄·빈 줄·합계 줄
       const date = toDate(r[c.s]), fare = Number(String(r[c.f] ?? '').replace(/,/g, ''));
+      // 자료 행인지: 번호가 숫자이거나(첫 양식) 날짜가 읽히면(번호 칸이 없는 양식, 2026-11-23) 자료 행으로 본다
+      const seq = Number(String(r[0] ?? '').replace(/,/g, ''));
+      if (!(seq > 0) && !date) return;
       const end = iEnd >= 0 ? toDate(r[iEnd]) : '', dn = iDay >= 0 ? Number(String(r[iDay] ?? '').trim() || NaN) : NaN;
       const span = date && end ? Math.round((Date.parse(end) - Date.parse(date)) / 86400000) + 1 : NaN;
       const days = dn >= 1 ? Math.floor(dn) : span >= 1 ? span : null;
-      rows.push({ year: sheetYear || date.slice(0, 4), seq: Number(String(r[0]).replace(/,/g, '')), date, origin: String(r[c.o] ?? '').trim(), via: c.v >= 0 ? String(r[c.v] ?? '').trim() : '',
+      rows.push({ year: sheetYear || date.slice(0, 4), seq: seq > 0 ? seq : null, date, origin: String(r[c.o] ?? '').trim(), via: c.v >= 0 ? String(r[c.v] ?? '').trim() : '',
         dest: String(r[c.d] ?? '').trim(), mode: norm(r[c.m]), fare: Number.isFinite(fare) ? fare : 0, days });
     });
     return { rows, error: rows.length ? '' : `'${name}' 시트에 출장 행이 없어요` };
