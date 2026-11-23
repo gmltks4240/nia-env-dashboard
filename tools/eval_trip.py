@@ -7,7 +7,8 @@ js/trip-engine.js 와 js/trip-data.js 를 그대로 브라우저에 넣고 모�
 A 등급 재정의(2026-11-20) 뒤의 분포·총 배출량과 라벨 우선순위를 낸다.
 화면·DB 를 거치지 않으므로 대시보드에 저장되는 값과 같은 코드로 같은 값이 나온다.
 
-출력은 **도시·금액·건수만** 담는다. 원본 장소명은 출력하지 않는다(저장소·문서에 남기지 않기 위해).
+화면 출력은 **도시·금액·건수만** 담는다. 원본 장소명은 출력하지 않는다(저장소·문서에 남기지 않기 위해).
+행별로 확인해야 할 때만 `--dump <파일.csv>` 로 뺀다. 그 CSV 에는 **원본 장소명이 들어 있으니 커밋하지 않는다.**
 장소 사전(--places)은 비공개라 저장소에 없다. 주지 않으면 키워드 규칙만으로 산정한다
 (2026-11-18 수치도 사전 없이 낸 값이라 그대로 비교할 수 있다).
 
@@ -39,6 +40,7 @@ EVAL_JS = """([name, grid, placeMap]) => {
             grade: r.grade, label: r.gradeLabel, legs: r.legs, km: r.km, kg: r.kg, x14: !!r.x14,
             basis: r.basis || '', seenKey: r.seenKey || '',
             oc, dc, vc, overlap: oc.some(c => dc.includes(c)),
+            date: row.date, origin: row.origin, via: row.via, dest: row.dest,
         });
     }
     return { rows: out };
@@ -61,6 +63,8 @@ def main():
     ap.add_argument("xls")
     ap.add_argument("--places", help="장소 사전 JSON {장소: {points, confidence}} (비공개, 없으면 규칙만)")
     ap.add_argument("--top", type=int, default=25, help="라벨 우선순위로 보여 줄 조합 수")
+    ap.add_argument("--dump", help="행별 결과 CSV (원본 장소명 포함 — 커밋하지 말 것)")
+    ap.add_argument("--grade", help="--dump 을 이 등급만 (예: A)")
     a = ap.parse_args()
 
     place_map = json.loads(pathlib.Path(a.places).read_text(encoding="utf-8")) if a.places else {}
@@ -129,6 +133,21 @@ def main():
     print(f"\n건수 상위 {a.top}가지 (도시 집합 · 교통비 · 건수 · tCO2e)")
     for (cities, fare), n in combos.most_common(a.top):
         print(f"{n:>7,}  {fare:>9,}원  {kg_by[(cities, fare)] / 1000:>7.1f} t  {cities}")
+
+    # ── 5) 행별 CSV (원본 장소명 포함 — 커밋 금지) ──────
+    if a.dump:
+        import csv
+        want = [r for r in rail if not a.grade or r["grade"] == a.grade]
+        with open(a.dump, "w", encoding="utf-8-sig", newline="") as fh:
+            w = csv.writer(fh)
+            w.writerow(["연도", "날짜", "출발지", "경유지", "목적지", "교통비", "출장일수",
+                        "등급", "판정", "근거", "구간수", "거리km", "배출kgCO2eq",
+                        "출발도시", "목적도시", "특실×1.4산식"])
+            for r in want:
+                w.writerow([r["year"], r["date"], r["origin"], r["via"], r["dest"], r["fare"], r["days"],
+                            r["grade"], r["label"], r["basis"], r["legs"], r["km"], r["kg"],
+                            "+".join(r["oc"]), "+".join(r["dc"]), "예" if r["x14"] else ""])
+        print(f"\n행별 CSV {len(want):,}행 → {a.dump}  (원본 장소명 포함 · 커밋하지 말 것)")
 
 
 if __name__ == "__main__":
