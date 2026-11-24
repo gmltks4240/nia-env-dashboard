@@ -1717,10 +1717,14 @@ details.calc-sec>summary{display:flex;align-items:center;gap:10px;padding:12px 1
   font-size:13px;font-weight:600;color:var(--text);border-radius:12px;transition:background var(--dur-1) var(--ease-out)}
 details.calc-sec>summary::-webkit-details-marker{display:none}
 details.calc-sec>summary:hover{background:var(--surface2)}
-details.calc-sec>summary em{font-style:normal;font-weight:500;font-size:12px;color:var(--muted);margin-left:auto;text-align:right}
-details.calc-sec>summary .cf-ar{flex:none;margin-left:auto;font-style:normal;font-size:16px;color:var(--muted);line-height:1;
+details.calc-sec>summary>span:first-child{margin-right:auto}
+details.calc-sec>summary em{font-style:normal;font-weight:500;font-size:12px;color:var(--muted);text-align:right}
+/* 무엇을 눌러야 더 보이는지 화살표만으로는 모른다 — 글자로 적는다 */
+details.calc-sec>summary .cf-t{flex:none;font-size:12px;font-weight:500;color:var(--accent)}
+details.calc-sec>summary .cf-t::after{content:'펼치기'}
+details.calc-sec[open]>summary .cf-t::after{content:'닫기'}
+details.calc-sec>summary .cf-ar{flex:none;font-style:normal;font-size:16px;color:var(--accent);line-height:1;
   transition:transform var(--dur-2) var(--ease-out)}
-details.calc-sec>summary em+.cf-ar{margin-left:0}
 details.calc-sec[open]>summary .cf-ar{transform:rotate(90deg)}
 details.calc-sec[open]>summary{border-bottom:1px solid var(--border);border-radius:12px 12px 0 0}
 details.calc-sec>:not(summary){margin-left:14px;margin-right:14px}
@@ -1782,7 +1786,9 @@ details.calc-sec>summary+*{margin-top:12px}
   .calc-sum .cs-v{font-size:32px}
   .cscore{padding:16px}
   .cscore .cq-v{font-size:32px}
-  details.calc-sec>summary{padding:12px}
+  details.calc-sec>summary{padding:12px;gap:8px}
+  /* 좁은 화면에서는 제목 + 펼치기만 — 단위는 펼치면 표 머리에 다시 나온다 */
+  details.calc-sec>summary em{display:none}
   details.calc-sec>:not(summary){margin-left:12px;margin-right:12px}
   details.calc-sec>:last-child{margin-bottom:12px}
   .calc-grid{grid-template-columns:minmax(0,1fr)}

@@ -416,8 +416,9 @@
     if (/^k-ev|^k-pue|^k-cloud|^k-water/.test(k)) return [{ k: '입력값', ...S_IN_M }];
     return isCurFc ? [{ k: '지금까지 실적', ...S_IN_E }, S_FC()] : [];
   }
-  // 자세한 내역은 접어 둔다 — 팝업을 열자마자 표가 네댓 개 쏟아지면 정작 결론(점수·몇 점인지)이 안 읽힌다.
-  // 첫 구역만 펴 두고 나머지는 제목을 눌러 펼친다. 구역을 만드는 곳이 파일 네 개에 흩어져 있어
+  // 팝업을 열면 먼저 요약(큰 숫자·한 줄 설명·계산식)만 보이고, 자세한 내역은 모두 접혀 있다.
+  // 표가 네댓 개 한꺼번에 쏟아지면 정작 결론이 안 읽히고, 대부분은 결론만 보고 닫는다.
+  // 더 보고 싶은 사람만 제목 줄을 눌러 펼친다. 구역을 만드는 곳이 파일 네 개에 흩어져 있어
   // 각자 고치는 대신, 다 그려 놓은 뒤 여기서 한 번에 <details> 로 바꾼다
   function foldSecs(root) {
     // 배출계수처럼 긴 칸이 있는 표는 폭을 넘겨 팝업 밖으로 삐져나온다 — 가로로 밀어 볼 수 있게 감싼다
@@ -426,13 +427,13 @@
       const w = document.createElement('div'); w.className = 'calc-tw';
       t.replaceWith(w); w.appendChild(t);
     });
-    [...root.children].filter(el => el.classList.contains('calc-sec')).forEach((sec, i) => {
+    [...root.children].filter(el => el.classList.contains('calc-sec')).forEach(sec => {
       const h = sec.querySelector(':scope > h4'); if (!h) return;
       const d = document.createElement('details');
       d.className = `${sec.className} cfold`;
-      d.open = i === 0;
       const sm = document.createElement('summary');
-      sm.innerHTML = `${h.innerHTML}<i class="cf-ar" aria-hidden="true">›</i>`;
+      // '펼치기 / 닫기' 글자는 CSS 로 — 여는 상태에 따라 글자가 바뀐다
+      sm.innerHTML = `${h.innerHTML}<span class="cf-t"></span><i class="cf-ar" aria-hidden="true">›</i>`;
       h.remove();
       d.append(sm, ...sec.childNodes);
       sec.replaceWith(d);
