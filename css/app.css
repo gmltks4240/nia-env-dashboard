@@ -763,6 +763,8 @@ table.main-tbl.gs-tbl tr:hover td:first-child{background:var(--surface2)}
 @media(max-width:767px){.gs-tbl td:first-child small{display:none}.gs-tbl td.gs-gap{text-align:left}}
 #rmap-status-sec{margin-bottom:32px}
 .rmap-bar{display:flex;align-items:center;flex-wrap:wrap;gap:8px 12px;margin-bottom:12px}
+.r-toc{flex:1 1 320px;min-width:0}
+#rmap-status-sec,#h-rm-card,#h-rerm-card,#h-wrm-card,#rmap-ghg-details,#rmap-wt-details{scroll-margin-top:var(--r-stick,56px)}
 .rmap-lbl{font-size:12px;font-weight:500;color:var(--text2)}
 #rmap-wt-details{margin-top:4px}
 #tab-roadmap .rm-card{margin-bottom:20px}

@@ -431,6 +431,7 @@
     if (v2) renderWasteRoadmapChart(set.wrm, years, WS, isCur ? wtPred : null);
     $('rmap-wt-details').hidden = !v2;
     renderWasteRoadmapTable(WS);
+    try { renderRoadmapToc(); } catch (e) { console.warn('[목표·로드맵: 바로가기]', e); }
   }
   // 목표 달성 현황: 고른 연도 카드(목표마다 대상 거점 · 합산 실적·목표 · 달성 여부 · 거점별 내역) + 연도별 달성표(✓/✗)
   //  온실가스(자체·법적) = 대구본원 · RE100 = 대구+제주 합산 · 폐기물 = 세 거점 합산 · 올해 = 연말 예측으로 '전망'
@@ -588,6 +589,8 @@
       (vals[fi] != null ? `<circle class="sp-dot" cx="${x(fi)}" cy="${y(vals[fi])}" r="2.6"/>` : '') + '</svg>';
   }
 
+  // 바로가기 칩에 넣을 구역인가 — 화면에 보이는 구역만
+  const tocVis = id => { const el = $(id); return el && !el.hidden && el.style.display !== 'none' && !el.closest('[hidden]'); };
   // 바로가기 칩: 지금 보기의 구역 (숨은 구역은 뺌) · 누르면 그 구역으로 · 스크롤하면 지금 구역 표시
   const H_TOC = {
     cmp:  [['h-sec-sum', '핵심 성과'], ['h-sec-why', '증감 요인'], ['h-sec-trend', '지표 추이'], ['h-sec-mon', '월별 패턴'], ['h-sec-mix', '배출 구성'], ['h-sec-tbl', '표']],
@@ -610,8 +613,7 @@
   // 올해 현황 바로가기: 보이는 구역만 · 누르면 접힌 구역을 펼치고 이동 · 스크롤하면 지금 구역 표시
   const D_TOC = [['sec-ghg', '온실가스'], ['sec-target', '목표'], ['sec-env', '자원·기타'], ['sec-usage', '사용량'], ['site-breakdown', '거점별'], ['sec-charts', '월별 그래프'], ['sec-basis', '예측 근거']];
   function renderDashToc() {
-    const vis = id => { const el = $(id); return el && !el.hidden && el.style.display !== 'none' && !el.closest('[hidden]'); };
-    $('d-toc').innerHTML = D_TOC.filter(([id]) => vis(id)).map(([id, t]) => `<a href="#${id}" data-to="${id}">${t}</a>`).join('');
+    $('d-toc').innerHTML = D_TOC.filter(([id]) => tocVis(id)).map(([id, t]) => `<a href="#${id}" data-to="${id}">${t}</a>`).join('');
     const nav = document.querySelector('.tab-nav')?.offsetHeight || 49, bar = $('d-bar');
     const sticky = getComputedStyle(bar).position === 'sticky';   // 휴대폰에서는 붙지 않음
     document.documentElement.style.setProperty('--d-stick', `${nav + (sticky ? bar.offsetHeight : 0) + 8}px`);
@@ -633,11 +635,33 @@
     el.closest('details')?.setAttribute('open', '');   // 거점별 표는 '사용량' 구역 안에 있음
     el.scrollIntoView({ behavior: reduceMotion() ? 'auto' : 'smooth', block: 'start' });
   });
+  // 목표·로드맵 바로가기: 구역 칩 · 누르면 접힌 구역을 펼치고 이동 · 스크롤하면 지금 구역 표시
+  const R_TOC = [['rmap-status-sec', '달성 현황'], ['h-rm-card', '온실가스'], ['h-rerm-card', 'RE100'], ['h-wrm-card', '폐기물'], ['rmap-ghg-details', '표']];
+  function renderRoadmapToc() {
+    $('r-toc').innerHTML = R_TOC.filter(([id]) => tocVis(id)).map(([id, t]) => `<a href="#${id}" data-to="${id}">${t}</a>`).join('');
+    document.documentElement.style.setProperty('--r-stick', `${(document.querySelector('.tab-nav')?.offsetHeight || 49) + 8}px`);
+    roadmapTocSpy();
+  }
+  function roadmapTocSpy() {
+    const links = [...$('r-toc').querySelectorAll('a[data-to]')];
+    if (!links.length || !$('tab-roadmap').classList.contains('active')) return;
+    const line = (parseFloat(document.documentElement.style.getPropertyValue('--r-stick')) || 57) + 8;
+    let cur = links[0];
+    links.forEach(a => { if ($(a.dataset.to).getBoundingClientRect().top <= line) cur = a; });
+    links.forEach(a => a.classList.toggle('on', a === cur));
+  }
+  $('r-toc').addEventListener('click', e => {
+    const a = e.target.closest('a[data-to]'), el = a && $(a.dataset.to);
+    if (!el) return;
+    e.preventDefault();
+    if (el.tagName === 'DETAILS') el.open = true;
+    el.scrollIntoView({ behavior: reduceMotion() ? 'auto' : 'smooth', block: 'start' });
+  });
+
   // 전망 바로가기: 구역 칩 · 누르면 접힌 구역을 펼치고 이동 · 스크롤하면 지금 구역 표시
   const O_TOC = [['o-sum-sec', '한눈에 보기'], ['o-wi-sec', '만약에 계산'], ['o-ghg-sec', '온실가스'], ['o-re-sec', 'RE100'], ['o-ev-sec', '경영평가 점수'], ['o-how-sec', '계산 방법']];
   function renderOutlookToc() {
-    const vis = id => { const el = $(id); return el && !el.hidden && el.style.display !== 'none' && !el.closest('[hidden]'); };
-    $('o-toc').innerHTML = O_TOC.filter(([id]) => vis(id)).map(([id, t]) => `<a href="#${id}" data-to="${id}">${t}</a>`).join('');
+    $('o-toc').innerHTML = O_TOC.filter(([id]) => tocVis(id)).map(([id, t]) => `<a href="#${id}" data-to="${id}">${t}</a>`).join('');
     const nav = document.querySelector('.tab-nav')?.offsetHeight || 49, bar = $('o-bar');
     const sticky = getComputedStyle(bar).position === 'sticky';   // 휴대폰에서는 붙지 않음
     document.documentElement.style.setProperty('--o-stick', `${nav + (sticky ? bar.offsetHeight : 0) + 8}px`);

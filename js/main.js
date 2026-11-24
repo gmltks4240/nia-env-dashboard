@@ -124,8 +124,8 @@
   });
   // 스크롤하면 바로가기에 지금 구역 표시 · 창 크기가 바뀌면 붙는 막대 높이 다시 재기
   let tocRaf = 0;
-  window.addEventListener('scroll', () => { if (!tocRaf) tocRaf = requestAnimationFrame(() => { tocRaf = 0; histTocSpy(); dashTocSpy(); outlookTocSpy(); }); }, { passive: true });
-  window.addEventListener('resize', () => { syncStick(); histTocSpy(); renderDashToc(); if ($('tab-outlook').classList.contains('active')) renderOutlookToc(); });
+  window.addEventListener('scroll', () => { if (!tocRaf) tocRaf = requestAnimationFrame(() => { tocRaf = 0; histTocSpy(); dashTocSpy(); outlookTocSpy(); roadmapTocSpy(); }); }, { passive: true });
+  window.addEventListener('resize', () => { syncStick(); histTocSpy(); renderDashToc(); if ($('tab-outlook').classList.contains('active')) renderOutlookToc(); roadmapTocSpy(); });
   $('h-cmp-etype').addEventListener('change', renderHistory);
   $('h-why-seg').addEventListener('click', e => { const b = e.target.closest('button[data-by]'); if (b && b.dataset.by !== histWhyBy) { histWhyBy = b.dataset.by; renderHistory(); } });
   $('h-why-list').addEventListener('click', e => {   // 요인 줄 → 그 에너지원(전체 합계면 대구본원부터) 또는 그 거점의 고른 연도 월별 자료
