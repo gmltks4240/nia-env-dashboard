@@ -2,7 +2,7 @@
 name: 회의 안건
 about: 다음 회의에서 같이 정해야 할 것
 title: ''
-labels: 회의
+labels: question
 ---
 
 ## 정해야 할 것
