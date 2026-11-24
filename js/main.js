@@ -418,7 +418,10 @@
   }
   function renderCalc(c, key) {
     const u = c.unit || 'tCO₂eq';
-    $('calc-title').textContent = c.title;
+    // 제목 앞에는 코드가 붙인 아이콘(icn() 이 만든 <svg>)이 올 수 있다. textContent 로 넣으면
+    // 그 태그가 글자 그대로 보이므로, 맨 앞 아이콘만 그대로 두고 나머지는 글자로 넣는다
+    const tt = String(c.title ?? ''), tIc = tt.match(/^(<svg\b[^>]*>[\s\S]*?<\/svg>)\s*([\s\S]*)$/);
+    $('calc-title').innerHTML = tIc ? `${tIc[1]} ${esc(tIc[2])}` : esc(tt);
     $('calc-sub').textContent = [c.sub, c.period, c.site].filter(Boolean).join(' · ');
     // 점수 히어로 (경영평가 계량 카드) · 그 밖에는 기존 큰 숫자 줄
     const q = c.score;
