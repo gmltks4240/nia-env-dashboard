@@ -37,13 +37,15 @@
        인셋 채움(입력칸·표 머리·설명 블록)은 --surface2 — 층이 아니라 '파인 면'
        3  팝업       --pop + --shadow-pop
      팝업이 카드(--surface)와 같은 색이면 뒤 화면 위에 떠 있는 것으로 보이지 않아,
-     어디를 닫아야 원래 화면인지 알기 어렵다. 그래서 팝업만 한 단 더 밝은 색을 따로 쓴다.
+     어디를 닫아야 원래 화면인지 알기 어렵다. 그래서 팝업은 같은 남색 가족 안에서
+     한 단 더 밝은 면을 쓰고, 뒤 화면은 더 눌러(.78) 둘 사이를 벌린다.
+     흰 바탕도 해 봤지만 어두운 화면 한가운데 흰 종이가 튀어서 쓰지 않았다.
      .modal-overlay 안에서 --surface·--surface2·--border 를 이 값으로 덮으므로(토큰은 상속된다)
      팝업 속 표·설명 블록도 같이 한 단씩 올라간다 — 팝업용 규칙을 따로 쓸 필요가 없다 */
-  --pop:#27354C; --pop2:#32415C; --pop-line:#41536F; --pop-line2:#55688A;
+  --pop:#2C3C59; --pop2:#394A6B; --pop-line:#48597C; --pop-line2:#5D7098;
   --shadow:inset 0 1px 0 rgba(255,255,255,.04), 0 1px 2px rgba(0,0,0,.35);
   --shadow-md:inset 0 1px 0 rgba(255,255,255,.06), 0 2px 6px rgba(0,0,0,.3), 0 12px 32px -8px rgba(0,0,0,.6);
-  --shadow-pop:inset 0 1px 0 rgba(255,255,255,.08), 0 24px 64px -12px rgba(0,0,0,.75);
+  --shadow-pop:inset 0 1px 0 rgba(255,255,255,.1), 0 24px 64px -12px rgba(0,0,0,.8);
   /* ── 모션 ──
      곡선은 ease-out 한 가지만 쓴다: 시작이 가장 빨라서 누르거나 올린 순간 바로 반응하는 느낌이 나고,
      끝에서 부드럽게 멎는다. (브라우저 기본값 ease 는 시작도 느려서 뭉개지는 느낌)
@@ -1269,7 +1271,11 @@ table.main-tbl tr:hover td{background:var(--surface2)}
 /* 뒤 화면은 더 눌러 덮고(블러·어둠), 팝업 안쪽은 한 단 밝은 --pop 계열로 바꾼다.
    토큰을 여기서 덮어 두면 팝업 속 모든 표·설명 블록·테두리가 함께 따라 올라간다 */
 .modal-overlay{--surface:var(--pop);--surface2:var(--pop2);--border:var(--pop-line);--border2:var(--pop-line2);
-  position:fixed;inset:0;background:rgba(2,6,16,.74);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px}
+  /* 바탕이 밝아진 만큼 작은 회색 글씨가 묻힌다 — 팝업 안에서만 한 단 밝게 (4.5:1 넘김) */
+  --muted:#A6B3C6;
+  /* 색을 따로 안 정한 글자는 body 에서 물려받는다 — 팝업 토큰을 바꿔도 따라오도록 여기서 한 번 정해 둔다 */
+  color:var(--text);
+  position:fixed;inset:0;background:rgba(2,6,16,.78);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px}
 .modal-box{background:var(--pop);border:1px solid var(--pop-line);border-radius:16px;padding:24px;width:100%;max-width:520px;box-shadow:var(--shadow-pop);max-height:90vh;overflow-y:auto}
 /* 팝업이 열려 있는 동안 뒤 화면 잠금 — 안을 넘기다 끝에 닿으면 뒤가 따라 움직였다 */
 body.modal-open{overflow:hidden}
