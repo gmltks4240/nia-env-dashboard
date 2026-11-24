@@ -34,9 +34,18 @@
        0  바닥        --bg
        1  놓인 카드   --surface + 1px --border + --shadow      (얇은 그림자 + 윗선 빛)
        2  떠 있는 것  --surface + --shadow-md                  (모달·팝오버·토스트·스낵바·hover 들림)
-       인셋 채움(입력칸·표 머리·설명 블록)은 --surface2 — 층이 아니라 '파인 면' */
+       인셋 채움(입력칸·표 머리·설명 블록)은 --surface2 — 층이 아니라 '파인 면'
+       3  팝업       --pop + --shadow-pop
+     팝업이 카드(--surface)와 같은 색이면 뒤 화면 위에 떠 있는 것으로 보이지 않아,
+     어디를 닫아야 원래 화면인지 알기 어렵다. 그래서 팝업은 같은 남색 가족 안에서
+     한 단 더 밝은 면을 쓰고, 뒤 화면은 더 눌러(.78) 둘 사이를 벌린다.
+     흰 바탕도 해 봤지만 어두운 화면 한가운데 흰 종이가 튀어서 쓰지 않았다.
+     .modal-overlay 안에서 --surface·--surface2·--border 를 이 값으로 덮으므로(토큰은 상속된다)
+     팝업 속 표·설명 블록도 같이 한 단씩 올라간다 — 팝업용 규칙을 따로 쓸 필요가 없다 */
+  --pop:#2C3C59; --pop2:#394A6B; --pop-line:#48597C; --pop-line2:#5D7098;
   --shadow:inset 0 1px 0 rgba(255,255,255,.04), 0 1px 2px rgba(0,0,0,.35);
   --shadow-md:inset 0 1px 0 rgba(255,255,255,.06), 0 2px 6px rgba(0,0,0,.3), 0 12px 32px -8px rgba(0,0,0,.6);
+  --shadow-pop:inset 0 1px 0 rgba(255,255,255,.1), 0 24px 64px -12px rgba(0,0,0,.8);
   /* ── 모션 ──
      곡선은 ease-out 한 가지만 쓴다: 시작이 가장 빨라서 누르거나 올린 순간 바로 반응하는 느낌이 나고,
      끝에서 부드럽게 멎는다. (브라우저 기본값 ease 는 시작도 느려서 뭉개지는 느낌)
@@ -1259,14 +1268,24 @@ table.main-tbl tr:hover td{background:var(--surface2)}
 .btn-pag.active{background:var(--sel-bg);color:var(--text);border-color:var(--border2)}
 
 /* ── 모달 ────────────────────────────────────────────── */
-.modal-overlay{position:fixed;inset:0;background:rgba(8,12,22,.6);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px}
-.modal-box{background:var(--surface);border-radius:var(--radius);padding:24px;width:100%;max-width:520px;box-shadow:var(--shadow-md);max-height:90vh;overflow-y:auto}
-.modal-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
-.modal-hdr h3{font-size:16px;font-weight:600}
-.btn-x{font-size:20px;color:var(--muted);width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:6px}
-.btn-x:hover{background:var(--surface2)}
-.modal-foot{display:flex;gap:10px;margin-top:16px;justify-content:flex-end}
-.btn-cancel{background:var(--surface2);border:1px solid var(--border);color:var(--text2);border-radius:8px;padding:8px 20px;font-size:13px;font-weight:600}
+/* 뒤 화면은 더 눌러 덮고(블러·어둠), 팝업 안쪽은 한 단 밝은 --pop 계열로 바꾼다.
+   토큰을 여기서 덮어 두면 팝업 속 모든 표·설명 블록·테두리가 함께 따라 올라간다 */
+.modal-overlay{--surface:var(--pop);--surface2:var(--pop2);--border:var(--pop-line);--border2:var(--pop-line2);
+  /* 바탕이 밝아진 만큼 작은 회색 글씨가 묻힌다 — 팝업 안에서만 한 단 밝게 (4.5:1 넘김) */
+  --muted:#A6B3C6;
+  /* 색을 따로 안 정한 글자는 body 에서 물려받는다 — 팝업 토큰을 바꿔도 따라오도록 여기서 한 번 정해 둔다 */
+  color:var(--text);
+  position:fixed;inset:0;background:rgba(2,6,16,.78);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal-box{background:var(--pop);border:1px solid var(--pop-line);border-radius:16px;padding:24px;width:100%;max-width:520px;box-shadow:var(--shadow-pop);max-height:90vh;overflow-y:auto}
+/* 팝업이 열려 있는 동안 뒤 화면 잠금 — 안을 넘기다 끝에 닿으면 뒤가 따라 움직였다 */
+body.modal-open{overflow:hidden}
+.modal-hdr{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px}
+.modal-hdr h3{font-size:18px;font-weight:600;line-height:1.35}
+.btn-x{font-size:20px;color:var(--muted);width:40px;height:40px;margin:-4px -8px -4px 0;display:flex;align-items:center;justify-content:center;border-radius:12px;flex:none}
+.btn-x:hover{background:var(--surface2);color:var(--text)}
+.modal-foot{display:flex;gap:10px;margin-top:20px;justify-content:flex-end}
+.modal-foot>.btn-cancel,.modal-foot>.btn-primary{min-height:44px;border-radius:12px}
+.btn-cancel{background:var(--surface2);border:1px solid var(--border);color:var(--text2);border-radius:12px;padding:8px 20px;font-size:14px;font-weight:600}
 .fgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .fg{display:flex;flex-direction:column;gap:4px}
 .fg.full{grid-column:1/-1}
@@ -1557,27 +1576,27 @@ table.main-tbl tr:hover td{background:var(--surface2)}
 .calc-top{flex:none;padding:18px 24px 14px;border-bottom:1px solid var(--border);background:var(--surface)}
 .calc-hdr{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
 .calc-hdr h3{font-size:18px;font-weight:600;color:var(--text);line-height:1.25}
-.calc-hdr .calc-sub{margin-top:4px;font-size:12px;color:var(--muted)}
+.calc-hdr .calc-sub{margin-top:6px;font-size:13px;color:var(--muted)}
 .calc-hdr .btn-x{flex:none;margin:-4px -6px 0 0}
 .calc-scroll{flex:1 1 auto;overflow-y:auto;padding:16px 24px 18px}
 /* 큰 숫자 줄 */
 .calc-sum{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 14px;margin-bottom:12px}
 .calc-sum.calc-sum-q{display:block;margin-bottom:0}
-.calc-sum .cs-v{display:flex;align-items:baseline;gap:8px;font-family:var(--fdata);font-size:32px;font-weight:600;line-height:1.1;color:var(--text);font-variant-numeric:tabular-nums}
+.calc-sum .cs-v{display:flex;align-items:baseline;gap:8px;font-family:var(--fdata);font-size:40px;font-weight:600;line-height:1.1;color:var(--text);font-variant-numeric:tabular-nums}
 .calc-sum .cs-v small{font-size:.58em;font-weight:600}
 .calc-sum .cs-u{font-family:var(--font);font-size:14px;font-weight:600;color:var(--muted)}
 .calc-sum .cs-amt{font-size:13px;color:var(--text2)}
 .calc-sum .ds-none{font-size:16px}
 /* 점수 히어로 (경영평가 계량 카드) — 받은 점수 / 만점 + 판정 + 막대 */
-.cscore{margin-bottom:16px;padding:16px 18px 14px;border:1px solid var(--border2);border-radius:12px;
+.cscore{margin-bottom:16px;padding:20px 20px 18px;border:1px solid var(--border2);border-radius:12px;
   background:linear-gradient(180deg,var(--surface2) 0%,var(--surface) 100%);position:relative;overflow:hidden}
 .cscore.ok{border-color:color-mix(in srgb,var(--green) 55%,var(--border))}
 .cscore.no{border-color:color-mix(in srgb,var(--red) 55%,var(--border))}
 .cscore .cq-top{display:flex;align-items:baseline;flex-wrap:wrap;justify-content:space-between;gap:6px 14px}
-.cscore .cq-v{display:flex;align-items:baseline;gap:6px;font-family:var(--fdata);font-size:32px;font-weight:600;
+.cscore .cq-v{display:flex;align-items:baseline;gap:6px;font-family:var(--fdata);font-size:40px;font-weight:600;
   line-height:1.05;color:var(--text);font-variant-numeric:tabular-nums}
 .cscore .cq-v small{font-size:.4em;font-weight:600;color:var(--muted);font-family:var(--font)}
-.cscore .cq-r{display:inline-flex;align-items:center;gap:4px;padding:4px 12px;border-radius:999px;font-size:12px;font-weight:500}
+.cscore .cq-r{display:inline-flex;align-items:center;gap:4px;padding:6px 12px;border-radius:999px;font-size:13px;font-weight:500}
 .cscore.ok .cq-r{background:var(--good-bg);color:var(--green)}
 .cscore.no .cq-r{background:rgba(185,28,28,.12);color:var(--red)}
 .cscore.na .cq-r{background:var(--surface2);color:var(--muted)}
@@ -1585,7 +1604,7 @@ table.main-tbl tr:hover td{background:var(--surface2)}
 .cscore .cq-bar i{display:block;height:100%;border-radius:4px;background:var(--border2);min-width:3px}
 .cscore.ok .cq-bar i{background:var(--green)}
 .cscore.no .cq-bar i{background:var(--red)}
-.cscore .cq-sub{margin-top:8px;font-size:12px;line-height:1.6;color:var(--text2)}
+.cscore .cq-sub{margin-top:12px;font-size:14px;line-height:1.75;color:var(--text2)}
 .cscore .cq-sub b{font-family:var(--fdata);font-variant-numeric:tabular-nums;color:var(--text)}
 /* 구간 계단 (평정점 구간처럼 '어느 칸에 들었나') */
 .csteps{display:flex;gap:8px;flex-wrap:wrap}
@@ -1648,11 +1667,11 @@ table.main-tbl tr:hover td{background:var(--surface2)}
 .cfc-how>span{flex:1 1 auto}
 /* 숫자 출처 · 어디서 보나 */
 .csrc{list-style:none;display:flex;flex-direction:column}
-.csrc li{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:2px 12px;padding:8px 0;border-bottom:1px solid var(--border)}
+.csrc li{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:2px 12px;padding:10px 0;border-bottom:1px solid var(--border)}
 .csrc li:last-child{border-bottom:none}
 .csrc .cs-k{font-size:13px;font-weight:600;color:var(--text)}
 .csrc .cs-k b{margin-left:6px;font-family:var(--fdata);font-weight:600;font-variant-numeric:tabular-nums}
-.csrc .cs-f{grid-column:1;font-size:11px;color:var(--muted)}
+.csrc .cs-f{grid-column:1;font-size:12px;color:var(--muted);line-height:1.6}
 .csrc .cs-f i{font-style:normal;display:inline-block;margin-right:4px;padding:0 6px;border-radius:4px;font-size:10px;font-weight:500}
 .csrc .cs-f i.in{background:rgba(5,150,105,.13);color:var(--green)}
 .csrc .cs-f i.set{background:rgba(217,119,6,.13);color:var(--amber)}
@@ -1696,11 +1715,32 @@ table.main-tbl tr:hover td{background:var(--surface2)}
 .calc-sec:last-child{margin-bottom:0}
 .calc-sec>h4{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:8px;font-size:12px;font-weight:500;color:var(--muted);letter-spacing:.3px}
 .calc-sec>h4 em{font-style:normal;font-weight:500;font-size:11px}
+/* ── 접히는 구역 ──────────────────────────────────────
+   표를 다 펼쳐 놓으면 길이만 길고 무엇이 결론인지 안 보인다. 제목 줄을 눌러 펼친다.
+   제목은 접혀 있을 때도 읽히라고 --muted 가 아니라 본문 색 */
+details.calc-sec{margin-bottom:10px;border:1px solid var(--border);border-radius:12px;background:color-mix(in srgb,var(--surface2) 50%,transparent)}
+details.calc-sec>summary{display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;list-style:none;
+  font-size:13px;font-weight:600;color:var(--text);border-radius:12px;transition:background var(--dur-1) var(--ease-out)}
+details.calc-sec>summary::-webkit-details-marker{display:none}
+details.calc-sec>summary:hover{background:var(--surface2)}
+details.calc-sec>summary>span:first-child{margin-right:auto}
+details.calc-sec>summary em{font-style:normal;font-weight:500;font-size:12px;color:var(--muted);text-align:right}
+/* 무엇을 눌러야 더 보이는지 화살표만으로는 모른다 — 글자로 적는다 */
+details.calc-sec>summary .cf-t{flex:none;font-size:12px;font-weight:500;color:var(--accent)}
+details.calc-sec>summary .cf-t::after{content:'펼치기'}
+details.calc-sec[open]>summary .cf-t::after{content:'닫기'}
+details.calc-sec>summary .cf-ar{flex:none;font-style:normal;font-size:16px;color:var(--accent);line-height:1;
+  transition:transform var(--dur-2) var(--ease-out)}
+details.calc-sec[open]>summary .cf-ar{transform:rotate(90deg)}
+details.calc-sec[open]>summary{border-bottom:1px solid var(--border);border-radius:12px 12px 0 0}
+details.calc-sec>:not(summary){margin-left:14px;margin-right:14px}
+details.calc-sec>:last-child{margin-bottom:14px}
+details.calc-sec>summary+*{margin-top:12px}
 .calc-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:16px 24px}
 /* 항목별 표: 사용량 × 계수 = 값 */
 .calc-tbl{width:100%;border-collapse:collapse;font-size:13px}
-.calc-tbl th,.calc-tbl td{padding:8px 8px;border-bottom:1px solid var(--border);text-align:right;vertical-align:middle}
-.calc-tbl th{font-size:11px;font-weight:500;color:var(--muted);border-bottom:1px solid var(--border2);white-space:nowrap}
+.calc-tbl th,.calc-tbl td{padding:10px 8px;border-bottom:1px solid var(--border);text-align:right;vertical-align:middle}
+.calc-tbl th{font-size:12px;font-weight:500;color:var(--muted);border-bottom:1px solid var(--border2);white-space:nowrap}
 .calc-tbl th:first-child,.calc-tbl td:first-child{text-align:left;padding-left:0}
 .calc-tbl td:last-child,.calc-tbl th:last-child{padding-right:0}
 .calc-tbl tbody tr:last-child td{border-bottom:none}
@@ -1739,7 +1779,7 @@ table.main-tbl tr:hover td{background:var(--surface2)}
 .cm-col .cm-m{font-size:10px;line-height:1.2;color:var(--muted);font-family:var(--fdata)}
 .cm-col.cm-max .cm-b{background:var(--green)}
 .cm-note{margin-top:6px;font-size:11px;color:var(--muted);text-align:right}
-.calc-note{margin-top:14px;padding-top:12px;border-top:1px solid var(--border);font-size:12px;line-height:1.65;color:var(--muted)}
+.calc-note{margin-top:16px;padding-top:14px;border-top:1px solid var(--border);font-size:13px;line-height:1.7;color:var(--muted)}
 .calc-note:empty{display:none}
 .calc-empty{padding:14px 0;font-size:14px;color:var(--muted);text-align:center}
 .calc-foot{flex:none;display:flex;justify-content:flex-end;padding:12px 24px;border-top:1px solid var(--border);background:var(--surface2)}
@@ -1749,9 +1789,16 @@ table.main-tbl tr:hover td{background:var(--surface2)}
   .calc-scroll{padding:14px 16px 16px}
   .calc-foot{padding:10px 16px}
   .calc-hdr h3{font-size:16px}
-  .calc-sum .cs-v{font-size:28px}
+  .calc-sum .cs-v{font-size:32px}
+  .cscore{padding:16px}
+  .cscore .cq-v{font-size:32px}
+  details.calc-sec>summary{padding:12px;gap:8px}
+  /* 좁은 화면에서는 제목 + 펼치기만 — 단위는 펼치면 표 머리에 다시 나온다 */
+  details.calc-sec>summary em{display:none}
+  details.calc-sec>:not(summary){margin-left:12px;margin-right:12px}
+  details.calc-sec>:last-child{margin-bottom:12px}
   .calc-grid{grid-template-columns:minmax(0,1fr)}
-  .calc-tbl th,.calc-tbl td{padding:8px 4px;font-size:12px}
+  .calc-tbl th,.calc-tbl td{padding:10px 4px;font-size:12px}
   .calc-tbl .ct-eq{display:none}
   .calc-tbl .ct-share{width:62px}
   .ct-sbar .sb{width:24px}
@@ -2367,6 +2414,22 @@ body.intro-min :is(#tab-dashboard,#tab-history) :is(.chart-note,.sec-note,.k-why
 @keyframes fade-in{from{opacity:0}to{opacity:1}}
 .modal-overlay{animation:fade-in var(--dur-1) var(--ease-out) both}
 .modal-box{animation:modal-in var(--dur-2) var(--ease-out) both}
+/* ── 좁은 화면: 가운데 상자 대신 아래에서 올라오는 시트 ──
+   한 손으로 드는 화면에서 팝업이 가운데 떠 있으면 닫기 단추가 제일 먼 위쪽 구석에 간다.
+   아래에 붙이면 엄지가 닿는 곳에 단추가 오고, 위 모서리만 둥근 모양이 '아래에서 올라왔다'를 말해 준다 */
+@keyframes sheet-up{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+@media(max-width:640px){
+  .modal-overlay{align-items:flex-end;padding:0}
+  .modal-box{max-width:none;max-height:92vh;border-radius:16px 16px 0 0;border-bottom:none;animation:sheet-up var(--dur-2) var(--ease-out) both}
+  /* 잡아 내리는 손잡이 — 쓸어내려 닫는 시트라는 신호 (지금은 모양만) */
+  .modal-box::before{content:'';flex:none;display:block;width:40px;height:4px;margin:0 auto 12px;border-radius:999px;background:var(--pop-line2)}
+  .calc-box::before{margin:10px auto 0}
+  /* 아이폰 홈바에 단추가 가리지 않게 */
+  .modal-box:not(.calc-box){padding-bottom:calc(24px + env(safe-area-inset-bottom,0px))}
+  .calc-foot{padding-bottom:calc(12px + env(safe-area-inset-bottom,0px))}
+  .modal-foot{gap:8px}
+  .modal-foot>.btn-cancel,.modal-foot>.btn-primary,.calc-foot>.btn-cancel{flex:1 1 0;min-height:48px;padding:8px 12px;border-radius:12px}
+}
 /* 안쪽 카드: 전망 탭 카드도 같은 규칙 (채움으로 구분) */
 .o-card{background:var(--surface2);border-color:transparent}
 /* 날짜 메타는 정보이지 단추가 아니다 — 알약 테두리 대신 글자로 */

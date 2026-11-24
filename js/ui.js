@@ -119,6 +119,28 @@
     });
   }
 
+  /* ── 팝업 공통 동작 ───────────────────────────────────
+     팝업을 여닫는 곳이 여러 군데(수정·비밀번호·계산 근거·자료 보기)라, 한곳에서 지켜보고 처리한다.
+     · 열려 있는 동안 뒤 화면을 잠근다 — 팝업 안을 넘기다 끝에 닿으면 뒤 화면이 따라 움직여서,
+       닫고 보면 엉뚱한 곳에 와 있었다 (모바일에서 특히)
+     · Tab 이 팝업 밖으로 나가지 않게 한다 — 안 보이는 뒤쪽 단추에 포커스가 가 있으면
+       엔터를 눌렀을 때 무슨 일이 일어나는지 화면만 봐서는 알 수 없다 */
+  const openPops = () => [...document.querySelectorAll('.modal-overlay')]
+    .filter(o => o.style.display !== 'none' && !o.hidden);
+  const syncPopLock = () => document.body.classList.toggle('modal-open', openPops().length > 0);
+  document.querySelectorAll('.modal-overlay').forEach(o =>
+    new MutationObserver(syncPopLock).observe(o, { attributes: true, attributeFilter: ['style', 'hidden'] }));
+
+  const FOCUSABLE = 'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),summary,[tabindex]:not([tabindex="-1"])';
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Tab') return;
+    const pop = openPops().pop(); if (!pop) return;
+    const f = [...pop.querySelectorAll(FOCUSABLE)].filter(el => el.getClientRects().length);
+    if (!f.length) return;
+    const first = f[0], last = f[f.length - 1], at = document.activeElement, out = !pop.contains(at);
+    if (e.shiftKey ? (out || at === first) : (out || at === last)) { e.preventDefault(); (e.shiftKey ? last : first).focus(); }
+  });
+
   /* ── 연도 셀렉터 (10년) ─────────────────────────────── */
   function buildYearSel(sel) {
     const y = new Date().getFullYear();
