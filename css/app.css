@@ -1570,27 +1570,27 @@ body.modal-open{overflow:hidden}
 .calc-top{flex:none;padding:18px 24px 14px;border-bottom:1px solid var(--border);background:var(--surface)}
 .calc-hdr{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
 .calc-hdr h3{font-size:18px;font-weight:600;color:var(--text);line-height:1.25}
-.calc-hdr .calc-sub{margin-top:4px;font-size:12px;color:var(--muted)}
+.calc-hdr .calc-sub{margin-top:6px;font-size:13px;color:var(--muted)}
 .calc-hdr .btn-x{flex:none;margin:-4px -6px 0 0}
 .calc-scroll{flex:1 1 auto;overflow-y:auto;padding:16px 24px 18px}
 /* 큰 숫자 줄 */
 .calc-sum{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 14px;margin-bottom:12px}
 .calc-sum.calc-sum-q{display:block;margin-bottom:0}
-.calc-sum .cs-v{display:flex;align-items:baseline;gap:8px;font-family:var(--fdata);font-size:32px;font-weight:600;line-height:1.1;color:var(--text);font-variant-numeric:tabular-nums}
+.calc-sum .cs-v{display:flex;align-items:baseline;gap:8px;font-family:var(--fdata);font-size:40px;font-weight:600;line-height:1.1;color:var(--text);font-variant-numeric:tabular-nums}
 .calc-sum .cs-v small{font-size:.58em;font-weight:600}
 .calc-sum .cs-u{font-family:var(--font);font-size:14px;font-weight:600;color:var(--muted)}
 .calc-sum .cs-amt{font-size:13px;color:var(--text2)}
 .calc-sum .ds-none{font-size:16px}
 /* 점수 히어로 (경영평가 계량 카드) — 받은 점수 / 만점 + 판정 + 막대 */
-.cscore{margin-bottom:16px;padding:16px 18px 14px;border:1px solid var(--border2);border-radius:12px;
+.cscore{margin-bottom:16px;padding:20px 20px 18px;border:1px solid var(--border2);border-radius:12px;
   background:linear-gradient(180deg,var(--surface2) 0%,var(--surface) 100%);position:relative;overflow:hidden}
 .cscore.ok{border-color:color-mix(in srgb,var(--green) 55%,var(--border))}
 .cscore.no{border-color:color-mix(in srgb,var(--red) 55%,var(--border))}
 .cscore .cq-top{display:flex;align-items:baseline;flex-wrap:wrap;justify-content:space-between;gap:6px 14px}
-.cscore .cq-v{display:flex;align-items:baseline;gap:6px;font-family:var(--fdata);font-size:32px;font-weight:600;
+.cscore .cq-v{display:flex;align-items:baseline;gap:6px;font-family:var(--fdata);font-size:40px;font-weight:600;
   line-height:1.05;color:var(--text);font-variant-numeric:tabular-nums}
 .cscore .cq-v small{font-size:.4em;font-weight:600;color:var(--muted);font-family:var(--font)}
-.cscore .cq-r{display:inline-flex;align-items:center;gap:4px;padding:4px 12px;border-radius:999px;font-size:12px;font-weight:500}
+.cscore .cq-r{display:inline-flex;align-items:center;gap:4px;padding:6px 12px;border-radius:999px;font-size:13px;font-weight:500}
 .cscore.ok .cq-r{background:var(--good-bg);color:var(--green)}
 .cscore.no .cq-r{background:rgba(185,28,28,.12);color:var(--red)}
 .cscore.na .cq-r{background:var(--surface2);color:var(--muted)}
@@ -1598,7 +1598,7 @@ body.modal-open{overflow:hidden}
 .cscore .cq-bar i{display:block;height:100%;border-radius:4px;background:var(--border2);min-width:3px}
 .cscore.ok .cq-bar i{background:var(--green)}
 .cscore.no .cq-bar i{background:var(--red)}
-.cscore .cq-sub{margin-top:8px;font-size:12px;line-height:1.6;color:var(--text2)}
+.cscore .cq-sub{margin-top:12px;font-size:14px;line-height:1.75;color:var(--text2)}
 .cscore .cq-sub b{font-family:var(--fdata);font-variant-numeric:tabular-nums;color:var(--text)}
 /* 구간 계단 (평정점 구간처럼 '어느 칸에 들었나') */
 .csteps{display:flex;gap:8px;flex-wrap:wrap}
@@ -1661,11 +1661,11 @@ body.modal-open{overflow:hidden}
 .cfc-how>span{flex:1 1 auto}
 /* 숫자 출처 · 어디서 보나 */
 .csrc{list-style:none;display:flex;flex-direction:column}
-.csrc li{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:2px 12px;padding:8px 0;border-bottom:1px solid var(--border)}
+.csrc li{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:2px 12px;padding:10px 0;border-bottom:1px solid var(--border)}
 .csrc li:last-child{border-bottom:none}
 .csrc .cs-k{font-size:13px;font-weight:600;color:var(--text)}
 .csrc .cs-k b{margin-left:6px;font-family:var(--fdata);font-weight:600;font-variant-numeric:tabular-nums}
-.csrc .cs-f{grid-column:1;font-size:11px;color:var(--muted)}
+.csrc .cs-f{grid-column:1;font-size:12px;color:var(--muted);line-height:1.6}
 .csrc .cs-f i{font-style:normal;display:inline-block;margin-right:4px;padding:0 6px;border-radius:4px;font-size:10px;font-weight:500}
 .csrc .cs-f i.in{background:rgba(5,150,105,.13);color:var(--green)}
 .csrc .cs-f i.set{background:rgba(217,119,6,.13);color:var(--amber)}
@@ -1709,11 +1709,28 @@ body.modal-open{overflow:hidden}
 .calc-sec:last-child{margin-bottom:0}
 .calc-sec>h4{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:8px;font-size:12px;font-weight:500;color:var(--muted);letter-spacing:.3px}
 .calc-sec>h4 em{font-style:normal;font-weight:500;font-size:11px}
+/* ── 접히는 구역 ──────────────────────────────────────
+   표를 다 펼쳐 놓으면 길이만 길고 무엇이 결론인지 안 보인다. 제목 줄을 눌러 펼친다.
+   제목은 접혀 있을 때도 읽히라고 --muted 가 아니라 본문 색 */
+details.calc-sec{margin-bottom:10px;border:1px solid var(--border);border-radius:12px;background:color-mix(in srgb,var(--surface2) 50%,transparent)}
+details.calc-sec>summary{display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;list-style:none;
+  font-size:13px;font-weight:600;color:var(--text);border-radius:12px;transition:background var(--dur-1) var(--ease-out)}
+details.calc-sec>summary::-webkit-details-marker{display:none}
+details.calc-sec>summary:hover{background:var(--surface2)}
+details.calc-sec>summary em{font-style:normal;font-weight:500;font-size:12px;color:var(--muted);margin-left:auto;text-align:right}
+details.calc-sec>summary .cf-ar{flex:none;margin-left:auto;font-style:normal;font-size:16px;color:var(--muted);line-height:1;
+  transition:transform var(--dur-2) var(--ease-out)}
+details.calc-sec>summary em+.cf-ar{margin-left:0}
+details.calc-sec[open]>summary .cf-ar{transform:rotate(90deg)}
+details.calc-sec[open]>summary{border-bottom:1px solid var(--border);border-radius:12px 12px 0 0}
+details.calc-sec>:not(summary){margin-left:14px;margin-right:14px}
+details.calc-sec>:last-child{margin-bottom:14px}
+details.calc-sec>summary+*{margin-top:12px}
 .calc-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:16px 24px}
 /* 항목별 표: 사용량 × 계수 = 값 */
 .calc-tbl{width:100%;border-collapse:collapse;font-size:13px}
-.calc-tbl th,.calc-tbl td{padding:8px 8px;border-bottom:1px solid var(--border);text-align:right;vertical-align:middle}
-.calc-tbl th{font-size:11px;font-weight:500;color:var(--muted);border-bottom:1px solid var(--border2);white-space:nowrap}
+.calc-tbl th,.calc-tbl td{padding:10px 8px;border-bottom:1px solid var(--border);text-align:right;vertical-align:middle}
+.calc-tbl th{font-size:12px;font-weight:500;color:var(--muted);border-bottom:1px solid var(--border2);white-space:nowrap}
 .calc-tbl th:first-child,.calc-tbl td:first-child{text-align:left;padding-left:0}
 .calc-tbl td:last-child,.calc-tbl th:last-child{padding-right:0}
 .calc-tbl tbody tr:last-child td{border-bottom:none}
@@ -1752,7 +1769,7 @@ body.modal-open{overflow:hidden}
 .cm-col .cm-m{font-size:10px;line-height:1.2;color:var(--muted);font-family:var(--fdata)}
 .cm-col.cm-max .cm-b{background:var(--green)}
 .cm-note{margin-top:6px;font-size:11px;color:var(--muted);text-align:right}
-.calc-note{margin-top:14px;padding-top:12px;border-top:1px solid var(--border);font-size:12px;line-height:1.65;color:var(--muted)}
+.calc-note{margin-top:16px;padding-top:14px;border-top:1px solid var(--border);font-size:13px;line-height:1.7;color:var(--muted)}
 .calc-note:empty{display:none}
 .calc-empty{padding:14px 0;font-size:14px;color:var(--muted);text-align:center}
 .calc-foot{flex:none;display:flex;justify-content:flex-end;padding:12px 24px;border-top:1px solid var(--border);background:var(--surface2)}
@@ -1762,9 +1779,14 @@ body.modal-open{overflow:hidden}
   .calc-scroll{padding:14px 16px 16px}
   .calc-foot{padding:10px 16px}
   .calc-hdr h3{font-size:16px}
-  .calc-sum .cs-v{font-size:28px}
+  .calc-sum .cs-v{font-size:32px}
+  .cscore{padding:16px}
+  .cscore .cq-v{font-size:32px}
+  details.calc-sec>summary{padding:12px}
+  details.calc-sec>:not(summary){margin-left:12px;margin-right:12px}
+  details.calc-sec>:last-child{margin-bottom:12px}
   .calc-grid{grid-template-columns:minmax(0,1fr)}
-  .calc-tbl th,.calc-tbl td{padding:8px 4px;font-size:12px}
+  .calc-tbl th,.calc-tbl td{padding:10px 4px;font-size:12px}
   .calc-tbl .ct-eq{display:none}
   .calc-tbl .ct-share{width:62px}
   .ct-sbar .sb{width:24px}
@@ -2394,7 +2416,7 @@ body.intro-min :is(#tab-dashboard,#tab-history) :is(.chart-note,.sec-note,.k-why
   .modal-box:not(.calc-box){padding-bottom:calc(24px + env(safe-area-inset-bottom,0px))}
   .calc-foot{padding-bottom:calc(12px + env(safe-area-inset-bottom,0px))}
   .modal-foot{gap:8px}
-  .modal-foot>.btn-cancel,.modal-foot>.btn-primary{flex:1 1 0;min-height:48px;padding:8px 12px}
+  .modal-foot>.btn-cancel,.modal-foot>.btn-primary,.calc-foot>.btn-cancel{flex:1 1 0;min-height:48px;padding:8px 12px;border-radius:12px}
 }
 /* 안쪽 카드: 전망 탭 카드도 같은 규칙 (채움으로 구분) */
 .o-card{background:var(--surface2);border-color:transparent}

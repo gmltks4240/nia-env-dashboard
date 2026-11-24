@@ -416,6 +416,28 @@
     if (/^k-ev|^k-pue|^k-cloud|^k-water/.test(k)) return [{ k: '입력값', ...S_IN_M }];
     return isCurFc ? [{ k: '지금까지 실적', ...S_IN_E }, S_FC()] : [];
   }
+  // 자세한 내역은 접어 둔다 — 팝업을 열자마자 표가 네댓 개 쏟아지면 정작 결론(점수·몇 점인지)이 안 읽힌다.
+  // 첫 구역만 펴 두고 나머지는 제목을 눌러 펼친다. 구역을 만드는 곳이 파일 네 개에 흩어져 있어
+  // 각자 고치는 대신, 다 그려 놓은 뒤 여기서 한 번에 <details> 로 바꾼다
+  function foldSecs(root) {
+    // 배출계수처럼 긴 칸이 있는 표는 폭을 넘겨 팝업 밖으로 삐져나온다 — 가로로 밀어 볼 수 있게 감싼다
+    root.querySelectorAll('table.calc-tbl').forEach(t => {
+      if (t.parentElement.classList.contains('calc-tw')) return;
+      const w = document.createElement('div'); w.className = 'calc-tw';
+      t.replaceWith(w); w.appendChild(t);
+    });
+    [...root.children].filter(el => el.classList.contains('calc-sec')).forEach((sec, i) => {
+      const h = sec.querySelector(':scope > h4'); if (!h) return;
+      const d = document.createElement('details');
+      d.className = `${sec.className} cfold`;
+      d.open = i === 0;
+      const sm = document.createElement('summary');
+      sm.innerHTML = `${h.innerHTML}<i class="cf-ar" aria-hidden="true">›</i>`;
+      h.remove();
+      d.append(sm, ...sec.childNodes);
+      sec.replaceWith(d);
+    });
+  }
   function renderCalc(c, key) {
     const u = c.unit || 'tCO₂eq';
     // 제목 앞에는 코드가 붙인 아이콘(icn() 이 만든 <svg>)이 올 수 있다. textContent 로 넣으면
@@ -507,6 +529,7 @@
     // 숫자 출처 · 어디서 보나 (모든 팝업)
     out.push(srcSection(c.src || srcFor(key, c)));
     $('calc-body').innerHTML = out.join('') || (c.value == null ? '' : '<p class="calc-empty">나눠 볼 내역이 없어요</p>');
+    foldSecs($('calc-body'));
     $('calc-note').textContent = c.note || '';
     $('calc-scroll') && ($('calc-scroll').scrollTop = 0);
   }
