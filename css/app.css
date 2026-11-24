@@ -2412,7 +2412,7 @@ table.main-tbl tbody tr:hover>td,.sb-tbl tbody tr:hover>td{background:rgba(255,2
 /* 숫자 카드 — 왼쪽 색띠 대신, 값 아래 판정 알약 */
 #tab-outlook .o-cards{grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
 #tab-outlook .o-card{background:var(--surface2);border:0;border-left:0;border-radius:16px;padding:20px;box-shadow:none;display:flex;flex-direction:column;align-items:flex-start}
-#tab-outlook .o-card[role="button"]:hover{border:0;box-shadow:var(--shadow-md);background:color-mix(in srgb,var(--surface2) 88%,#fff)}
+#tab-outlook .o-card[role="button"]:hover{border:0;box-shadow:var(--shadow-md);background:color-mix(in srgb,var(--surface2) 88%,var(--text))}
 #tab-outlook .o-card .gs-k{font-size:13px;font-weight:500;color:var(--muted);justify-content:flex-start;gap:6px}
 #tab-outlook .o-card .gs-v{font-size:28px;font-weight:600;line-height:1.25;letter-spacing:-.02em;margin:8px 0 10px}
 #tab-outlook .o-card .gs-v small{font-size:13px;letter-spacing:0}
