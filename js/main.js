@@ -1305,9 +1305,8 @@
     });
     bn.append(b);
   });
-  // 처음 여는 휴대폰(좁은 화면)은 접은 채로 시작 — 첫 화면에 숫자가 보이게 · 한 번 펼치거나 접으면 그 선택을 기억
-  const narrow = () => matchMedia('(max-width:640px)').matches;
-  let introMin = narrow();
+  // 처음 열면 설명을 접은 채로 시작 — 첫 화면에 숫자부터 보이게 · 한 번 펼치거나 접으면 그 선택을 기억
+  let introMin = true;
   try { const v = localStorage.getItem(INTRO_KEY); if (v === 'min' || v === 'full') introMin = v === 'min'; } catch { /* 저장소를 못 쓰면 화면 폭으로 */ }
   setIntro(introMin);
 

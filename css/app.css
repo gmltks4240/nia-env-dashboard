@@ -2085,7 +2085,12 @@ body.intro-min :is(.welcome-banner,.tab-banner){padding:6px 10px 6px 14px;gap:10
 body.intro-min :is(.wb-mascot,.tab-mascot){width:26px;height:26px;object-fit:contain}
 body.intro-min .welcome-banner .wb-text h2,body.intro-min .tab-banner strong{font-size:13px;margin:0}
 body.intro-min .welcome-banner .wb-text p,body.intro-min .tab-banner span{display:none}
-body.intro-min .site-info .si-desc{display:none}   /* 거점 설명 문장도 (적용 목표·관리 항목 줄은 그대로) */
+/* 설명을 접으면: 거점 설명 문장 · 관리 항목 목록 · 카드 막대 범례 · 그래프 안내 줄까지 함께 접는다
+   (늘 필요한 것 = 숫자·단위·구역 제목 · 궁금할 때 보는 것 = 설명. '설명 ▾'로 언제든 다시 펼침) */
+body.intro-min .site-info .si-desc{display:none}
+body.intro-min .site-info .si-items{display:none}
+body.intro-min .sec-unit .mb-legend{display:none}
+body.intro-min :is(#tab-dashboard,#tab-history) :is(.chart-note,.sec-note,.k-why){display:none}
 body.intro-min .site-info .si-head{grid-row:auto}
 @media(max-width:640px){   /* 좁은 화면: [접기]는 오른쪽 위 구석에 — 설명 글이 좁아지지 않게 */
   body:not(.intro-min) :is(.welcome-banner,.tab-banner){position:relative}
@@ -2305,7 +2310,7 @@ body.intro-min .site-info .si-head{grid-row:auto}
   .kpi-click::after{content:'›';top:6px;right:9px;font-size:16px;font-weight:600}   /* 좁은 화면은 '›'만 */
   .kpi-click:not(.kpi-h)>.kpi-label{padding-right:16px}
   .dash-bar>img{display:none}
-  body.intro-min .site-info .si-items{display:none}   /* 설명을 접으면 관리 항목 목록도 */
+
   .ebar{width:36px;margin-right:6px}
   .kpi-h .kpi-label{flex:0 1 auto!important;white-space:normal;word-break:keep-all;line-height:1.3}   /* 좁으면 이름이 두 줄로 — 값은 줄지 않게 */
   .kpi-h .kv{min-width:auto}
