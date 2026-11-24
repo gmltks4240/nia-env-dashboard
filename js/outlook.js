@@ -659,7 +659,7 @@
   });
 
   // 전망 바로가기: 구역 칩 · 누르면 접힌 구역을 펼치고 이동 · 스크롤하면 지금 구역 표시
-  const O_TOC = [['o-sum-sec', '한눈에 보기'], ['o-wi-sec', '만약에 계산'], ['o-ghg-sec', '온실가스'], ['o-re-sec', 'RE100'], ['o-ev-sec', '경영평가 점수'], ['o-how-sec', '계산 방법']];
+  const O_TOC = [['o-guide-sec', '안내'], ['o-sum-sec', '한눈에 보기'], ['o-ghg-sec', '온실가스'], ['o-re-sec', 'RE100'], ['o-ev-sec', '경영평가 점수'], ['o-wi-sec', '만약에 계산'], ['o-how-sec', '계산 방법']];
   function renderOutlookToc() {
     $('o-toc').innerHTML = O_TOC.filter(([id]) => tocVis(id)).map(([id, t]) => `<a href="#${id}" data-to="${id}">${t}</a>`).join('');
     const nav = document.querySelector('.tab-nav')?.offsetHeight || 49, bar = $('o-bar');
@@ -1196,6 +1196,15 @@
         b: !bad ? `${yrShort(last.y)}분까지 100점` : `${yrShort(bad.y)}분 ${fmt(bad.got, 1)}점`,
         t: !bad ? `${yrShort(last.y + 1)} 평가까지 온실가스 60 + 에너지 40 만점 전망` : `${yrShort(bad.y + 1)} 평가 · ${why(bad)}` });
     }
+    // 맨 위 결론 한 줄 — 처음 보는 사람이 먼저 읽을 문장: 몇 개를 지키나 · 가장 먼저 챙길 목표
+    const lead = $('o-lead'), miss = out.filter(o => o.st !== 'ok');
+    lead.hidden = !out.length;
+    lead.className = `o-lead ${!miss.length ? 'ok' : miss.some(o => o.st === 'no') ? 'no' : 'warn'}`;
+    lead.innerHTML = !out.length ? '' : (!miss.length
+      ? `<p class="ol-h">지금처럼 가면 <b>목표 ${out.length}개를 모두 지킬 전망</b>이에요</p><p class="ol-s">${yrShort(yE)}까지 온실가스·RE100·경영평가 모두 목표 안이에요</p>`
+      : `<p class="ol-h">지금처럼 가면 목표 ${out.length}개 중 <b>${miss.length}개를 놓칠 수 있어요</b></p>` +
+        `<p class="ol-s">가장 먼저 챙길 것 · <b>${esc(miss[0].k)}</b> ${miss[0].b}</p>`) +
+      `<div class="ol-chips">${out.map(o => `<span class="${o.st}">${o.st === 'ok' ? '✓' : o.st === 'warn' ? '!' : '✗'} ${esc(o.k)}</span>`).join('')}</div>`;
     $('o-verdict').hidden = !out.length;
     $('o-verdict').innerHTML = out.map(o => `<li class="${o.st}" role="button" tabindex="0"` +
       (o.pop ? ` data-rmpop="${o.pop}" title="누르면 계산 근거"` : ` data-go="outlook" data-scroll="${o.go}" title="누르면 아래 표로"`) + '>' +
