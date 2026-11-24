@@ -2504,25 +2504,29 @@ table.main-tbl tbody tr:hover>td,.sb-tbl tbody tr:hover>td{background:rgba(255,2
 /* ── 전망 탭: 처음 보는 사람용 길잡이 ── */
 #tab-outlook .o-q{order:-1;flex-basis:100%;font-size:12px;font-weight:500;color:var(--accent);letter-spacing:0}
 #o-wi-sec .o-q{color:var(--vio)}
-/* 질문 바로가기 */
-#tab-outlook .o-qs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
-#tab-outlook .o-qb{display:grid;grid-template-columns:40px minmax(0,1fr);grid-template-rows:auto auto;align-items:center;gap:0 12px;padding:14px 16px;border-radius:14px;background:var(--surface2);text-align:left;color:var(--text)}
-#tab-outlook .o-qb:hover{background:var(--sel-bg)}
+/* 질문 바로가기 — 한 줄짜리 알약 (자리를 적게 차지하게) */
+#tab-outlook .o-guide{padding:16px 18px 14px}
+#tab-outlook .o-guide>summary.kpi-section-hd{font-size:15px;margin-bottom:10px;gap:4px 8px}
+#tab-outlook .o-guide>summary.kpi-section-hd .hd-note{font-size:12px}
+#tab-outlook .o-guide>summary.kpi-section-hd::after{padding:4px 10px;font-size:11px}
+#tab-outlook .o-qs{display:flex;flex-wrap:wrap;gap:6px}
+#tab-outlook .o-qb{display:inline-flex;align-items:center;gap:7px;padding:7px 12px 7px 8px;border-radius:999px;background:var(--surface2);text-align:left;color:var(--text2)}
+#tab-outlook .o-qb:hover{background:var(--sel-bg);color:var(--text)}
 #tab-outlook .o-qb:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
-#tab-outlook .o-qi{grid-row:1/3;display:grid;place-items:center;width:40px;height:40px;border-radius:12px;background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent);font-size:18px}
+#tab-outlook .o-qi{display:grid;place-items:center;width:24px;height:24px;border-radius:8px;background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent);font-size:13px}
 #tab-outlook .o-qb.vio .o-qi{background:color-mix(in srgb,var(--vio) 16%,transparent);color:var(--vio)}
-#tab-outlook .o-qb b{font-size:14px;font-weight:600;line-height:1.4;word-break:keep-all}
-#tab-outlook .o-qb small{font-size:12px;color:var(--muted)}
+#tab-outlook .o-qb b{font-size:13px;font-weight:500;line-height:1.4;word-break:keep-all}
+#tab-outlook .o-qb small{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
 /* 용어 풀이 */
-#tab-outlook .o-terms{margin-top:14px;border-radius:14px;background:var(--surface2)}
-#tab-outlook .o-terms>summary{padding:14px 16px;font-size:13px;color:var(--text2);cursor:pointer;list-style:none}
+#tab-outlook .o-terms{margin-top:10px;border-radius:12px;background:var(--surface2)}
+#tab-outlook .o-terms>summary{padding:10px 14px;font-size:12px;color:var(--text2);cursor:pointer;list-style:none}
 #tab-outlook .o-terms>summary::-webkit-details-marker{display:none}
 #tab-outlook .o-terms>summary::after{content:' ▾';color:var(--muted)}
 #tab-outlook .o-terms[open]>summary::after{content:' ▴'}
 #tab-outlook .o-terms>summary b{color:var(--accent)}
-#tab-outlook .o-terms dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 24px;padding:4px 16px 16px}
-#tab-outlook .o-terms dt{font-size:13px;font-weight:600;color:var(--text)}
-#tab-outlook .o-terms dd{font-size:13px;line-height:1.6;color:var(--text2);word-break:keep-all}
+#tab-outlook .o-terms dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 24px;padding:2px 14px 14px}
+#tab-outlook .o-terms dt{font-size:12px;font-weight:600;color:var(--text)}
+#tab-outlook .o-terms dd{font-size:12px;line-height:1.55;color:var(--muted);word-break:keep-all}
 /* 결론 한 줄 */
 #tab-outlook .o-lead{margin-bottom:24px;padding:20px 22px;border-radius:16px;background:var(--surface2)}
 #tab-outlook .o-lead.ok{background:color-mix(in srgb,var(--green) 10%,var(--surface2))}
@@ -2543,10 +2547,11 @@ table.main-tbl tbody tr:hover>td,.sb-tbl tbody tr:hover>td{background:rgba(255,2
 #tab-outlook .o-cards+.o-sub{margin-top:28px}
 #tab-outlook .o-sub+.o-map{margin-top:0}
 #tab-outlook .o-sub:has(+[hidden]){display:none}
-@media(max-width:900px){#tab-outlook .o-qs{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:640px){
-  #tab-outlook .o-qs{grid-template-columns:1fr;gap:8px}
-  #tab-outlook .o-qb{padding:12px 14px}
+  #tab-outlook .o-guide{padding:14px 14px 12px}
+  #tab-outlook .o-guide>summary.kpi-section-hd{font-size:14px;margin-bottom:8px}
+  #tab-outlook .o-qb{padding:6px 10px 6px 7px}
+  #tab-outlook .o-qb b{font-size:12px}
   #tab-outlook .o-terms dl{grid-template-columns:1fr}
   #tab-outlook .o-lead{padding:16px}
   #tab-outlook .o-lead .ol-h{font-size:18px}
