@@ -11,6 +11,14 @@
     }
   })();
 
+  /* ── 탭 이름 옆 작은 글씨: 그 탭이 다루는 기간 (올해 26년 · 지난 ~25년 · 전망 ~2050년) ── */
+  (() => {
+    const y = new Date().getFullYear();
+    $('th-dash').textContent = `${String(y).slice(2)}년`;
+    $('th-hist').textContent = `~${String(y - 1).slice(2)}년`;
+    $('th-ol').textContent = `~${OUTLOOK.to}년`;
+  })();
+
   /* ── 탭·서브탭 네비게이션 ─────────────────────────── */
   document.querySelectorAll('.tab-btn').forEach(b => b.addEventListener('click', () => {
     if (!needOk(b)) return;   // 권한 없는 탭 (화면에서도 숨김)
@@ -116,8 +124,8 @@
   });
   // 스크롤하면 바로가기에 지금 구역 표시 · 창 크기가 바뀌면 붙는 막대 높이 다시 재기
   let tocRaf = 0;
-  window.addEventListener('scroll', () => { if (!tocRaf) tocRaf = requestAnimationFrame(() => { tocRaf = 0; histTocSpy(); dashTocSpy(); }); }, { passive: true });
-  window.addEventListener('resize', () => { syncStick(); histTocSpy(); renderDashToc(); });
+  window.addEventListener('scroll', () => { if (!tocRaf) tocRaf = requestAnimationFrame(() => { tocRaf = 0; histTocSpy(); dashTocSpy(); outlookTocSpy(); roadmapTocSpy(); }); }, { passive: true });
+  window.addEventListener('resize', () => { syncStick(); histTocSpy(); renderDashToc(); if ($('tab-outlook').classList.contains('active')) renderOutlookToc(); roadmapTocSpy(); });
   $('h-cmp-etype').addEventListener('change', renderHistory);
   $('h-why-seg').addEventListener('click', e => { const b = e.target.closest('button[data-by]'); if (b && b.dataset.by !== histWhyBy) { histWhyBy = b.dataset.by; renderHistory(); } });
   $('h-why-list').addEventListener('click', e => {   // 요인 줄 → 그 에너지원(전체 합계면 대구본원부터) 또는 그 거점의 고른 연도 월별 자료
@@ -1297,9 +1305,8 @@
     });
     bn.append(b);
   });
-  // 처음 여는 휴대폰(좁은 화면)은 접은 채로 시작 — 첫 화면에 숫자가 보이게 · 한 번 펼치거나 접으면 그 선택을 기억
-  const narrow = () => matchMedia('(max-width:640px)').matches;
-  let introMin = narrow();
+  // 처음 열면 설명을 접은 채로 시작 — 첫 화면에 숫자부터 보이게 · 한 번 펼치거나 접으면 그 선택을 기억
+  let introMin = true;
   try { const v = localStorage.getItem(INTRO_KEY); if (v === 'min' || v === 'full') introMin = v === 'min'; } catch { /* 저장소를 못 쓰면 화면 폭으로 */ }
   setIntro(introMin);
 

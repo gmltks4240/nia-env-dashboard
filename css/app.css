@@ -139,6 +139,8 @@ header{background:var(--surface);color:var(--text);padding:0 20px;border-bottom:
 .tab-btn{padding:14px 18px;font-size:14px;font-weight:500;color:var(--muted);border-bottom:2px solid transparent;transition:var(--t-ui);white-space:nowrap;display:flex;align-items:center;gap:6px}
 .tab-btn:hover{color:var(--text)}
 .tab-btn.active{color:var(--text);border-bottom-color:var(--accent);font-weight:600}   /* 신호는 밑줄 하나로 */
+.tab-hint{font-family:var(--fdata);font-size:12px;font-weight:500;color:var(--muted);opacity:.8;letter-spacing:.2px}   /* 탭 이름 옆: 그 탭이 다루는 기간 */
+.tab-btn.active .tab-hint{color:var(--text2);opacity:1}
 .tab-badge{background:var(--accent);color:var(--bg);border-radius:10px;font-size:11px;font-weight:500;padding:1px 8px;min-width:22px;text-align:center;line-height:1.6}
 .tab-btn:not(.active) .tab-badge{background:var(--border2);color:var(--text2)}
 
@@ -359,7 +361,8 @@ button.sb-btn:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
 .olpv .cs-go{margin-left:auto}
 @media(max-width:767px){.ol-tbl.main-tbl{min-width:440px}.ol-tbl .ol-t{display:block;margin:0 0 4px}}
 /* 📈 전망 탭 — 한눈에 보기 카드 · 만약에 · 그래프 · 표 (주요 연도만 → 모든 연도) · 셈 방법 */
-#tab-outlook .fold-sec{margin-bottom:28px;scroll-margin-top:64px}   /* 위에 붙는 탭 줄 아래로 */
+#tab-outlook .fold-sec,#tab-outlook .kpi-section{scroll-margin-top:var(--o-stick,110px)}   /* 위에 붙는 탭 줄·바로가기 막대 아래로 */
+#tab-outlook .fold-sec{margin-bottom:28px}
 #tab-outlook .fold-sec:not([open]){margin-bottom:14px}
 #o-sum-sec{margin-bottom:24px}
 .o-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
@@ -760,6 +763,8 @@ table.main-tbl.gs-tbl tr:hover td:first-child{background:var(--surface2)}
 @media(max-width:767px){.gs-tbl td:first-child small{display:none}.gs-tbl td.gs-gap{text-align:left}}
 #rmap-status-sec{margin-bottom:32px}
 .rmap-bar{display:flex;align-items:center;flex-wrap:wrap;gap:8px 12px;margin-bottom:12px}
+.r-toc{flex:1 1 320px;min-width:0}
+#rmap-status-sec,#h-rm-card,#h-rerm-card,#h-wrm-card,#rmap-ghg-details,#rmap-wt-details{scroll-margin-top:var(--r-stick,56px)}
 .rmap-lbl{font-size:12px;font-weight:500;color:var(--text2)}
 #rmap-wt-details{margin-top:4px}
 #tab-roadmap .rm-card{margin-bottom:20px}
@@ -854,6 +859,8 @@ table.main-tbl.gs-tbl tr:hover td:first-child{background:var(--surface2)}
 #tab-dashboard .fold-sec,#site-breakdown{scroll-margin-top:var(--d-stick,110px)}
 .d-toc{flex:1 1 360px;min-width:0}
 .dash-bar{padding-top:8px;padding-bottom:8px}
+.o-bar{margin-bottom:20px}
+.o-toc{flex:1 1 420px;min-width:0}
 .dash-bar .filter-mascot{width:28px;height:28px}
 /* 성과 카드 · 지표 추이 카드: 고른 연도 값 → 전년 대비 → 목표 상태 → 연도별 미니 막대 */
 .sum-grid{display:grid;grid-template-columns:repeat(var(--cols,3),minmax(0,1fr));gap:12px;margin-bottom:12px}
@@ -1829,6 +1836,7 @@ body:has(#tab-home.active){--h-ink:#0F172A;--h-panel:#1E293B;--h-panel-2:#273549
 body:has(#tab-home.active) .tab-nav{background:var(--h-panel);border-bottom-color:var(--h-line)}
 body:has(#tab-home.active) .tab-btn{color:var(--h-muted)}
 body:has(#tab-home.active) .tab-btn.active{color:var(--h-paper);border-bottom-color:var(--h-accent)}
+body:has(#tab-home.active) .tab-hint{color:var(--h-muted)}
 #tab-home{color:var(--h-paper)}
 
 /* 1단 — 무슨 시스템인가. 카드를 두르지 않고 바탕 위에 그대로 둔다. */
@@ -1936,6 +1944,7 @@ body:has(#tab-home.active) .btn-login{border-color:var(--h-line);color:var(--h-p
   .header-right{display:none}
   .scope-cards{grid-template-columns:1fr}
   .tab-btn{padding:12px 10px;font-size:12px}
+  .tab-hint{display:none}   /* 좁은 화면에서는 탭 이름만 */
   .config-row{gap:8px}
   .manage-toolbar{flex-direction:column;align-items:flex-start}
 }
@@ -2076,7 +2085,12 @@ body.intro-min :is(.welcome-banner,.tab-banner){padding:6px 10px 6px 14px;gap:10
 body.intro-min :is(.wb-mascot,.tab-mascot){width:26px;height:26px;object-fit:contain}
 body.intro-min .welcome-banner .wb-text h2,body.intro-min .tab-banner strong{font-size:13px;margin:0}
 body.intro-min .welcome-banner .wb-text p,body.intro-min .tab-banner span{display:none}
-body.intro-min .site-info .si-desc{display:none}   /* 거점 설명 문장도 (적용 목표·관리 항목 줄은 그대로) */
+/* 설명을 접으면: 거점 설명 문장 · 관리 항목 목록 · 카드 막대 범례 · 그래프 안내 줄까지 함께 접는다
+   (늘 필요한 것 = 숫자·단위·구역 제목 · 궁금할 때 보는 것 = 설명. '설명 ▾'로 언제든 다시 펼침) */
+body.intro-min .site-info .si-desc{display:none}
+body.intro-min .site-info .si-items{display:none}
+body.intro-min .sec-unit .mb-legend{display:none}
+body.intro-min :is(#tab-dashboard,#tab-history) :is(.chart-note,.sec-note,.k-why){display:none}
 body.intro-min .site-info .si-head{grid-row:auto}
 @media(max-width:640px){   /* 좁은 화면: [접기]는 오른쪽 위 구석에 — 설명 글이 좁아지지 않게 */
   body:not(.intro-min) :is(.welcome-banner,.tab-banner){position:relative}
@@ -2296,7 +2310,7 @@ body.intro-min .site-info .si-head{grid-row:auto}
   .kpi-click::after{content:'›';top:6px;right:9px;font-size:16px;font-weight:600}   /* 좁은 화면은 '›'만 */
   .kpi-click:not(.kpi-h)>.kpi-label{padding-right:16px}
   .dash-bar>img{display:none}
-  body.intro-min .site-info .si-items{display:none}   /* 설명을 접으면 관리 항목 목록도 */
+
   .ebar{width:36px;margin-right:6px}
   .kpi-h .kpi-label{flex:0 1 auto!important;white-space:normal;word-break:keep-all;line-height:1.3}   /* 좁으면 이름이 두 줄로 — 값은 줄지 않게 */
   .kpi-h .kv{min-width:auto}

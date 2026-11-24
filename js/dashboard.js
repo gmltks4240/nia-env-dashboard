@@ -151,7 +151,7 @@
     const vdict = {};   // 목표마다 판정 { st: ok|no, txt } — 거점 설명의 판정 칩에 씀
     const reNote = 'RE100 = (자가발전 + 구매) ÷ 총 전력 · 폐기물 = 종량제 봉투 기준';
     $$('tgt-note').innerHTML = !isCur ? `${yS} 실적 기준 · ${T.ghg ? '온실가스 = Scope 1+2' : reNote}`
-      : T.ghg ? '온실가스 = Scope 1+2 · 예측 = 기상연동 예측(직전 2개년 같은 달 평균 + 추세 보정 + 냉난방도일 보정) · <a href="#sec-basis" class="hd-link">근거 보기 ↓</a>'
+      : T.ghg ? '온실가스 = Scope 1+2 · 예측 = 기상연동 예측 · <a href="#sec-basis" class="hd-link">근거 보기 ↓</a>'
       : reNote;
     const ey = energyRecs.filter(r => r.date?.startsWith(yr) && inView(r));
     const wy = wasteRecs.filter(r  => r.date?.startsWith(yr) && inView(r));
@@ -986,7 +986,7 @@
     $$('ce-title').textContent = asTable ? '월별 에너지원별 사용량 · 온실가스 환산 (표)' : '월별 에너지원별 사용량';
     const tap = canEdit() ? '그 달 자료를 보고 바로 고칠 수 있어요' : '그 달 자료를 거점·에너지원별로 볼 수 있어요';
     $$('ce-note').textContent = asTable ? `칸을 누르면 ${tap}`
-      : `막대에 마우스를 올리면 사용량·온실가스 환산값(tCO₂eq)·전년 같은 달을 함께 보여 줘요 · 누르면 ${tap}`;
+      : `막대를 누르면 ${tap}`;
     $$('ce-tbl-wrap').hidden = !asTable;
     $$('ce-legend').hidden = !asTable;
     $$('ce-grid').hidden = asTable; $$('ce-key').hidden = asTable;
@@ -1122,7 +1122,7 @@
     $$('ce-grid').hidden = !shown; $$('ce-empty').hidden = !!shown; $$('ce-key').hidden = !shown;
     $$('ce-card').classList.toggle('is-empty', !shown);
     $$('ce-key').innerHTML = `<span><i class="k-a"></i>${yS} 실적</span>` + (anyPred ? '<span><i class="k-p"></i>예측 (아직 입력 안 된 거점·달)</span>' : '') +
-      (anyPrev ? `<span><i class="k-q"></i>${pS} 같은 달</span>` : '') + '<span>· 에너지원마다 단위가 달라 그래프를 나눴어요</span>';
+      (anyPrev ? `<span><i class="k-q"></i>${pS} 같은 달</span>` : '') + '<span class="k-why">· 에너지원마다 단위가 달라 그래프를 나눴어요</span>';
   }
 
   // 막대 숫자를 붙일 칸: 가장 큰 칸 + 마지막 실적 칸 (막대마다 숫자를 다 쓰면 읽기 어려움 · 나머지는 마우스를 올리면)
