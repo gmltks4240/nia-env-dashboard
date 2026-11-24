@@ -1199,15 +1199,16 @@
     $('o-verdict').hidden = !out.length;
     $('o-verdict').innerHTML = out.map(o => `<li class="${o.st}" role="button" tabindex="0"` +
       (o.pop ? ` data-rmpop="${o.pop}" title="누르면 계산 근거"` : ` data-go="outlook" data-scroll="${o.go}" title="누르면 아래 표로"`) + '>' +
-      `<span class="ov-k">${o.ic} ${esc(o.k)}</span><b class="ov-b">${o.st === 'ok' ? '✓' : o.st === 'warn' ? '!' : '✗'} ${o.b}</b><span class="ov-t">${o.t}</span></li>`).join('');
+      `<span class="ov-ic" aria-hidden="true">${o.ic}</span><span class="ov-m"><span class="ov-k">${esc(o.k)}</span>` +
+      `<b class="ov-b">${o.st === 'ok' ? '✓' : o.st === 'warn' ? '!' : '✗'} ${o.b}</b><span class="ov-t">${o.t}</span></span><span class="ov-go" aria-hidden="true">›</span></li>`).join('');
   }
   // ① 카드 — 30·50년 온실가스 · 30·50년 RE100 · 계량 점수 (누르면 그 해 계산 근거) · 만약에가 켜져 있으면 보라 줄
   function renderOCards(OL, ROL, EV, SOL, SROL, EVS) {
     const t1 = v => fmt(v, 1), cards = [];
     const card = o => `<div class="gs-card o-card ${o.st}" role="button" tabindex="0"` +
       (o.pop ? ` data-rmpop="${o.pop}" title="누르면 계산 근거"` : ` data-go="outlook" data-scroll="${o.go}" title="누르면 아래 표로"`) + '>' +
-      `<div class="gs-k">${o.k}</div><div class="gs-v">${o.v}<small>${o.u}</small></div><div class="gs-t">${o.t}</div>` +
-      `<div class="gs-r">${o.r}</div>${o.sc ? `<div class="o-scl">만약에 ${o.sc}</div>` : ''}${o.s ? `<div class="o-cs">${o.s}</div>` : ''}</div>`;
+      `<div class="gs-k">${o.k}</div><div class="gs-v">${o.v}<small>${o.u}</small></div><div class="gs-r">${o.r}</div>` +
+      `<div class="gs-t">${o.t}</div>${o.sc ? `<div class="o-scl">만약에 ${o.sc}</div>` : ''}${o.s ? `<div class="o-cs">${o.s}</div>` : ''}</div>`;
     const mk = (v, t, lower) => t == null ? '' : (lower ? v <= t + 1e-9 : v >= t - 1e-9) ? ' ✓' : ' ✗';
     if (OL) {
       [2030, 2050].filter(y => OL.ys.includes(y)).forEach(y => {
