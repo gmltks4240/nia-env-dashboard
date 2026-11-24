@@ -1295,7 +1295,7 @@
       b.title = min ? '이 화면 설명 펼치기' : '설명을 한 줄로 접기 (모든 탭 같이)';
     });
   };
-  document.querySelectorAll('.welcome-banner, .tab-banner').forEach(bn => {
+  document.querySelectorAll('.welcome-banner, .tab-banner, .intro-host').forEach(bn => {
     const b = document.createElement('button');
     b.type = 'button'; b.className = 'intro-x';
     b.addEventListener('click', () => {

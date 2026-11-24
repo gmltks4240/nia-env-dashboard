@@ -129,18 +129,22 @@ header{background:var(--surface);color:var(--text);padding:0 20px;border-bottom:
 
 /* ── 탭 네비 ─────────────────────────────────────────── */
 .tab-nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 20px;position:sticky;top:0;z-index:10}
-.tab-nav-inner{max-width:1240px;margin:0 auto;display:flex;flex-wrap:wrap;align-items:center;gap:4px}
-.tab-row{display:flex;gap:4px;min-width:0;max-width:100%;overflow-x:auto;scrollbar-width:none}
+.tab-nav-inner{max-width:1240px;margin:0 auto;display:flex;flex-wrap:nowrap;align-items:center;gap:4px}   /* 탭 줄과 거점 선택을 한 줄로 (좁으면 탭 줄이 옆으로 밀림) */
+.tab-row{display:flex;flex:1 1 auto;gap:4px;min-width:0;max-width:100%;overflow-x:auto;scrollbar-width:none}
 .tab-row::-webkit-scrollbar{display:none}
 .tab-row .tab-btn{flex:none}
-.nav-site{margin-left:auto;display:flex;align-items:center;gap:8px;padding:6px 0}
+.nav-site{flex:none;margin-left:auto;padding-left:12px;display:flex;align-items:center;gap:8px;padding:6px 0 6px 12px}
 .nav-site-lbl{font-size:12px;font-weight:500;color:var(--muted);white-space:nowrap}
-.nav-site .site-seg button{padding:4px 12px;font-size:12px}
-.tab-btn{padding:14px 18px;font-size:14px;font-weight:500;color:var(--muted);border-bottom:2px solid transparent;transition:var(--t-ui);white-space:nowrap;display:flex;align-items:center;gap:6px}
+/* 거점 단추는 짧은 이름으로 (고른 거점의 전체 이름은 바로 아래 거점 상자에 나온다) — 탭 줄과 한 줄에 들어가게 */
+.nav-site .site-seg button{padding:4px 10px;font-size:12px;font-size:0}
+.nav-site .site-seg button::after{content:attr(data-short);font-size:12px}
+.nav-site-lbl span{display:none}
+.tab-btn{padding:14px 12px;font-size:14px;font-weight:500;color:var(--muted);border-bottom:2px solid transparent;transition:var(--t-ui);white-space:nowrap;display:flex;align-items:center;gap:6px}
 .tab-btn:hover{color:var(--text)}
 .tab-btn.active{color:var(--text);border-bottom-color:var(--accent);font-weight:600}   /* 신호는 밑줄 하나로 */
 .tab-hint{font-family:var(--fdata);font-size:12px;font-weight:500;color:var(--muted);opacity:.8;letter-spacing:.2px}   /* 탭 이름 옆: 그 탭이 다루는 기간 */
 .tab-btn.active .tab-hint{color:var(--text2);opacity:1}
+@media(max-width:1120px){.tab-hint{display:none}}   /* 자리가 좁으면 탭 이름만 — 탭 줄과 거점 선택이 한 줄에 들어가게 */
 .tab-badge{background:var(--accent);color:var(--bg);border-radius:10px;font-size:11px;font-weight:500;padding:1px 8px;min-width:22px;text-align:center;line-height:1.6}
 .tab-btn:not(.active) .tab-badge{background:var(--border2);color:var(--text2)}
 
@@ -536,6 +540,8 @@ table.main-tbl.rmg-tbl tbody tr[data-year] td:first-child,table.main-tbl.rmg-tbl
 .det-hd .rmg-long:not([hidden])+.btn-export{margin-left:0}
 /* 올해 현황 · 실적 조회 */
 .year-chip{font-size:13px;font-weight:600;color:var(--text);background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:4px 12px}
+.chip-upd{display:none}   /* 업데이트 날짜는 머리 오른쪽 '최근 업데이트'에 — 그게 숨는 휴대폰에서만 칩에 붙인다 */
+@media(max-width:767px){.chip-upd{display:inline;font-weight:500;color:var(--muted)}}
 .kpi-row{display:flex;align-items:baseline;gap:4px;white-space:nowrap}
 .kpi-row .kpi-value{font-size:20px}
 .kpi-u{font-size:11px;color:var(--muted)}
@@ -859,6 +865,9 @@ table.main-tbl.gs-tbl tr:hover td:first-child{background:var(--surface2)}
 #tab-dashboard .fold-sec,#site-breakdown{scroll-margin-top:var(--d-stick,110px)}
 .d-toc{flex:1 1 360px;min-width:0}
 .dash-bar{padding-top:8px;padding-bottom:8px}
+/* 탭 줄 바로 아래 한 줄 설명 (예전 환영 배너 자리) — 설명을 접으면 숨고, 막대의 '설명 ▾'로 다시 펼침 */
+.tab-desc{margin:0 0 12px;font-size:13px;color:var(--muted);line-height:1.6}
+.intro-host{margin-left:auto;display:inline-flex}
 .o-bar{margin-bottom:20px}
 .o-toc{flex:1 1 420px;min-width:0}
 .dash-bar .filter-mascot{width:28px;height:28px}
@@ -1065,7 +1074,8 @@ table.main-tbl.gs-tbl tr:hover td:first-child{background:var(--surface2)}
 @media(max-width:1023px){.sum-grid{grid-template-columns:repeat(auto-fill,minmax(210px,1fr))}}
 @media(max-width:767px){.fold-hd .hd-note{margin-left:0}.hd-sel,.det-hd .hd-seg{margin-left:0}
   .hist-bar{position:static;margin:0 0 16px;padding:0 0 10px}
-  .nav-site{flex-basis:100%;margin-left:0;padding:0 0 8px}
+  .tab-nav-inner{flex-wrap:wrap}
+  .nav-site{flex:1 1 100%;flex-basis:100%;margin-left:0;padding:0 0 8px}
   .nav-site .site-seg{display:grid;grid-template-columns:repeat(4,1fr);flex:1;width:auto;border-radius:16px}
   .nav-site .site-seg button{padding:4px 4px;border-radius:12px;font-size:0}
   .nav-site .site-seg button::after{content:attr(data-short);font-size:12px}
@@ -1944,7 +1954,6 @@ body:has(#tab-home.active) .btn-login{border-color:var(--h-line);color:var(--h-p
   .header-right{display:none}
   .scope-cards{grid-template-columns:1fr}
   .tab-btn{padding:12px 10px;font-size:12px}
-  .tab-hint{display:none}   /* 좁은 화면에서는 탭 이름만 */
   .config-row{gap:8px}
   .manage-toolbar{flex-direction:column;align-items:flex-start}
 }
@@ -2088,6 +2097,7 @@ body.intro-min .welcome-banner .wb-text p,body.intro-min .tab-banner span{displa
 /* 설명을 접으면: 거점 설명 문장 · 관리 항목 목록 · 카드 막대 범례 · 그래프 안내 줄까지 함께 접는다
    (늘 필요한 것 = 숫자·단위·구역 제목 · 궁금할 때 보는 것 = 설명. '설명 ▾'로 언제든 다시 펼침) */
 body.intro-min .site-info .si-desc{display:none}
+body.intro-min .tab-desc{display:none}
 body.intro-min .site-info .si-items{display:none}
 body.intro-min .sec-unit .mb-legend{display:none}
 body.intro-min :is(#tab-dashboard,#tab-history) :is(.chart-note,.sec-note,.k-why){display:none}
