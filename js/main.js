@@ -416,9 +416,35 @@
     if (/^k-ev|^k-pue|^k-cloud|^k-water/.test(k)) return [{ k: '입력값', ...S_IN_M }];
     return isCurFc ? [{ k: '지금까지 실적', ...S_IN_E }, S_FC()] : [];
   }
+  // 팝업을 열면 먼저 요약(큰 숫자·한 줄 설명·계산식)만 보이고, 자세한 내역은 모두 접혀 있다.
+  // 표가 네댓 개 한꺼번에 쏟아지면 정작 결론이 안 읽히고, 대부분은 결론만 보고 닫는다.
+  // 더 보고 싶은 사람만 제목 줄을 눌러 펼친다. 구역을 만드는 곳이 파일 네 개에 흩어져 있어
+  // 각자 고치는 대신, 다 그려 놓은 뒤 여기서 한 번에 <details> 로 바꾼다
+  function foldSecs(root) {
+    // 배출계수처럼 긴 칸이 있는 표는 폭을 넘겨 팝업 밖으로 삐져나온다 — 가로로 밀어 볼 수 있게 감싼다
+    root.querySelectorAll('table.calc-tbl').forEach(t => {
+      if (t.parentElement.classList.contains('calc-tw')) return;
+      const w = document.createElement('div'); w.className = 'calc-tw';
+      t.replaceWith(w); w.appendChild(t);
+    });
+    [...root.children].filter(el => el.classList.contains('calc-sec')).forEach(sec => {
+      const h = sec.querySelector(':scope > h4'); if (!h) return;
+      const d = document.createElement('details');
+      d.className = `${sec.className} cfold`;
+      const sm = document.createElement('summary');
+      // '펼치기 / 닫기' 글자는 CSS 로 — 여는 상태에 따라 글자가 바뀐다
+      sm.innerHTML = `${h.innerHTML}<span class="cf-t"></span><i class="cf-ar" aria-hidden="true">›</i>`;
+      h.remove();
+      d.append(sm, ...sec.childNodes);
+      sec.replaceWith(d);
+    });
+  }
   function renderCalc(c, key) {
     const u = c.unit || 'tCO₂eq';
-    $('calc-title').textContent = c.title;
+    // 제목 앞에는 코드가 붙인 아이콘(icn() 이 만든 <svg>)이 올 수 있다. textContent 로 넣으면
+    // 그 태그가 글자 그대로 보이므로, 맨 앞 아이콘만 그대로 두고 나머지는 글자로 넣는다
+    const tt = String(c.title ?? ''), tIc = tt.match(/^(<svg\b[^>]*>[\s\S]*?<\/svg>)\s*([\s\S]*)$/);
+    $('calc-title').innerHTML = tIc ? `${tIc[1]} ${esc(tIc[2])}` : esc(tt);
     $('calc-sub').textContent = [c.sub, c.period, c.site].filter(Boolean).join(' · ');
     // 점수 히어로 (경영평가 계량 카드) · 그 밖에는 기존 큰 숫자 줄
     const q = c.score;
@@ -504,6 +530,7 @@
     // 숫자 출처 · 어디서 보나 (모든 팝업)
     out.push(srcSection(c.src || srcFor(key, c)));
     $('calc-body').innerHTML = out.join('') || (c.value == null ? '' : '<p class="calc-empty">나눠 볼 내역이 없어요</p>');
+    foldSecs($('calc-body'));
     $('calc-note').textContent = c.note || '';
     $('calc-scroll') && ($('calc-scroll').scrollTop = 0);
   }
@@ -1295,7 +1322,7 @@
       b.title = min ? '이 화면 설명 펼치기' : '설명을 한 줄로 접기 (모든 탭 같이)';
     });
   };
-  document.querySelectorAll('.welcome-banner, .tab-banner').forEach(bn => {
+  document.querySelectorAll('.welcome-banner, .tab-banner, .intro-host').forEach(bn => {
     const b = document.createElement('button');
     b.type = 'button'; b.className = 'intro-x';
     b.addEventListener('click', () => {

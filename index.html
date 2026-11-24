@@ -16,7 +16,7 @@
 <script src="vendor/anime.min.js"></script>
 <script>window.anime || document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.2/anime.min.js"><\/script>');</script>
 <script>window.Chart || document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"><\/script>');</script>
-<link rel="stylesheet" href="css/app.css?v=4bc4d21434">
+<link rel="stylesheet" href="css/app.css?v=727bda041b">
 </head>
 <body>
 <!-- 선 아이콘 모음 (currentColor · 굵기 1.8) -->
@@ -135,7 +135,7 @@
     </div>
     <!-- 거점 선택: 위쪽 탭 줄에 붙어 있어 어디까지 스크롤해도 바로 바꿈 (올해 현황·실적 조회·목표·로드맵에서 보임) -->
     <div class="nav-site" id="nav-site">
-      <span class="nav-site-lbl" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-pin"/></svg> 거점</span>
+      <span class="nav-site-lbl" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-pin"/></svg><span> 거점</span></span>
       <div class="site-seg" role="group" aria-label="거점 선택 (올해 현황·지난 실적·목표·로드맵)">
         <button type="button" data-site="대구본원" data-short="대구" aria-label="대구본원" aria-pressed="true">대구본원</button>
         <button type="button" data-site="제주글로벌센터" data-short="제주" aria-label="제주글로벌센터" aria-pressed="false">제주글로벌센터</button>
@@ -196,24 +196,18 @@
 
 <!-- ══ 탭 1: 올해 현황 ═════════════════════════════════ -->
 <section id="tab-dashboard" class="tab-panel">
-  <div class="welcome-banner">
-    <img src="img/mascot-welcome.png" class="wb-mascot" alt="NIA 마스코트">
-    <div class="wb-text">
-      <h2>NIA 환경경영 모니터링 시스템</h2>
-      <p>올해 온실가스·에너지·폐기물 현황을 거점별로 봐요 · 거점마다 적용하는 목표가 달라, 고른 거점의 목표 대비 실적을 보여드려요 · 지난 연도 확정 실적은 '지난 실적' 탭에 있어요</p>
-    </div>
-  </div>
+  <p class="tab-desc">올해 온실가스·에너지·폐기물 현황을 거점별로 봐요 · 거점마다 적용하는 목표가 달라, 고른 거점의 목표 대비 실적을 보여드려요 · 지난 연도 확정 실적은 '지난 실적' 탭에 있어요</p>
   <div class="filter-bar hist-bar dash-bar" id="d-bar">
     <img src="img/mascot-dash-bar.png" class="filter-mascot" alt="검색 나나">
     <span class="year-chip" id="cur-year-label">올해 현황</span>
     <nav class="h-toc d-toc" id="d-toc" aria-label="올해 현황 바로가기"></nav>
     <button class="status-chip" id="status-chip" type="button" data-need="edit" hidden></button>
+    <span class="intro-host"></span>
   </div>
   <div class="site-info" id="site-info"></div>
 
   <!-- 한 해 화면: 실적 조회의 '한 해' 화면도 이 묶음을 그대로 복제해 씀 (id 앞에 y- 를 붙여서) -->
   <div class="year-view" id="yv">
-  <p class="al-legend" id="al-legend" hidden></p>
   <!-- 온실가스 (누적) -->
   <details class="kpi-section fold-sec" id="sec-ghg" open>
     <summary class="kpi-section-hd">온실가스 배출 <span class="hd-note" id="ghg-period">올해 누적</span></summary>
@@ -1560,13 +1554,13 @@
 </script>
 <!-- 앱 스크립트: 순서가 중요함 (core → … → main). 고친 뒤 python tools/bump_version.py -->
 <script src="js/core.js?v=54b58c75c1"></script>
-<script src="js/ui.js?v=c739ec486e"></script>
-<script src="js/charts.js?v=20a470c56d"></script>
-<script src="js/dashboard.js?v=977d5bfa93"></script>
+<script src="js/ui.js?v=f9498c9a2f"></script>
+<script src="js/charts.js?v=31e3144bf2"></script>
+<script src="js/dashboard.js?v=95989e7139"></script>
 <script src="js/home.js?v=a06a62363a"></script>
 <script src="js/outlook.js?v=07bb993e05"></script>
 <script src="js/input.js?v=140bdb7958"></script>
 <script src="js/manage.js?v=2c50ace550"></script>
-<script src="js/main.js?v=6cb05426cf"></script>
+<script src="js/main.js?v=cb054d7111"></script>
 </body>
 </html>
