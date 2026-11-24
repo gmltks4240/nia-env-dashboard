@@ -633,6 +633,31 @@
     el.closest('details')?.setAttribute('open', '');   // 거점별 표는 '사용량' 구역 안에 있음
     el.scrollIntoView({ behavior: reduceMotion() ? 'auto' : 'smooth', block: 'start' });
   });
+  // 전망 바로가기: 구역 칩 · 누르면 접힌 구역을 펼치고 이동 · 스크롤하면 지금 구역 표시
+  const O_TOC = [['o-sum-sec', '한눈에 보기'], ['o-wi-sec', '만약에 계산'], ['o-ghg-sec', '온실가스'], ['o-re-sec', 'RE100'], ['o-ev-sec', '경영평가 점수'], ['o-how-sec', '계산 방법']];
+  function renderOutlookToc() {
+    const vis = id => { const el = $(id); return el && !el.hidden && el.style.display !== 'none' && !el.closest('[hidden]'); };
+    $('o-toc').innerHTML = O_TOC.filter(([id]) => vis(id)).map(([id, t]) => `<a href="#${id}" data-to="${id}">${t}</a>`).join('');
+    const nav = document.querySelector('.tab-nav')?.offsetHeight || 49, bar = $('o-bar');
+    const sticky = getComputedStyle(bar).position === 'sticky';   // 휴대폰에서는 붙지 않음
+    document.documentElement.style.setProperty('--o-stick', `${nav + (sticky ? bar.offsetHeight : 0) + 8}px`);
+    outlookTocSpy();
+  }
+  function outlookTocSpy() {
+    const links = [...$('o-toc').querySelectorAll('a[data-to]')];
+    if (!links.length || !$('tab-outlook').classList.contains('active')) return;
+    const line = (parseFloat(document.documentElement.style.getPropertyValue('--o-stick')) || 110) + 8;
+    let cur = links[0];
+    links.forEach(a => { if ($(a.dataset.to).getBoundingClientRect().top <= line) cur = a; });
+    links.forEach(a => a.classList.toggle('on', a === cur));
+  }
+  $('o-toc').addEventListener('click', e => {
+    const a = e.target.closest('a[data-to]'), el = a && $(a.dataset.to);
+    if (!el) return;
+    e.preventDefault();
+    if (el.tagName === 'DETAILS') el.open = true;
+    el.scrollIntoView({ behavior: reduceMotion() ? 'auto' : 'smooth', block: 'start' });
+  });
   function histTocSpy() {
     const links = [...$('h-toc').querySelectorAll('a[data-to]')];
     if (!links.length || !$('tab-history').classList.contains('active')) return;
@@ -1115,6 +1140,8 @@
     run('에너지원별', () => renderOSrc(OL));
     run('경영평가', () => renderOEval(EVB, OL));
     run('셈 방법', () => renderOHow(ROL));
+    $('o-span-chip').textContent = `지금 \u2192 ${OUTLOOK.to}년`;
+    run('바로가기', renderOutlookToc);
   }
   // ⓪ 결론 — 목표마다 한 줄: 지금처럼 가면 지키나 · 언제부터 못 지키나 · 얼마나 · 무엇으로 채우나 (누르면 그 해 계산 근거)
   function renderOVerdict(OL, ROL, EV) {

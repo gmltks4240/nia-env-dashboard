@@ -817,7 +817,7 @@
     run('올해 현황', renderDash);
     run('입력 현황', renderStatusBoard);
     run('예측 근거', renderBasis);
-    run('실적 조회', renderHistory);
+    run('지난 실적', renderHistory);
     run('목표·로드맵', renderRoadmapTab);
     run('전망', () => { if (olTabOn()) renderOutlookTab(); });   // 전망 탭은 열려 있을 때만 (탭을 누르면 그때 그림)
     run('메인', renderHome);

@@ -139,6 +139,8 @@ header{background:var(--surface);color:var(--text);padding:0 20px;border-bottom:
 .tab-btn{padding:14px 18px;font-size:14px;font-weight:500;color:var(--muted);border-bottom:2px solid transparent;transition:var(--t-ui);white-space:nowrap;display:flex;align-items:center;gap:6px}
 .tab-btn:hover{color:var(--text)}
 .tab-btn.active{color:var(--text);border-bottom-color:var(--accent);font-weight:600}   /* 신호는 밑줄 하나로 */
+.tab-hint{font-family:var(--fdata);font-size:12px;font-weight:500;color:var(--muted);opacity:.8;letter-spacing:.2px}   /* 탭 이름 옆: 그 탭이 다루는 기간 */
+.tab-btn.active .tab-hint{color:var(--text2);opacity:1}
 .tab-badge{background:var(--accent);color:var(--bg);border-radius:10px;font-size:11px;font-weight:500;padding:1px 8px;min-width:22px;text-align:center;line-height:1.6}
 .tab-btn:not(.active) .tab-badge{background:var(--border2);color:var(--text2)}
 
@@ -359,7 +361,8 @@ button.sb-btn:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
 .olpv .cs-go{margin-left:auto}
 @media(max-width:767px){.ol-tbl.main-tbl{min-width:440px}.ol-tbl .ol-t{display:block;margin:0 0 4px}}
 /* 📈 전망 탭 — 한눈에 보기 카드 · 만약에 · 그래프 · 표 (주요 연도만 → 모든 연도) · 셈 방법 */
-#tab-outlook .fold-sec{margin-bottom:28px;scroll-margin-top:64px}   /* 위에 붙는 탭 줄 아래로 */
+#tab-outlook .fold-sec,#tab-outlook .kpi-section{scroll-margin-top:var(--o-stick,110px)}   /* 위에 붙는 탭 줄·바로가기 막대 아래로 */
+#tab-outlook .fold-sec{margin-bottom:28px}
 #tab-outlook .fold-sec:not([open]){margin-bottom:14px}
 #o-sum-sec{margin-bottom:24px}
 .o-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
@@ -854,6 +857,8 @@ table.main-tbl.gs-tbl tr:hover td:first-child{background:var(--surface2)}
 #tab-dashboard .fold-sec,#site-breakdown{scroll-margin-top:var(--d-stick,110px)}
 .d-toc{flex:1 1 360px;min-width:0}
 .dash-bar{padding-top:8px;padding-bottom:8px}
+.o-bar{margin-bottom:20px}
+.o-toc{flex:1 1 420px;min-width:0}
 .dash-bar .filter-mascot{width:28px;height:28px}
 /* 성과 카드 · 지표 추이 카드: 고른 연도 값 → 전년 대비 → 목표 상태 → 연도별 미니 막대 */
 .sum-grid{display:grid;grid-template-columns:repeat(var(--cols,3),minmax(0,1fr));gap:12px;margin-bottom:12px}
@@ -1829,6 +1834,7 @@ body:has(#tab-home.active){--h-ink:#0F172A;--h-panel:#1E293B;--h-panel-2:#273549
 body:has(#tab-home.active) .tab-nav{background:var(--h-panel);border-bottom-color:var(--h-line)}
 body:has(#tab-home.active) .tab-btn{color:var(--h-muted)}
 body:has(#tab-home.active) .tab-btn.active{color:var(--h-paper);border-bottom-color:var(--h-accent)}
+body:has(#tab-home.active) .tab-hint{color:var(--h-muted)}
 #tab-home{color:var(--h-paper)}
 
 /* 1단 — 무슨 시스템인가. 카드를 두르지 않고 바탕 위에 그대로 둔다. */
@@ -1936,6 +1942,7 @@ body:has(#tab-home.active) .btn-login{border-color:var(--h-line);color:var(--h-p
   .header-right{display:none}
   .scope-cards{grid-template-columns:1fr}
   .tab-btn{padding:12px 10px;font-size:12px}
+  .tab-hint{display:none}   /* 좁은 화면에서는 탭 이름만 */
   .config-row{gap:8px}
   .manage-toolbar{flex-direction:column;align-items:flex-start}
 }
