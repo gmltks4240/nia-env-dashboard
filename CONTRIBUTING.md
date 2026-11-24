@@ -20,7 +20,8 @@ git config --global user.email "깃허브 가입 이메일"
 
 대신 셋이 같은 파일을 건드리면 충돌이 나므로, 이것만 지키면 대부분 피해집니다.
 
-- **시작 전에 `git pull`** — 남이 merge 한 걸 먼저 받아오기
+- **시작 전에 최신 받아오기** — Claude Code 로 작업하면 세션이 열릴 때
+  `.claude/hooks/session-start.sh` 가 알아서 받아옵니다. 직접 할 때는 `git pull`
 - **PR 을 작게, 자주** — 일주일치를 한 번에 올리면 거의 확실히 충돌합니다
 - **지금 뭘 하는지 공유** — 단톡방이든 이슈든. 둘이 같은 걸 하고 있는 게 제일 아깝습니다
 - **큰 걸 건드릴 땐 미리 말하기** — `js/core.js`, `js/main.js`, `css/app.css`,
