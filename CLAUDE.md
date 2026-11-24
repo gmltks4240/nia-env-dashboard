@@ -58,16 +58,6 @@ diff 가 말해주지 않는 것 — **어떤 문제가 있었고 왜 이 방법
 - 색은 CSS 토큰(`--chart-*` 등)에서만 정한다. JS 에 색 리터럴을 쓰지 않는다
 - 간격은 2px 격자를 따른다
 
-### Scope 3 출장 (해당 작업 브랜치에서만)
-
-- `js/trip-data.js`(생성된 데이터 · **사람이 고치지 않는다**) → `js/trip-engine.js`(순수 함수) →
-  `js/trip-ui.js`(화면) 순서로, `js/manage.js` 뒤 `js/main.js` 앞에서 불러온다
-- **원본 장소명을 커밋하지 않는다.** 장소 사전은 Supabase(비공개).
-  `js/trip-data.js` 에는 도시·금액·구간·설명만 넣는다
-- 생성 블록(`@trip-ref` · `@trip-fare` · `@trip-seen`)은 도구가 덮어쓴다.
-  `@trip-labels` 만 직접 추가한다
-- 인수인계: `docs/HANDOFF-trip-scope3.md`. 세션이 바뀌면 이것부터 읽는다
-
 ## 테스트
 
 ```bash
@@ -92,6 +82,7 @@ python3 tests/run_all.py
 | PR·main 푸시 | `.github/workflows/tests.yml` — 테스트 10종 |
 
 푸시 전 검사가 멈춰 세우면, **사용자에게 무엇이 겹치는지 알리고 어떻게 할지 확인한 뒤** 진행한다.
+확인이 끝나 그대로 밀기로 했다면 `PREPUSH_OK=1 git push ...` 로 민다. 확인 없이 먼저 붙이지 않는다.
 
 ## 공개 저장소다
 
