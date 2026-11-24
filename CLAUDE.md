@@ -66,7 +66,7 @@
   안 하면 사용자 브라우저가 캐시된 옛 파일을 쓴다. `test_design_system` 이 잡아준다
 - 색은 CSS 토큰(`--chart-*` 등)에서만 정한다. JS 에 색 리터럴을 쓰지 않는다
 - 간격은 2px 격자를 따른다
-- 테스트: `python3 tests/run_all.py` (처음엔 `pip install playwright && playwright install chromium`)
+- 테스트: `python3 tests/run_all.py` (처음엔 `pip install playwright==1.65.1 && playwright install chromium` — CI와 같은 버전)
 
 ## 6. 공개 저장소다
 
