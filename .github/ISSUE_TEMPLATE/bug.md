@@ -2,7 +2,7 @@
 name: 버그
 about: 뭔가 잘못 동작함
 title: ''
-labels: 버그
+labels: bug
 ---
 
 ## 무슨 일이 일어났나

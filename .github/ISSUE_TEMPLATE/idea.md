@@ -2,7 +2,7 @@
 name: 아이디어
 about: 하고 싶은 것, 있으면 좋겠는 기능
 title: ''
-labels: 아이디어
+labels: enhancement
 ---
 
 ## 무엇
