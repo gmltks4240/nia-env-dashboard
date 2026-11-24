@@ -33,11 +33,12 @@
                   TARGET_SITES.waste.includes(si) && ['wt', '폐기물 감축']].filter(Boolean);
     if (!si) tags.push(['ghg', '온실가스 감축 (대구본원)'], ['re', `RE100 (대구+제주 합산)`], ['wt', '폐기물 감축 (세 거점 합산)']);
     $(id).innerHTML = `<div class="si-head"><b class="si-name">${si || '전체 합계'}</b><span class="si-role ${info.tone}">${info.role}</span></div>` +
-      `<p class="si-desc">${info.desc}</p><div class="si-meta"><span class="si-k si-tk">적용 목표</span>` +
-      (tags.length ? tags.map(([k, t]) => `<span class="si-tag" data-k="${k}">${t}</span>`).join('') : '<span class="si-none">없음</span>') +
+      `<div class="si-meta"><span class="si-k si-tk">적용 목표</span>` +
+      (tags.length ? tags.map(([k, t]) => `<span class="si-tag" data-k="${k}">${t}</span>`).join('') : '<span class="si-none">없음</span>') + '</div>' +
+      `<p class="si-desc">${info.desc}` +
       `<span class="si-items"><span class="si-k">관리 항목</span><span${items.length > 3 ? ` title="${esc(items.join(' · '))}"` : ''}>` +
       (items.length ? items.slice(0, 3).map(esc).join(' · ') + (items.length > 3 ? ` 외 ${items.length - 3}개` : '')
-                    : '<span class="si-none">입력된 자료 없음</span>') + '</span></span></div>';
+                    : '<span class="si-none">입력된 자료 없음</span>') + '</span></span></p>';
   }
   function setSite(si) {
     curSite = si;
@@ -582,7 +583,7 @@
     if (v2) renderEnvKpis(P, si, year, isCur);
 
     // 빈 칸 정리 (자원·기타 · 사용량) · 경고 표시 읽는 법
-    tidyEnv(P); tidyUsage(P, ey); alLegend(P);
+    tidyEnv(P); tidyUsage(P, ey);
     // 자료가 없어 '해당 없음·추후 예정'인 카드는 눌러도 보여 줄 게 없으니 키보드 차례에서도 뺌
     document.querySelectorAll(`#${P ? 'y-yv' : 'yv'} .kpi-click`).forEach(c =>
       c.setAttribute('tabindex', c.classList.contains('kpi-placeholder') ? '-1' : '0'));
