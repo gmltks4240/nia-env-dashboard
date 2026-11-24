@@ -2374,7 +2374,7 @@ table.main-tbl tbody tr:hover>td,.sb-tbl tbody tr:hover>td{background:rgba(255,2
    · 제목은 크게, 설명은 그 아래 한 줄 회색으로 — 한 줄에 다 몰지 않는다
    · 안쪽 블록(결론·카드·지도·만약에·표)은 테두리를 빼고 평평하게
    · 숫자가 주인공: 카드 값 28px, 결론은 '판정 한 줄'을 제목처럼 */
-#tab-outlook .kpi-section,#tab-outlook .fold-sec{background:var(--surface);border-radius:20px;padding:24px 24px 20px;margin-bottom:16px;box-shadow:var(--shadow)}
+#tab-outlook .kpi-section,#tab-outlook .fold-sec{background:var(--surface);border-radius:16px;padding:24px 24px 20px;margin-bottom:16px;box-shadow:var(--shadow)}
 #tab-outlook .fold-sec:not([open]){margin-bottom:12px;padding-bottom:24px}
 #o-sum-sec{margin-bottom:16px}
 /* 구획 제목: 20px · 설명은 다음 줄 */
@@ -2392,7 +2392,7 @@ table.main-tbl tbody tr:hover>td,.sb-tbl tbody tr:hover>td{background:rgba(255,2
 
 /* 결론 — 목록 한 줄 = 아이콘 동그라미 · (라벨 / 판정 / 설명) · › */
 #tab-outlook .o-verdict{border:0;background:none;margin:0 -12px 20px;border-radius:0}
-#tab-outlook .o-verdict li{display:grid;grid-template-columns:44px minmax(0,1fr) auto;align-items:center;gap:0 14px;padding:14px 12px;border-radius:14px;color:var(--text2)}
+#tab-outlook .o-verdict li{display:grid;grid-template-columns:44px minmax(0,1fr) auto;align-items:center;gap:0 14px;padding:14px 12px;border-radius:12px;color:var(--text2)}
 #tab-outlook .o-verdict li+li{border-top:0}
 #tab-outlook .o-verdict li:hover{background:var(--surface2)}
 #tab-outlook .ov-ic{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;font-size:20px}
@@ -2506,11 +2506,11 @@ table.main-tbl tbody tr:hover>td,.sb-tbl tbody tr:hover>td{background:rgba(255,2
 #o-wi-sec .o-q{color:var(--vio)}
 /* 질문 바로가기 — 한 줄짜리 알약 (자리를 적게 차지하게) */
 #tab-outlook .o-guide{padding:16px 18px 14px}
-#tab-outlook .o-guide>summary.kpi-section-hd{font-size:15px;margin-bottom:10px;gap:4px 8px}
+#tab-outlook .o-guide>summary.kpi-section-hd{font-size:16px;margin-bottom:10px;gap:4px 8px}
 #tab-outlook .o-guide>summary.kpi-section-hd .hd-note{font-size:12px}
 #tab-outlook .o-guide>summary.kpi-section-hd::after{padding:4px 10px;font-size:11px}
 #tab-outlook .o-qs{display:flex;flex-wrap:wrap;gap:6px}
-#tab-outlook .o-qb{display:inline-flex;align-items:center;gap:7px;padding:7px 12px 7px 8px;border-radius:999px;background:var(--surface2);text-align:left;color:var(--text2)}
+#tab-outlook .o-qb{display:inline-flex;align-items:center;gap:6px;padding:6px 12px 6px 6px;border-radius:999px;background:var(--surface2);text-align:left;color:var(--text2)}
 #tab-outlook .o-qb:hover{background:var(--sel-bg);color:var(--text)}
 #tab-outlook .o-qb:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 #tab-outlook .o-qi{display:grid;place-items:center;width:24px;height:24px;border-radius:8px;background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent);font-size:13px}
@@ -2550,7 +2550,7 @@ table.main-tbl tbody tr:hover>td,.sb-tbl tbody tr:hover>td{background:rgba(255,2
 @media(max-width:640px){
   #tab-outlook .o-guide{padding:14px 14px 12px}
   #tab-outlook .o-guide>summary.kpi-section-hd{font-size:14px;margin-bottom:8px}
-  #tab-outlook .o-qb{padding:6px 10px 6px 7px}
+  #tab-outlook .o-qb{padding:6px 10px 6px 6px}
   #tab-outlook .o-qb b{font-size:12px}
   #tab-outlook .o-terms dl{grid-template-columns:1fr}
   #tab-outlook .o-lead{padding:16px}
