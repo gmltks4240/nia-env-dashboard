@@ -439,6 +439,16 @@
       sec.replaceWith(d);
     });
   }
+  // 배출계수 한 줄 줄이기: 괄호 설명을 떼고 소수점을 유효숫자 4자리까지만
+  // ('0.0021649672212 tCO₂eq/m³ (NGMS 유효계수 · 보일러 등…)' → '0.002165 tCO₂eq/m³')
+  function shortEf(s) {
+    const t = String(s ?? '').trim(), head = t.split(' (')[0].trim();
+    // 괄호 앞에 숫자가 없으면(폐기물: '사업장별 유효계수 (대구 … ) tCO₂eq/ton') 떼어낼 게 없으니 그대로 두고 숫자만 줄인다
+    return (/\d/.test(head) ? head : t).replace(/\d*\.\d+/g, m => {
+      const n = +m;
+      return n ? String(+n.toPrecision(4)) : m;
+    });
+  }
   function renderCalc(c, key) {
     const u = c.unit || 'tCO₂eq';
     // 제목 앞에는 코드가 붙인 아이콘(icn() 이 만든 <svg>)이 올 수 있다. textContent 로 넣으면
@@ -491,12 +501,14 @@
     // ②-1 미리 만든 블록 (전망: 목표와 견주기 · 에너지원별 셈 · 태양광 설비)
     if (c.blocks?.length) out.push(...c.blocks);
     // ③ 항목별: 사용량 × 배출계수 = tCO₂eq
+    //    배출계수는 자릿수가 길고 괄호 설명까지 붙어 표를 팝업 밖으로 밀어낸다.
+    //    표에는 숫자만 짧게 — 전체 값과 설명은 칸에 손을 올리면 뜨고, '숫자 출처'에도 그대로 있다
     if (rows.length) {
       out.push(`<div class="calc-sec"><h4><span>${many ? '무엇이 합쳐졌나' : '어떻게 계산했나'}</span><em>사용량 × 배출계수 = ${esc(u)}</em></h4><table class="calc-tbl">` +
         `<thead><tr><th>항목</th><th>사용량</th><th class="ct-eq">× 배출계수</th><th>${esc(u)}</th>${many ? '<th class="ct-share">비중</th>' : ''}</tr></thead><tbody>` +
         rows.map(r => `<tr><td class="ct-nm"><i style="background:${typeCol(r.k)}"></i>${esc(r.k)}${r.sub ? `<small>${esc(r.sub)}</small>` : ''}</td>` +
           `<td class="ct-n">${fq(r.amt)}<span class="ct-u">${esc(r.amtU || '')}</span></td>` +
-          `<td class="ct-eq">${esc(r.factor || '')}</td>` +
+          `<td class="ct-eq"${r.factor ? ` title="${esc(r.factor)}"` : ''}>${esc(shortEf(r.factor))}</td>` +
           `<td class="ct-n ct-val">${cNum(r.ghg)}</td>` +
           (many ? `<td class="ct-share"><span class="ct-sbar"><span class="sb"><i style="width:${(r.ghg / tot * 100).toFixed(1)}%;background:${typeCol(r.k)}"></i></span><b>${cPct(r.ghg, tot)}%</b></span></td>` : '') +
           '</tr>').join('') +
