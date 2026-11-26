@@ -26,6 +26,16 @@
       anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5dmZ4ZWN2Y2dmdnFweWRocXNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkwMTA1MjIsImV4cCI6MjEwNDU4NjUyMn0.0koO0AaM0vLKESAn7qqwNpwdygcroln1zu9YpflT_oU',
     },
 
+    /* 아래 url 을 그대로 둔 채(= 설정을 아직 안 바꾼 채) hosts 가 아닌 곳에서 열면
+       화면 맨 위에 '데모 데이터' 안내 띠가 뜹니다. 받아서 띄웠는데 남의 숫자가
+       보이는 일을 막기 위한 장치입니다.
+       본인 Supabase 주소로 바꾸면 이 띠는 저절로 사라집니다.
+       (이 장치가 필요 없으면 demo 를 통째로 지우세요) */
+    demo: {
+      url: 'https://yyvfxecvcgfvqpydhqsh.supabase.co',
+      hosts: ['gmltks4240.github.io'],   // 이 데모를 정식으로 띄우는 곳
+    },
+
     /* ── 2. 기관 ──────────────────────────────────────
        logo 는 img/ 에 파일을 넣고 그 경로를 적습니다. 없으면 null. */
     org: {

@@ -40,6 +40,12 @@
       `<button type="button" data-site="${c.name}" data-short="${c.short || c.name}" aria-label="${c.name}" aria-pressed="${i === 0}">${c.name}</button>`).join(''));
     const bss = $('bs-site');
     if (bss) bss.innerHTML = SITES.map(n => `<option>${n}</option>`).join('');
+    /* 데모 안내 — config 의 supabase.url 을 demo.url 그대로 둔 채,
+       demo.hosts 가 아닌 곳에서 열렸을 때만. file:// (테스트·직접 열기)는 제외 */
+    const d = CONFIG.demo, host = location.hostname;
+    if (d && d.url && CONFIG.supabase.url === d.url && host && !(d.hosts || []).includes(host)) {
+      const n = $('demo-note'); if (n) n.hidden = false;
+    }
     const lg = $('brand-logo');
     if (lg) { if (o.logo) { lg.src = o.logo; lg.alt = `${short || name} 로고`; } else lg.remove(); }
   })();

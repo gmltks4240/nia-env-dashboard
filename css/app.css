@@ -2625,3 +2625,16 @@ table.main-tbl tbody tr:hover>td,.sb-tbl tbody tr:hover>td{background:rgba(255,2
   #tab-outlook .o-lead{padding:16px}
   #tab-outlook .o-lead .ol-h{font-size:18px}
 }
+
+/* 데모 안내 띠 — 설정(js/config.js)을 바꾸지 않은 채 다른 곳에서 띄웠을 때만 보임 */
+#demo-note{display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  padding:10px 20px;font-size:13px;line-height:1.6;
+  background:var(--surface2);color:var(--text2);
+  border-bottom:1px solid var(--border);box-shadow:inset 0 2px 0 var(--warn)}
+#demo-note[hidden]{display:none}
+#demo-note .ic{color:var(--warn);flex:none}
+#demo-note b{color:var(--text);font-weight:600}
+#demo-note code{font-size:12px;padding:1px 5px;border-radius:4px;
+  background:var(--surface);border:1px solid var(--border);color:var(--text2)}
+#demo-note a{margin-left:auto;color:var(--accent);font-weight:500;white-space:nowrap}
+@media (max-width:640px){#demo-note{padding:10px 16px}#demo-note a{margin-left:0}}

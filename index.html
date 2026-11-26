@@ -16,7 +16,7 @@
 <script src="vendor/anime.min.js"></script>
 <script>window.anime || document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.2/anime.min.js"><\/script>');</script>
 <script>window.Chart || document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"><\/script>');</script>
-<link rel="stylesheet" href="css/app.css?v=7d83391e3b">
+<link rel="stylesheet" href="css/app.css?v=5e408b25c4">
 </head>
 <body>
 <!-- 선 아이콘 모음 (currentColor · 굵기 1.8) -->
@@ -93,6 +93,14 @@
 
 <!-- 앱 본체 -->
 <div id="app" style="display:none">
+
+<!-- 설정을 안 바꾼 채 띄웠을 때만 보이는 안내 (js/core.js 가 켠다) -->
+<div id="demo-note" hidden role="status">
+  <svg class="ic" aria-hidden="true"><use href="#i-alert"/></svg>
+  <span><b>데모 데이터입니다.</b> 지금 보이는 숫자는 이 대시보드를 만든 기관의 것이에요 ·
+  <code>js/config.js</code> 의 <code>supabase</code> 를 본인 기관 주소로 바꾸면 내 자료가 보여요</span>
+  <a href="https://github.com/gmltks4240/nia-env-dashboard#설치" target="_blank" rel="noopener">설치 안내</a>
+</div>
 
 <header>
   <div class="header-inner">
@@ -1579,8 +1587,8 @@
 })();
 </script>
 <!-- 앱 스크립트: 순서가 중요함 (core → … → main). 고친 뒤 python tools/bump_version.py -->
-<script src="js/config.js?v=bfe0bdd274"></script>
-<script src="js/core.js?v=e5761d5901"></script>
+<script src="js/config.js?v=6523d0a278"></script>
+<script src="js/core.js?v=98a0acea83"></script>
 <script src="js/ui.js?v=f9498c9a2f"></script>
 <script src="js/charts.js?v=44b540af25"></script>
 <script src="js/dashboard.js?v=6af1c80613"></script>
