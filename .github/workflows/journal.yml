@@ -56,10 +56,12 @@ jobs:
 
             echo "## 커밋"
             echo
-            if git log --since="$SINCE" --no-merges --pretty=format:'%H' | grep -q .; then
-              git log --since="$SINCE" --no-merges --date=short \
-                --pretty=format:'- **%ad** %s — %an (`%h`)' | sed 's/$//'
-              echo
+            # 파이프로 받지 말 것 — grep -q 가 먼저 끝나면 git log 가 SIGPIPE 로 죽고
+            # pipefail 때문에 커밋이 있어도 '없음' 으로 빠진다 (2026-11-26 실제로 그랬음)
+            COMMITS=$(git log --since="$SINCE" --no-merges --date=short \
+                        --pretty=format:'- **%ad** %s — %an (`%h`)')
+            if [ -n "$COMMITS" ]; then
+              printf '%s\n' "$COMMITS"
             else
               echo "_없음_"
             fi
