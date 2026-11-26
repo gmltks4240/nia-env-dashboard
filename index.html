@@ -16,7 +16,7 @@
 <script src="vendor/anime.min.js"></script>
 <script>window.anime || document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.2/anime.min.js"><\/script>');</script>
 <script>window.Chart || document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"><\/script>');</script>
-<link rel="stylesheet" href="css/app.css?v=727bda041b">
+<link rel="stylesheet" href="css/app.css?v=7d83391e3b">
 </head>
 <body>
 <!-- 선 아이콘 모음 (currentColor · 굵기 1.8) -->
@@ -814,16 +814,77 @@
     <span class="year-chip" id="o-span-chip">지금 → 2050년</span>
     <nav class="h-toc d-toc o-toc" id="o-toc" aria-label="전망 바로가기"></nav>
   </div>
+  <details class="kpi-section fold-sec o-guide" id="o-guide-sec" open>
+    <summary class="kpi-section-hd">이 화면에서 알 수 있는 것 <span class="hd-note">궁금한 질문을 누르면 그 자리로 가요 · 익숙해지면 접어 두세요</span></summary>
+    <div class="o-qs">
+      <button type="button" class="o-qb" data-go="outlook" data-scroll="o-sum-sec" title="한눈에 보기로 가기"><span class="o-qi"><svg class="ic" aria-hidden="true"><use href="#i-target"/></svg></span><b>목표를 지킬 수 있나요?</b><small>한눈에 보기</small></button>
+      <button type="button" class="o-qb" data-go="outlook" data-scroll="o-ghg-sec" title="온실가스 전망로 가기"><span class="o-qi"><svg class="ic" aria-hidden="true"><use href="#i-factory"/></svg></span><b>온실가스는 얼마나 줄어드나요?</b><small>온실가스 전망</small></button>
+      <button type="button" class="o-qb" data-go="outlook" data-scroll="o-re-sec" title="RE100 전망로 가기"><span class="o-qi"><svg class="ic" aria-hidden="true"><use href="#i-sun"/></svg></span><b>재생에너지 비율은 몇 %까지 가나요?</b><small>RE100 전망</small></button>
+      <button type="button" class="o-qb" data-go="outlook" data-scroll="o-ev-sec" title="계량 점수 전망로 가기"><span class="o-qi"><svg class="ic" aria-hidden="true"><use href="#i-award"/></svg></span><b>경영평가 점수는 몇 점일까요?</b><small>계량 점수 전망</small></button>
+      <button type="button" class="o-qb vio" data-go="outlook" data-scroll="o-wi-sec" title="만약에 계산로 가기"><span class="o-qi"><svg class="ic" aria-hidden="true"><use href="#i-calc"/></svg></span><b>무엇을 하면 달라지나요?</b><small>만약에 계산</small></button>
+      <button type="button" class="o-qb" data-go="outlook" data-scroll="o-how-sec" title="계산 방법로 가기"><span class="o-qi"><svg class="ic" aria-hidden="true"><use href="#i-search"/></svg></span><b>이 숫자는 어떻게 나왔나요?</b><small>계산 방법</small></button>
+    </div>
+    <details class="o-terms">
+      <summary>처음 보는 말이 있나요? <b>용어 풀이</b></summary>
+      <dl>
+        <div><dt>전망</dt><dd>올해 연말 예측에서 출발해, 에너지원마다 최근 추세를 그대로 이어 본 값이에요. "지금처럼 가면"이라는 뜻이에요.</dd></div>
+        <div><dt>연말 예측</dt><dd>올해 지금까지의 실적에 남은 달의 예측을 더한, 올해 전체의 예상 값이에요.</dd></div>
+        <div><dt>자체 목표</dt><dd>NIA 감축 로드맵에서 해마다 정해 둔 온실가스 배출 목표예요.</dd></div>
+        <div><dt>법적 목표</dt><dd>법으로 정해진 배출허용량(권장감축률)이에요. 31년부터는 아직 확정되지 않아 참고로만 보여요.</dd></div>
+        <div><dt>RE100 이행률</dt><dd>쓴 전력 중 재생에너지의 비율이에요. (자가발전 + 구매) ÷ 총 전력으로 셈해요.</dd></div>
+        <div><dt>tCO₂eq</dt><dd>여러 온실가스를 이산화탄소 양으로 바꿔 센 톤 단위예요.</dd></div>
+        <div><dt>계량 점수</dt><dd>그 해 실적으로 이듬해 경영평가에서 받는 점수예요. 온실가스 60점 + 에너지 40점이에요.</dd></div>
+        <div><dt>만약에</dt><dd>태양광·구매·절감을 바꿔 넣고 전망이 어떻게 달라지는지 보는 계산이에요. 보라색으로 보이고 저장되지 않아요.</dd></div>
+      </dl>
+    </details>
+  </details>
   <div class="kpi-section" id="o-sum-sec">
-    <div class="kpi-section-hd o-sum-hd">한눈에 보기 <span class="hd-note" id="o-sum-note"></span>
+    <div class="kpi-section-hd o-sum-hd"><span class="o-q">Q. 지금처럼 가면 목표를 지킬 수 있나요?</span>한눈에 보기 <span class="hd-note" id="o-sum-note"></span>
       <span class="o-hd-btns"><button type="button" class="btn-export" data-go="outlook" data-scroll="o-how-sec">ⓘ 어떻게 셈했나</button><button type="button" class="btn-export" id="o-export"><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg> CSV</button></span></div>
+    <div class="o-lead" id="o-lead" hidden></div>
+    <h4 class="o-sub">목표별 결론 <small>줄을 누르면 계산 근거</small></h4>
     <ul class="o-verdict" id="o-verdict" aria-label="목표별 결론"></ul>
+    <h4 class="o-sub">주요 연도 숫자 <small>30년 · 50년 · 카드를 누르면 계산 근거</small></h4>
     <div class="o-cards" id="o-cards"></div>
+    <h4 class="o-sub">해마다 목표를 지키나요? <small>초록 = 지킴 · 빨강 = 못 지킴 · 칸을 누르면 계산 근거</small></h4>
     <div class="o-map" id="o-map" role="group" aria-label="목표별 전망 지도"></div>
     <p class="o-legend"><b>읽는 법</b><span><i class="lg lg-h"></i>빗금 막대 = 전망 (지금처럼 가면)</span><span><i class="lg lg-p"></i>연한 막대 = 올해 연말 예측</span><span><i class="lg lg-v"></i>보라 점선 = 만약에</span><span><i class="lg lg-ok"></i>목표 안</span><span><i class="lg lg-no"></i>목표 밖</span><span><i class="lg lg-t"></i>점선 칸 = 아직 정해지지 않은 목표 (참고)</span></p>
   </div>
+  <details class="kpi-section fold-sec" id="o-ghg-sec" open>
+    <summary class="kpi-section-hd"><span class="o-q">Q. 온실가스는 목표만큼 줄어드나요?</span><svg class="ic" aria-hidden="true"><use href="#i-factory"/></svg> 온실가스 전망 <span class="tgt-site">대구본원 Scope 1+2</span> <span class="hd-note" id="o-ghg-note"></span></summary>
+    <div class="chart-card chart-wide o-chart">
+      <div class="chart-box"><canvas id="o-chart-ghg"></canvas></div>
+      <div id="o-ghg-empty" class="chart-empty" hidden>전망을 낼 자료가 없어요 — 올해 연말 예측이 있어야 해요</div>
+    </div>
+    <div class="table-wrap"><table class="main-tbl ol-tbl o-ms" id="o-ghg-tbl"></table></div>
+    <button type="button" class="btn-sm btn-edit o-all" data-all="ghg" aria-expanded="false">모든 연도 보기 ▾</button>
+    <details class="ol-src" id="o-src">
+      <summary><span>에너지원별 전망</span><em>어디서 늘고 줄고 있나 · 에너지원마다 같은 방식으로 이어 본 값</em></summary>
+      <div class="ol-src-body">
+        <div class="ol-src-bar"><span class="ol-note">채운 막대 = 실적 · 테두리 막대 = 올해 연말 예측과 전망</span></div>
+        <div class="chart-box sm"><canvas id="o-chart-src"></canvas></div>
+        <div id="o-src-empty" class="chart-empty" hidden>데이터가 없습니다</div>
+        <div class="table-wrap"><table class="main-tbl ol-tbl" id="o-src-tbl"></table></div>
+      </div>
+    </details>
+  </details>
+  <details class="kpi-section fold-sec" id="o-re-sec" open>
+    <summary class="kpi-section-hd"><span class="o-q">Q. 재생에너지 비율은 정부 목표에 닿나요?</span><svg class="ic" aria-hidden="true"><use href="#i-sun"/></svg> RE100 전망 <span class="tgt-site" id="o-re-site"></span> <span class="hd-note" id="o-re-note"></span></summary>
+    <div class="olpv" id="o-re-pv"></div>
+    <div class="chart-card chart-wide o-chart">
+      <div class="chart-box"><canvas id="o-chart-re"></canvas></div>
+      <div id="o-re-empty" class="chart-empty" hidden>전망을 낼 자료가 없어요 — 올해 전력 연말 예측이 있어야 해요</div>
+    </div>
+    <div class="table-wrap"><table class="main-tbl ol-tbl o-ms" id="o-re-tbl"></table></div>
+    <button type="button" class="btn-sm btn-edit o-all" data-all="re" aria-expanded="false">모든 연도 보기 ▾</button>
+  </details>
+  <details class="kpi-section fold-sec" id="o-ev-sec" open>
+    <summary class="kpi-section-hd"><span class="o-q">Q. 경영평가 계량 점수는 만점일까요?</span><svg class="ic" aria-hidden="true"><use href="#i-award"/></svg> 경영평가 계량 점수 전망 <span class="hd-note">그 해 실적으로 이듬해 받는 점수 · 온실가스 60 + 에너지 40</span></summary>
+    <div class="table-wrap"><table class="main-tbl ol-tbl" id="o-ev-tbl"></table></div>
+    <p class="o-foot" id="o-ev-note"></p>
+  </details>
   <details class="kpi-section fold-sec" id="o-wi-sec" open>
-    <summary class="kpi-section-hd"><svg class="ic" aria-hidden="true"><use href="#i-calc"/></svg> 만약에 계산 <span class="hd-note">태양광·구매·절감을 바꿔 보면 전망이 어떻게 달라지는지 · 저장되지 않아요</span></summary>
+    <summary class="kpi-section-hd"><span class="o-q">Q. 무엇을 얼마나 하면 달라지나요?</span><svg class="ic" aria-hidden="true"><use href="#i-calc"/></svg> 만약에 계산 <span class="hd-note">태양광·구매·절감을 바꿔 보면 전망이 어떻게 달라지는지 · 저장되지 않아요</span></summary>
     <div class="o-wi" id="o-wi">
       <div class="o-wi-f">
         <span class="o-wi-k"><svg class="ic" aria-hidden="true"><use href="#i-sun"/></svg> 태양광 더 설치</span>
@@ -848,41 +909,8 @@
     </div>
     <div class="o-wi-out" id="o-wi-out"></div>
   </details>
-  <details class="kpi-section fold-sec" id="o-ghg-sec" open>
-    <summary class="kpi-section-hd"><svg class="ic" aria-hidden="true"><use href="#i-factory"/></svg> 온실가스 전망 <span class="tgt-site">대구본원 Scope 1+2</span> <span class="hd-note" id="o-ghg-note"></span></summary>
-    <div class="chart-card chart-wide o-chart">
-      <div class="chart-box"><canvas id="o-chart-ghg"></canvas></div>
-      <div id="o-ghg-empty" class="chart-empty" hidden>전망을 낼 자료가 없어요 — 올해 연말 예측이 있어야 해요</div>
-    </div>
-    <div class="table-wrap"><table class="main-tbl ol-tbl o-ms" id="o-ghg-tbl"></table></div>
-    <button type="button" class="btn-sm btn-edit o-all" data-all="ghg" aria-expanded="false">모든 연도 보기 ▾</button>
-    <details class="ol-src" id="o-src">
-      <summary><span>에너지원별 전망</span><em>어디서 늘고 줄고 있나 · 에너지원마다 같은 방식으로 이어 본 값</em></summary>
-      <div class="ol-src-body">
-        <div class="ol-src-bar"><span class="ol-note">채운 막대 = 실적 · 테두리 막대 = 올해 연말 예측과 전망</span></div>
-        <div class="chart-box sm"><canvas id="o-chart-src"></canvas></div>
-        <div id="o-src-empty" class="chart-empty" hidden>데이터가 없습니다</div>
-        <div class="table-wrap"><table class="main-tbl ol-tbl" id="o-src-tbl"></table></div>
-      </div>
-    </details>
-  </details>
-  <details class="kpi-section fold-sec" id="o-re-sec" open>
-    <summary class="kpi-section-hd"><svg class="ic" aria-hidden="true"><use href="#i-sun"/></svg> RE100 전망 <span class="tgt-site" id="o-re-site"></span> <span class="hd-note" id="o-re-note"></span></summary>
-    <div class="olpv" id="o-re-pv"></div>
-    <div class="chart-card chart-wide o-chart">
-      <div class="chart-box"><canvas id="o-chart-re"></canvas></div>
-      <div id="o-re-empty" class="chart-empty" hidden>전망을 낼 자료가 없어요 — 올해 전력 연말 예측이 있어야 해요</div>
-    </div>
-    <div class="table-wrap"><table class="main-tbl ol-tbl o-ms" id="o-re-tbl"></table></div>
-    <button type="button" class="btn-sm btn-edit o-all" data-all="re" aria-expanded="false">모든 연도 보기 ▾</button>
-  </details>
-  <details class="kpi-section fold-sec" id="o-ev-sec" open>
-    <summary class="kpi-section-hd"><svg class="ic" aria-hidden="true"><use href="#i-edit"/></svg> 경영평가 계량 점수 전망 <span class="hd-note">그 해 실적으로 이듬해 받는 점수 · 온실가스 60 + 에너지 40</span></summary>
-    <div class="table-wrap"><table class="main-tbl ol-tbl" id="o-ev-tbl"></table></div>
-    <p class="o-foot" id="o-ev-note"></p>
-  </details>
   <details class="kpi-section fold-sec" id="o-how-sec">
-    <summary class="kpi-section-hd">ⓘ 전망은 이렇게 셈 <span class="hd-note">출발점 · 추세 · 감쇠 · 태양광 · 그대로 두는 것</span></summary>
+    <summary class="kpi-section-hd"><span class="o-q">Q. 이 숫자는 어떻게 나왔나요?</span><svg class="ic" aria-hidden="true"><use href="#i-search"/></svg> 전망은 이렇게 셈 <span class="hd-note">출발점 · 추세 · 감쇠 · 태양광 · 그대로 두는 것</span></summary>
     <ol class="o-how" id="o-how"></ol>
   </details>
 </section>
@@ -1558,7 +1586,7 @@
 <script src="js/charts.js?v=31e3144bf2"></script>
 <script src="js/dashboard.js?v=95989e7139"></script>
 <script src="js/home.js?v=a06a62363a"></script>
-<script src="js/outlook.js?v=07bb993e05"></script>
+<script src="js/outlook.js?v=f603edf3e6"></script>
 <script src="js/input.js?v=140bdb7958"></script>
 <script src="js/manage.js?v=2c50ace550"></script>
 <script src="js/main.js?v=cb054d7111"></script>
