@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="dark">
-<title>NIA 환경경영 모니터링</title>
+<title>환경경영 모니터링</title>   <!-- 기관 약칭은 js/config.js 의 org.short 가 앞에 붙는다 -->
 <!-- 외부 사이트가 막히거나 느려도 화면이 바로 열리게:
      글꼴은 화면을 막지 않고 따로 받음(못 받으면 기본 글꼴) · 차트 도구는 같은 서버(vendor 폴더)에서, 없을 때만 cdnjs -->
 <link rel="preconnect" href="https://yyvfxecvcgfvqpydhqsh.supabase.co" crossorigin>
@@ -24,7 +24,7 @@
 
 <!-- 로딩 -->
 <div id="loading">
-  <img src="img/mascot-loading.png" class="loading-mascot" alt="NIA 마스코트">
+  <img src="img/mascot-loading.png" class="loading-mascot" alt="마스코트">
   <div class="sk" aria-hidden="true">
     <div class="sk-head"><span class="sk-b sk-logo"></span><span class="sk-b sk-title"></span></div>
     <div class="sk-nav"><span class="sk-b"></span><span class="sk-b"></span><span class="sk-b"></span><span class="sk-b"></span><span class="sk-b"></span><span class="sk-b"></span></div>
@@ -50,7 +50,7 @@
 <!-- 로그인 · 회원가입 (회원가입 → 관리자 승인 → 권한) -->
 <div id="auth" class="auth-wrap" hidden>
   <div class="auth-card">
-    <div class="auth-brand"><img id="auth-logo" alt=""><div><h1>환경경영 모니터링</h1><p>한국지능정보사회진흥원 · NIA</p></div></div>
+    <div class="auth-brand"><img id="auth-logo" alt=""><div><h1>환경경영 모니터링</h1><p id="auth-org"></p></div></div>
     <div class="auth-tabs" role="tablist" aria-label="로그인 · 회원가입">
       <button type="button" role="tab" id="at-login" aria-selected="true" aria-controls="f-login">로그인</button>
       <button type="button" role="tab" id="at-signup" aria-selected="false" aria-controls="f-signup">회원가입</button>
@@ -97,10 +97,10 @@
 <header>
   <div class="header-inner">
     <div class="brand">
-      <img src="img/logo-nia.png" class="nia-logo" alt="NIA 로고">
+      <img id="brand-logo" class="nia-logo" alt="">
       <div>
         <h1>환경경영 모니터링</h1>
-        <div class="brand-sub">한국지능정보사회진흥원 · NIA · ISO 14001</div>
+        <div class="brand-sub" id="brand-sub"></div>
       </div>
     </div>
     <img src="img/mascot-header.png" class="header-mascot" alt="">
@@ -137,9 +137,7 @@
     <div class="nav-site" id="nav-site">
       <span class="nav-site-lbl" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-pin"/></svg><span> 거점</span></span>
       <div class="site-seg" role="group" aria-label="거점 선택 (올해 현황·지난 실적·목표·로드맵)">
-        <button type="button" data-site="대구본원" data-short="대구" aria-label="대구본원" aria-pressed="true">대구본원</button>
-        <button type="button" data-site="제주글로벌센터" data-short="제주" aria-label="제주글로벌센터" aria-pressed="false">제주글로벌센터</button>
-        <button type="button" data-site="서울사무소" data-short="서울" aria-label="서울사무소" aria-pressed="false">서울사무소</button>
+        <!-- 거점 단추는 js/core.js 가 js/config.js 의 sites 로 그린다 -->
         <button type="button" data-site="" data-short="전체" aria-label="전체 합계" aria-pressed="false">전체 합계</button>
       </div>
     </div>
@@ -160,8 +158,8 @@
   <div class="home-hero">
     <img class="hero-mascot" alt="">
     <div class="hero-txt">
-      <h2>NIA 환경경영 모니터링</h2>
-      <p id="home-lead">대구본원·제주글로벌센터·서울사무소의 온실가스·에너지·폐기물을 한곳에서 보고, 감축 목표 대비 실적을 관리합니다.</p>
+      <h2 id="welcome-title">환경경영 모니터링</h2>
+      <p id="home-lead"></p>
       <div class="hero-meta"><span id="home-asof"></span><span id="home-updated"></span></div>
     </div>
   </div>
@@ -260,7 +258,7 @@
         <div class="kpi-label">기준배출량</div>
         <div style="font-size:10px;color:var(--muted);font-weight:600;letter-spacing:.3px;margin-bottom:2px" id="k-tgt-base-yr">올해 적용값</div>
         <div class="kpi-row"><div class="kpi-value num" id="k-tgt-base">—</div><span class="kpi-u">tCO₂eq</span></div>
-        <div class="kpi-sub" id="k-tgt-base-sub">대구본원 기준</div>
+        <div class="kpi-sub" id="k-tgt-base-sub"></div>
       </div>
       <div class="kpi-card kpi-click" id="tc-own" role="button" tabindex="0" data-calc="k-tgt-own">
         <div class="kpi-label">자체 배출목표</div>
@@ -534,7 +532,7 @@
         <div class="chart-hd">
           <h4 class="basis-h4" id="bs-chart-title">월평균기온 (℃)</h4>
           <label class="chart-sel">거점
-            <select id="bs-site"><option>대구본원</option><option>제주글로벌센터</option><option>서울사무소</option></select>
+            <select id="bs-site"></select>
           </label>
         </div>
         <div class="chart-box"><canvas id="chart-wx"></canvas></div>
@@ -706,7 +704,7 @@
     <img id="rmap-mascot" class="tab-mascot" alt="목표·로드맵 나나">
     <div>
       <strong>목표·로드맵</strong>
-      <span>NIA 온실가스 감축(2030 중기·2050 장기) · RE100 이행 · 폐기물 감축 목표까지 어디쯤 왔는지 한눈에 보세요 · 올해는 기상연동 예측으로 연말 전망을 함께 보여요</span>
+      <span><span class="org-short"></span> 온실가스 감축(2030 중기·2050 장기) · RE100 이행 · 폐기물 감축 목표까지 어디쯤 왔는지 한눈에 보세요 · 올해는 기상연동 예측으로 연말 전망을 함께 보여요</span>
     </div>
   </div>
   <div class="filter-bar rmap-bar">
@@ -734,9 +732,9 @@
       <div class="kpi-section-hd">감축·이행 로드맵 <span class="tgt-site" id="h-goal-site"></span> <span class="hd-note" id="rmap-goal-note">연도별 실적과 목표</span></div>
       <details class="chart-card chart-wide rm-card fold" id="h-rm-card" open>
         <summary class="chart-hd fold-hd">
-          <h3>NIA 온실가스 배출 감축 로드맵</h3>
+          <h3><span class="org-short"></span> 온실가스 배출 감축 로드맵</h3>
           <span class="rm-peek" id="h-rm-peek"></span>
-          <span class="hd-note">※ 대구본원 기준 · 단위 tCO₂eq · 회색 점선 = 연도별 기준배출량 · 31년~ 법적 목표는 미확정(흐린 점선)</span>
+          <span class="hd-note">※ <span class="tgt-ghg-sites"></span> 기준 · 단위 tCO₂eq · 회색 점선 = 연도별 기준배출량 · 31년~ 법적 목표는 미확정(흐린 점선)</span>
           <span class="fold-ic" aria-hidden="true"></span>
         </summary>
         <div class="rm-track" id="h-rm-miles"></div>
@@ -829,7 +827,7 @@
       <dl>
         <div><dt>전망</dt><dd>올해 연말 예측에서 출발해, 에너지원마다 최근 추세를 그대로 이어 본 값이에요. "지금처럼 가면"이라는 뜻이에요.</dd></div>
         <div><dt>연말 예측</dt><dd>올해 지금까지의 실적에 남은 달의 예측을 더한, 올해 전체의 예상 값이에요.</dd></div>
-        <div><dt>자체 목표</dt><dd>NIA 감축 로드맵에서 해마다 정해 둔 온실가스 배출 목표예요.</dd></div>
+        <div><dt>자체 목표</dt><dd><span class="org-short"></span> 감축 로드맵에서 해마다 정해 둔 온실가스 배출 목표예요.</dd></div>
         <div><dt>법적 목표</dt><dd>법으로 정해진 배출허용량(권장감축률)이에요. 31년부터는 아직 확정되지 않아 참고로만 보여요.</dd></div>
         <div><dt>RE100 이행률</dt><dd>쓴 전력 중 재생에너지의 비율이에요. (자가발전 + 구매) ÷ 총 전력으로 셈해요.</dd></div>
         <div><dt>tCO₂eq</dt><dd>여러 온실가스를 이산화탄소 양으로 바꿔 센 톤 단위예요.</dd></div>
@@ -851,7 +849,7 @@
     <p class="o-legend"><b>읽는 법</b><span><i class="lg lg-h"></i>빗금 막대 = 전망 (지금처럼 가면)</span><span><i class="lg lg-p"></i>연한 막대 = 올해 연말 예측</span><span><i class="lg lg-v"></i>보라 점선 = 만약에</span><span><i class="lg lg-ok"></i>목표 안</span><span><i class="lg lg-no"></i>목표 밖</span><span><i class="lg lg-t"></i>점선 칸 = 아직 정해지지 않은 목표 (참고)</span></p>
   </div>
   <details class="kpi-section fold-sec" id="o-ghg-sec" open>
-    <summary class="kpi-section-hd"><span class="o-q">Q. 온실가스는 목표만큼 줄어드나요?</span><svg class="ic" aria-hidden="true"><use href="#i-factory"/></svg> 온실가스 전망 <span class="tgt-site">대구본원 Scope 1+2</span> <span class="hd-note" id="o-ghg-note"></span></summary>
+    <summary class="kpi-section-hd"><span class="o-q">Q. 온실가스는 목표만큼 줄어드나요?</span><svg class="ic" aria-hidden="true"><use href="#i-factory"/></svg> 온실가스 전망 <span class="tgt-site"><span class="tgt-ghg-sites"></span> Scope 1+2</span> <span class="hd-note" id="o-ghg-note"></span></summary>
     <div class="chart-card chart-wide o-chart">
       <div class="chart-box"><canvas id="o-chart-ghg"></canvas></div>
       <div id="o-ghg-empty" class="chart-empty" hidden>전망을 낼 자료가 없어요 — 올해 연말 예측이 있어야 해요</div>
@@ -1581,14 +1579,15 @@
 })();
 </script>
 <!-- 앱 스크립트: 순서가 중요함 (core → … → main). 고친 뒤 python tools/bump_version.py -->
-<script src="js/core.js?v=54b58c75c1"></script>
+<script src="js/config.js?v=bfe0bdd274"></script>
+<script src="js/core.js?v=e5761d5901"></script>
 <script src="js/ui.js?v=f9498c9a2f"></script>
-<script src="js/charts.js?v=31e3144bf2"></script>
-<script src="js/dashboard.js?v=95989e7139"></script>
+<script src="js/charts.js?v=44b540af25"></script>
+<script src="js/dashboard.js?v=6af1c80613"></script>
 <script src="js/home.js?v=a06a62363a"></script>
-<script src="js/outlook.js?v=f603edf3e6"></script>
-<script src="js/input.js?v=140bdb7958"></script>
-<script src="js/manage.js?v=2c50ace550"></script>
-<script src="js/main.js?v=cb054d7111"></script>
+<script src="js/outlook.js?v=c674f83ced"></script>
+<script src="js/input.js?v=3f6891580b"></script>
+<script src="js/manage.js?v=56d0cf70b4"></script>
+<script src="js/main.js?v=d41338f156"></script>
 </body>
 </html>

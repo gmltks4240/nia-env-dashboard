@@ -154,7 +154,7 @@
                     y: { stacked: true, ticks: { color: tick }, grid: { color: grid }, beginAtZero: true, grace: '10%' } }
         }
       }),
-      // 월별 승강기 회생제동 발전량 (kWh) — 대구본원 · 전년 같은 달 (점선)
+      // 월별 승강기 회생제동 발전량 (kWh) — 본사 · 전년 같은 달 (점선)
       regen: new Chart($$('chart-regen'), {
         type: 'bar',
         data: { labels: MONTHS, datasets: [] },
@@ -395,7 +395,7 @@
   }
   const TG_COL = { ok: 'var(--ok)', mid: 'var(--warn)', no: 'var(--bad)', na: 'var(--border2)' };   // 목표 없음(na)은 강조색이 아니라 중립색
 
-  // 온실가스 배출목표 한 장 (대구본원 · Scope 1+2) — 기준·자체·법적 세 숫자를 한 막대에
+  // 온실가스 배출목표 한 장 (목표 대상 거점 · Scope 1+2) — 기준·자체·법적 세 숫자를 한 막대에
   //  막대 = 누적(진하게) + 연말 예측(옅게, 지난 연도는 실적만) · 눈금 = 자체·법적 목표 · 끝 = 기준배출량
   //  색 = 판정 (자체 목표 이하 초록 · 자체 초과·법적 이하 주황 · 법적도 초과 빨강) · 아래 열쇠를 누르면 그 목표의 계산 근거
   //  → 거점 설명 판정 칩용 { st: 'ok' | 'no', txt } | null
@@ -411,7 +411,7 @@
     const vd = $$('tg-verdict');
     vd.className = 're-verdict' + (st === 'ok' ? ' good' : st === 'na' ? '' : ' bad'); vd.textContent = say;
     const pct = x => +(Math.max(0, x) / (Math.max(base || 0, v || 0, act || 0, own || 0, law || 0) * 1.04 || 1) * 100).toFixed(2);
-    $$('tg-nums').innerHTML = !(act > 0) ? '<span class="cmp-na">대구본원 배출 자료가 아직 없어요</span>' :
+    $$('tg-nums').innerHTML = !(act > 0) ? `<span class="cmp-na">${sitesTxt(TARGET_SITES.ghg)} 배출 자료가 아직 없어요</span>` :
       `<span><i class="tg-k a" style="--tgc:${col}"></i>${isCur ? '누적' : `${yS} 실적`} <b>${fq(act)}</b>t</span>` +
       (isCur && est > 0 ? `<span><i class="tg-k p" style="--tgc:${col}"></i>연말 예측 <b>${fq(est)}</b>t</span>` : '') +
       (base > 0 && has ? `<span class="tg-cut">기준배출량 대비 ${v <= base ? '▼' : '▲'}${fmt(Math.abs(base - v) / base * 100, 1)}%${est1}</span>` : '');
@@ -509,7 +509,8 @@
   const TGT_LABEL = { ghg: '온실가스', re: 'RE100', wt: '폐기물' };
   const TGT_COLS = 4;
   function setTargetView(T, si, cards, secId, gridId, siteId) {
-    const NA_WHY = { ghg: '온실가스 감축 목표 = 대구본원만', re: 'RE100 = 대구본원·제주글로벌센터', wt: '폐기물 감축 목표 = DB 설정 후' };
+    const NA_WHY = { ghg: `온실가스 감축 목표 = ${sitesTxt(TARGET_SITES.ghg, { sum: false })}만`,
+                     re: `RE100 = ${TARGET_SITES.re.join('·')}`, wt: '폐기물 감축 목표 = DB 설정 후' };
     let used = 0;
     Object.entries(cards).forEach(([id, k]) => {
       const el = $(id), legacy = /tc-(base|own|law)$/.test(id);
@@ -531,7 +532,7 @@
     const SCOPE = { ghg: TARGET_SITES.ghg, re: TARGET_SITES.re, wt: TARGET_SITES.waste };
     Object.entries(cards).forEach(([id, k]) => { const lb = $(id)?.querySelector('.kpi-label'); if (!lb) return;
       let sp = lb.querySelector('.tgt-scope'); if (!sp) { sp = document.createElement('span'); sp.className = 'tgt-scope'; lb.appendChild(sp); }
-      sp.textContent = si ? '' : k === 'wt' ? '세 거점 합산' : k === 're' ? '대구+제주 합산' : sitesLabel(SCOPE[k]); });
+      sp.textContent = si ? '' : k === 'wt' ? sitesTxt(TARGET_SITES.waste) : k === 're' ? sitesTxt(TARGET_SITES.re) : sitesLabel(SCOPE[k]); });
     return n;
   }
 

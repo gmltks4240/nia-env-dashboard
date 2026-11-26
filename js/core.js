@@ -4,24 +4,55 @@
   const $ = id => document.getElementById(id);
 
   /* ── 상수 (한 곳에서 관리) ─────────────────────────── */
-  const SITES = ['대구본원', '제주글로벌센터', '서울사무소'];   // 화면·표·그래프의 거점 순서
+  // 기관 고유값은 js/config.js 한 곳에 모여 있다. 여기서는 읽어서 쓰기만 한다.
+  const SITES = CONFIG.sites.map(s => s.name);   // 화면·표·그래프의 거점 순서
   // 거점 색 (거점별 비중 막대·거점 줄·거점별로 쌓은 막대) — 색각 이상에서도 서로 구분되고 밝은/어두운 바탕 모두 3:1 이상
   // 데이터 색은 CSS 토큰(--chart-*)이 한 곳에서 정하고 JS 는 읽기만 한다
   const cssVar = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
   const rgbOf  = h => [1, 3, 5].map(k => parseInt(h.slice(k, k + 2), 16)).join(',');   // cssVar('--chart-s1') → '230,81,0'
-  const SITE_COL = { '대구본원': cssVar('--chart-site-dgb'), '제주글로벌센터': cssVar('--chart-site-jeju'), '서울사무소': cssVar('--chart-site-seoul') };
+  const SITE_COL = Object.fromEntries(CONFIG.sites.map(s => [s.name, cssVar(s.color)]));
   // 거점별 기상 관측 좌표 (Open-Meteo, 도시 중심 기준)
-  const SITE_COORDS = { '대구본원': [35.8714, 128.6014], '서울사무소': [37.5665, 126.9780], '제주글로벌센터': [33.4996, 126.5312] };
+  const SITE_COORDS = Object.fromEntries(CONFIG.sites.filter(s => s.coords).map(s => [s.name, s.coords]));
+  const SITE_SHORT = Object.fromEntries(CONFIG.sites.map(s => [s.name, s.short || s.name]));   // 좁은 화면·표용 짧은 이름
+  const PUE_SITES  = CONFIG.sites.filter(s => s.pue).map(s => s.name);                         // 전산실이 있는 거점
+  const shortOf    = si => SITE_SHORT[si] || si;
+  // 거점 묶음을 사람이 읽는 한 줄로 — 전부면 'N개 거점 합산', 하나면 그 이름, 그 밖엔 '대구+제주 합산'
+  const sitesTxt = (list, { sum = true } = {}) =>
+    !list || !list.length ? '없음'
+    : list.length === 1 ? list[0]
+    : list.length >= SITES.length ? `${SITES.length}개 거점${sum ? ' 합산' : ''}`
+    : list.map(shortOf).join('+') + (sum ? ' 합산' : '');
+  /* 기관 표기 — js/config.js 의 org 를 화면에 붙인다 (제목·로고·머리글·본문의 약칭) */
+  (function applyOrg() {
+    const o = CONFIG.org || {}, short = o.short || '', name = o.name || '';
+    if (short) document.title = `${short} 환경경영 모니터링`;
+    const sub = [name, short, o.note].filter(Boolean).join(' · ');
+    const set = (id, t) => { const el = $(id); if (el) el.textContent = t; };
+    set('auth-org', [name, short].filter(Boolean).join(' · '));
+    set('brand-sub', sub);
+    if (short) set('welcome-title', `${short} 환경경영 모니터링`);
+    document.querySelectorAll('.org-short').forEach(el => { el.textContent = short; });
+    const lead = $('home-lead');
+    if (lead) lead.textContent = `${SITES.join('·')}의 온실가스·에너지·폐기물을 한곳에서 보고, 감축 목표 대비 실적을 관리합니다.`;
+    // 거점 고르는 단추 (올해 현황·실적 조회 머리) — '전체' 단추는 index.html 에 이미 있다
+    const seg = document.querySelector('.site-seg');
+    if (seg) seg.insertAdjacentHTML('afterbegin', CONFIG.sites.map((c, i) =>
+      `<button type="button" data-site="${c.name}" data-short="${c.short || c.name}" aria-label="${c.name}" aria-pressed="${i === 0}">${c.name}</button>`).join(''));
+    const bss = $('bs-site');
+    if (bss) bss.innerHTML = SITES.map(n => `<option>${n}</option>`).join('');
+    const lg = $('brand-logo');
+    if (lg) { if (o.logo) { lg.src = o.logo; lg.alt = `${short || name} 로고`; } else lg.remove(); }
+  })();
   const MONTHS = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
   const RE_SELF = '재생에너지', RE_BUY = '재생에너지 구매', SAVE_REGEN = '승강기 회생제동';
   // scope = 배출 구분. 화면·집계는 DB에 저장된 값이 아니라 이 표를 기준으로 분류함
   // factor 0 = 온실가스 배출원이 아님 (재생에너지)
   const GHG = {
-    '전력':     { unit:'kWh', scope:'Scope 2', factor:0.0004594106, div:1, desc:'0.0004594106 tCO₂eq/kWh (= 0.4594106 tCO₂eq/MWh)', src:'2026년 NGMS 산정 실적 기반 역산 유효계수 · 전력 간접배출 (Scope 2)' },
-    '도시가스': { unit:'Nm³', scope:'Scope 1', factor:0.0021649672212, div:1, desc:'0.0021649672212 tCO₂eq/m³ (NGMS 유효계수 · 보일러 등 고정연소 = 직접배출)', src:'2026년 NGMS 산정 실적 기반 역산 유효계수 · 고정연소 직접배출 (Scope 1)' },
-    '지역난방': { unit:'GJ',  scope:'Scope 2', factor:0.0481938763, div:1, desc:'0.0481938763 tCO₂eq/GJ (NGMS 유효계수 · CO₂·CH₄·N₂O × GWP 1·21·310 합산)', src:'2026년 NGMS 산정 실적 기반 역산 유효계수 · 열 간접배출 (Scope 2)' },
-    '휘발유':   { unit:'L',   scope:'Scope 1', factor:0.002176470768, div:1, desc:'0.002176470768 tCO₂eq/L (NGMS 유효계수 · 차량 이동연소)', src:'2026년 NGMS 산정 실적 기반 역산 유효계수 · 차량 이동연소 (Scope 1)' },
-    '경유':     { unit:'L',   scope:'Scope 1', factor:0.0026613886511, div:1, desc:'0.0026613886511 tCO₂eq/L (NGMS 유효계수 · 차량 이동연소)', src:'2026년 NGMS 산정 실적 기반 역산 유효계수 · 차량 이동연소 (Scope 1)' },
+    '전력': { unit:'kWh', scope:'Scope 2', div:1, ...CONFIG.factors['전력'] },
+    '도시가스': { unit:'Nm³', scope:'Scope 1', div:1, ...CONFIG.factors['도시가스'] },
+    '지역난방': { unit:'GJ', scope:'Scope 2', div:1, ...CONFIG.factors['지역난방'] },
+    '휘발유': { unit:'L', scope:'Scope 1', div:1, ...CONFIG.factors['휘발유'] },
+    '경유': { unit:'L', scope:'Scope 1', div:1, ...CONFIG.factors['경유'] },
     [RE_SELF]:  { unit:'kWh', scope:'Scope 2', factor:0,        div:1,    desc:'태양광 등 자가발전량 — RE100 이행률에 반영' },
     [RE_BUY]:   { unit:'kWh', scope:'Scope 2', factor:0,        div:1,    desc:'녹색프리미엄·REC·PPA 구매량 — RE100 이행률에만 반영 (온실가스 감축에는 미반영)' },
     [SAVE_REGEN]: { unit:'kWh', scope:'Scope 2', factor:0,      div:1,    desc:'승강기 회생제동장치가 되돌려준 전력 — 절감 실적(참고). 한전 계량에 이미 반영돼 배출량·RE100에서 다시 빼지 않음' },
@@ -30,12 +61,15 @@
   const isEmit   = t => (GHG[t]?.factor ?? 0) > 0;   // 온실가스 배출원 (재생에너지·절감 항목 제외)
   const isRE     = t => t === RE_SELF || t === RE_BUY;
   const isSaving = t => t === SAVE_REGEN;
-  // 기준배출량 (공공부문 온실가스 목표관리 · 대구본원 · tCO₂eq) — 해마다 조정되는 값
+  // 기준배출량 (공공부문 온실가스 목표관리 · 본사 기준 · tCO₂eq) — 해마다 조정되는 값 · 값은 js/config.js
   //  기본값 = 연도별 기준배출량 표의 합계 · 데이터 관리 → 연도 마감·로드맵에서 고치면 DB(env_settings.ghg_base)에 저장한 값을 씀
   //  27~50년은 26년 값(1,593.162)으로 채워 둠 — 정해지면 데이터 관리에서 고침 (올해 이후 값을 고치면 뒤 연도도 함께)
-  const GHG_BASE_DEFAULT = { 2016: 2053.428, 2017: 2066.453, 2018: 2066.453, 2019: 2066.453, 2020: 2066.453, 2021: 2066.453, 2022: 2066.453,
-                             2023: 2412.65, 2024: 1594.65, 2025: 1593.162, 2026: 1593.162,
-                             ...Object.fromEntries(Array.from({ length: 24 }, (_, i) => [2027 + i, 1593.162])) };
+  const GHG_BASE_DEFAULT = (() => {
+    const t = { ...CONFIG.ghgBase };
+    const last = Math.max(...Object.keys(t).map(Number)), v = t[last];
+    for (let y = last + 1; y <= (CONFIG.ghgBaseFillTo || last); y++) t[y] = v;   // 적지 않은 해는 마지막 해 값으로
+    return t;
+  })();
   let ghgBaseY = GHG_BASE_DEFAULT;   // 지금 쓰는 표 (loadAll에서 DB 값으로 바꿈)
   // 그 해 적용 기준배출량: 그 해 값이 없으면 앞 연도 값을 그대로 씀 (예: 27년 = 26년 값) · 첫 해보다 앞이면 없음(null)
   function baseOf(y, tbl) {
@@ -44,13 +78,10 @@
     for (const k in tbl) { const ky = +k; if (ky <= +y && ky > by && tbl[k] > 0) { by = ky; best = +tbl[k]; } }
     return best;
   }
-  // 온실가스 감축 목표 — 자체 로드맵(2050 중장기 전략), 대구본원 기준 연도별 목표배출량(tCO₂eq)
+  // 온실가스 감축 목표 — 자체 로드맵(2050 중장기 전략), 본사 기준 연도별 목표배출량(tCO₂eq) · 값은 js/config.js
   //  감축률은 그 해 기준배출량 대비로 계산 (기준배출량을 고치면 함께 바뀜 · 지금 값이면 24년 26.4% … 50년 87.6%)
-  const ROADMAP_DEFAULT = (() => {
-    const T = [1173.66, 1132.584, 1092.944, 1054.691, 1017.777, 982.154, 947.779, 900.390, 855.371, 812.602, 771.972, 733.373, 696.705,
-               661.869, 628.776, 597.337, 567.470, 510.723, 459.651, 413.686, 372.317, 335.086, 301.577, 271.419, 244.277, 219.850, 197.865];
-    return Object.fromEntries(T.map((t, i) => [2024 + i, { target: t }]));
-  })();
+  const ROADMAP_DEFAULT = Object.fromEntries(
+    (CONFIG.roadmap || []).map((t, i) => [(CONFIG.roadmapFrom || 2024) + i, { target: t }]));
   // 지금 쓰는 자체 목표 = 기본 로드맵 + 데이터 관리에서 입력한 값 (loadAll에서 다시 채움 · 같은 객체를 고쳐 씀)
   const ROADMAP = Object.fromEntries(Object.entries(ROADMAP_DEFAULT).map(([y, r]) => [y, { ...r }]));
   function applyOwnTargets(own) {
@@ -90,38 +121,34 @@
   const reGoalOf = y => RE_GOAL[+y] ?? null;
   const RE_FIRST = Math.min(...Object.keys(RE_GOAL).map(Number));   // 이행 목표가 시작되는 해
   // 목표를 적용하는 거점 — 그 밖의 거점·'전체'에서는 목표 카드를 숨기고 모니터링만 보여 줌
-  // 목표별 대상 거점 — 온실가스 = 대구본원 · RE100 = 대구본원 + 제주 합산 · 폐기물 = 세 거점 합산 (목표·로드맵 탭은 이 묶음으로 집계)
-  const TARGET_SITES = { ghg: ['대구본원'], re: ['대구본원', '제주글로벌센터'], waste: ['대구본원', '제주글로벌센터', '서울사무소'] };
+  // 목표별 대상 거점 — js/config.js 의 targetSites (목표·로드맵 탭은 이 묶음으로 집계)
+  const TARGET_SITES = CONFIG.targetSites;
+  // 화면 곳곳의 '온실가스 목표 대상 거점' 표기 (index.html 의 .tgt-ghg-sites)
+  document.querySelectorAll('.tgt-ghg-sites').forEach(el => { el.textContent = sitesTxt(TARGET_SITES.ghg); });
   /* ── 경영평가 계량지표 (100점) ─────────────────────────────────────────────────
      ① 이행연도 온실가스 감축목표 달성률 (60점)
         감축률(%)    = (기준배출량 − 이행연도 배출량) ÷ 기준배출량 × 100
         달성률(지수) = 감축률 ÷ 그 해 권장감축률 × 60      — 권장감축률 이상이면 60점
      ② 에너지 사용량 절감 실적 (40점)
         절감률 X(%)  = (B − A) ÷ B × 100
-          A = 당해연도 본사(대구본원) 전력·도시가스·지역난방 TOE 합계 (실적이 들어온 달까지)
+          A = 당해연도 본사 전력·도시가스·지역난방 TOE 합계 (실적이 들어온 달까지)
           B = 기준연도(20~22년) 같은 기간 TOE 합계의 평균
         평정점 = 40점 (X ≥ 1%) · 20점 (1% > X ≥ 0.5%) · 0점 (X < 0.5%)
         X가 1%에 못 미치면 RE100 이행실적(녹색프리미엄·제3자/직접 PPA 구매량)을 그 해 절감량으로 추가 인정받을 수 있음 */
-  const EVAL = {
-    site: '대구본원',                                  // 본사(본청) — ORG_SITE와 같은 거점
-    types: ['전력', '도시가스', '지역난방'],           // 산식이 정한 세 가지만 (차량연료 제외)
-    baseYears: ['2020', '2021', '2022'],              // 기준연도
-    ghgPt: 60, enPt: 40,
-    enSteps: [[1, 40], [0.5, 20]],                    // [절감률 하한(%), 평정점] — 위에서부터 처음 맞는 칸
-  };
+  const HEAD_SITE = (CONFIG.sites.find(s => s.head) || CONFIG.sites[0]).name;   // 본사(본청)
+  const EVAL = { site: HEAD_SITE, ...CONFIG.evaluation };
   // TOE 환산계수 — 에너지법 시행규칙 [별표] 에너지열량 환산기준 (22.11.21 개정)
   //  전력 0.000229 toe/kWh (전기 소비기준 2,290 kcal) · 도시가스 0.001019 toe/Nm³ (LNG 총발열량 42.7 MJ)
   //  지역난방은 별표에 없어 1 Gcal = 0.1 toe를 GJ로 환산 (0.1 ÷ 4.1868)
   //  계수가 개정되면 데이터 관리 → 연도 마감·로드맵의 'TOE 환산계수'에서 고침 (env_settings.toe_factor)
+  //  이 값은 법령 기준이라 기관마다 다르지 않다. 개정되면 화면에서 고친다.
   const TOE_DEFAULT = { '전력': 0.000229, '도시가스': 0.001019, '지역난방': +(0.1 / 4.1868).toFixed(9) };
   let toeF = { ...TOE_DEFAULT };   // 지금 쓰는 계수 (loadAll에서 DB 값으로 덮어씀)
   // 거점별 적용 항목 — 그 거점에서 쓰지 않는 항목은 입력 목록·현황판·화면에서 뺌
-  //  기본값: 차량연료(휘발유·경유)·승강기 회생제동·지역난방·업무용 차량/친환경차는 대구본원만
+  //  기본값은 js/config.js 의 사업장별 na 목록
   //  데이터 관리 → 연도 마감·로드맵의 '거점별 적용 항목'에서 거점마다 고칠 수 있음 (env_settings.site_na)
-  const SITE_NA_DEFAULT = {
-    '서울사무소':     ['휘발유', '경유', '승강기 회생제동', '지역난방', '업무용 차량', '친환경차'],
-    '제주글로벌센터': ['휘발유', '경유', '승강기 회생제동', '지역난방', '업무용 차량', '친환경차'],
-  };
+  const SITE_NA_DEFAULT = Object.fromEntries(
+    CONFIG.sites.filter(s => s.na && s.na.length).map(s => [s.name, s.na]));
   const SITE_NA = {};   // 지금 쓰는 값 (loadAll에서 DB 값으로 다시 채움 · 같은 객체를 고쳐 씀)
   function applySiteNa(v) {
     Object.keys(SITE_NA).forEach(k => delete SITE_NA[k]);
@@ -136,13 +163,14 @@
   const WASTE_KG_PER_L = 0.174; // 봉투 1L당 무게(kg) — 환경정보공개시스템 비가정부문 환산기준
   // 폐기물 소각·매립 혼합 유효 배출계수 (tCO₂eq/ton) — 2024 시·도 폐기물 처리통계 기반 사업장별 추정계수
   //  기본계수: 소각 1.182 · 매립 0.45515 (에너지회수 미산정) · 대구본원 0.477114(소각 21.19%+매립 49.79%, 에너지회수 29.02%는 산정 제외) · 제주 1.138357(소각 94%+매립 6%) · 서울 미산정
-  const WASTE_EF = { '대구본원': 0.477114, '제주글로벌센터': 1.138357 };   // 그 밖(서울 등): 미산정(null)
-  const WASTE_EF_TXT = '사업장별 유효계수 (대구 0.477114 · 제주 1.138357 · 서울 미산정) tCO₂eq/ton';
+  const WASTE_EF = Object.fromEntries(
+    CONFIG.sites.filter(s => s.wasteEF != null).map(s => [s.name, s.wasteEF]));   // 없는 거점: 미산정(null)
+  const WASTE_EF_TXT = CONFIG.wasteEFNote;
   const TRAIN_N = 2;            // 예측 학습에 쓰는 직전 연도 수 (매년 자동으로 바뀜)
   // 기타 환경지표 (env_metrics 테이블) — month: 월별 'YYYY-MM' / year: 연도별 'YYYY'(연말 기준)
   const WATER = '용수', EV_ALL = '업무용 차량', EV_GREEN = '친환경차';
-  // PUE = 데이터센터 총 전력 ÷ IT 장비 전력 · 클라우드 전환률 = 클라우드 전환 시스템 ÷ 운영 정보시스템 (연도별 · 기관 전체 = 대구본원에 저장)
-  const PUE_TOTAL = '데이터센터 총 전력', PUE_IT = 'IT 장비 전력', CL_ALL = '운영 정보시스템', CL_DONE = '클라우드 전환 시스템', ORG_SITE = '대구본원';
+  // PUE = 데이터센터 총 전력 ÷ IT 장비 전력 · 클라우드 전환률 = 클라우드 전환 시스템 ÷ 운영 정보시스템 (연도별 · 기관 전체 = 본사에 저장)
+  const PUE_TOTAL = '데이터센터 총 전력', PUE_IT = 'IT 장비 전력', CL_ALL = '운영 정보시스템', CL_DONE = '클라우드 전환 시스템', ORG_SITE = HEAD_SITE;
   const icn      = n => `<svg class="ic" aria-hidden="true"><use href="#i-${n}"/></svg>`;   // 선 아이콘 (스프라이트)
   const MASCOT_EMPTY = 'img/mascot-empty.png';
   { const _m = $('manage-init-mascot'); if (_m) _m.src = MASCOT_EMPTY; }
@@ -200,8 +228,8 @@
   const esc      = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
   /* ── Supabase REST ──────────────────────────────────── */
-  const SB_URL = 'https://yyvfxecvcgfvqpydhqsh.supabase.co';
-  const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5dmZ4ZWN2Y2dmdnFweWRocXNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkwMTA1MjIsImV4cCI6MjEwNDU4NjUyMn0.0koO0AaM0vLKESAn7qqwNpwdygcroln1zu9YpflT_oU';
+  const SB_URL = CONFIG.supabase.url;
+  const SB_KEY = CONFIG.supabase.anonKey;
   const HDR = {
     'apikey': SB_KEY,
     'Authorization': `Bearer ${SB_KEY}`,
@@ -576,7 +604,7 @@
 
   // 올해 기상연동 예측 (실적이 없는 달만 채움)
   //  · 화면용: 선택 거점 기준 ('전체'면 거점별로 각자 이력으로 예측해서 합산)
-  //  · 목표카드용 annualPred: 화면 거점 필터와 무관하게 항상 대구본원 Scope 1+2 (실적 + 예측)
+  //  · 목표카드용 annualPred: 화면 거점 필터와 무관하게 항상 본사 Scope 1+2 (실적 + 예측)
   const PRED_TYPES = ['전력', '도시가스', '지역난방', '휘발유', '경유', RE_SELF];
   const WX_TYPES   = new Set(['전력', '도시가스', '지역난방']); // 냉난방도일 보정 대상 (나머지는 같은 달 평균만)
 
@@ -643,10 +671,10 @@
       });
     });
 
-    // ② 목표카드용: 대구본원 Scope 1+2 (실적은 저장된 배출량, 미입력 달은 예측)
-    const actDgb = sumBy(energyRecs.filter(r => r.site === '대구본원' && (r.date || '').startsWith(curYrStr) && isEmit(r.type)), r => r.ghg);
+    // ② 목표카드용: 본사 Scope 1+2 (실적은 저장된 배출량, 미입력 달은 예측)
+    const actDgb = sumBy(energyRecs.filter(r => r.site === HEAD_SITE && (r.date || '').startsWith(curYrStr) && isEmit(r.type)), r => r.ghg);
     let predDgb = 0;
-    PRED_TYPES.filter(isEmit).forEach(t => series('대구본원', t).pred.forEach(v => { if (v != null) predDgb += calcGHG(t, v); }));
+    PRED_TYPES.filter(isEmit).forEach(t => series(HEAD_SITE, t).pred.forEach(v => { if (v != null) predDgb += calcGHG(t, v); }));
     const annualPred = (actDgb + predDgb) > 0 ? actDgb + predDgb : null;
 
     return { trainYears, predEnergy, predGhgS1, predGhgS2, annualPred, missing };
@@ -694,11 +722,7 @@
   }
   /* 태양광 설비 (env_settings.solar_plants = [{ site, name, kw, from }]) — from = 가동 시작 'YYYY-MM' (비우면 기존 설비)
      전망(RE100·온실가스 · 50년까지)에서 증설분을 셈 · 저장한 적이 없으면 SOLAR_DEFAULT (지금 설치된 설비) */
-  const SOLAR_DEFAULT = [
-    { site: '대구본원', name: '체육시설 상단', kw: 31.4, from: '' },
-    { site: '대구본원', name: '증축동 옥상', kw: 110.904, from: '' },
-    { site: '제주글로벌센터', name: '', kw: 62.784, from: '' },
-  ];
+  const SOLAR_DEFAULT = CONFIG.solar || [];
   const SOLAR_YM = /^\d{4}-(0[1-9]|1[0-2])$/;
   function cleanSolar(v) {
     if (!Array.isArray(v)) return null;

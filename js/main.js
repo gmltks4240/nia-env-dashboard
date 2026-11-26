@@ -128,10 +128,10 @@
   window.addEventListener('resize', () => { syncStick(); histTocSpy(); renderDashToc(); if ($('tab-outlook').classList.contains('active')) renderOutlookToc(); roadmapTocSpy(); });
   $('h-cmp-etype').addEventListener('change', renderHistory);
   $('h-why-seg').addEventListener('click', e => { const b = e.target.closest('button[data-by]'); if (b && b.dataset.by !== histWhyBy) { histWhyBy = b.dataset.by; renderHistory(); } });
-  $('h-why-list').addEventListener('click', e => {   // 요인 줄 → 그 에너지원(전체 합계면 대구본원부터) 또는 그 거점의 고른 연도 월별 자료
+  $('h-why-list').addEventListener('click', e => {   // 요인 줄 → 그 에너지원(전체 합계면 본사부터) 또는 그 거점의 고른 연도 월별 자료
     const b = e.target.closest('button[data-k]'); if (!b) return;
     const k = b.dataset.k, bySite = !curSite && histWhyBy === 'site';
-    openDrill({ kind: 'year', year: +histYear, site: bySite ? k : (curSite || '대구본원'), focus: bySite ? [] : [k] });
+    openDrill({ kind: 'year', year: +histYear, site: bySite ? k : (curSite || HEAD_SITE), focus: bySite ? [] : [k] });
   });
   $('h-mon-yrs').addEventListener('click', e => {
     const b = e.target.closest('button[data-preset]'); if (!b) return;
@@ -784,7 +784,7 @@
     if (c.kind === 'month') {
       const idx = c.year * 12 + c.month - 1, lab = k => { const d = new Date(c.year, c.month - 1 + k, 1); return `${d.getFullYear() === c.year ? '' : `${String(d.getFullYear()).slice(2)}년 `}${d.getMonth() + 1}월`; };
       title = `${c.year}년 ${c.month}월 에너지 사용량`;
-      badges.push(['', c.sites.length > 1 ? '세 거점' : c.sites[0]]);
+      badges.push(['', c.sites.length > 1 ? sitesTxt(c.sites, { sum: false }) : c.sites[0]]);
       if (idx > curYr * 12 + now.getMonth()) badges.push(['b-pred', '아직 오지 않은 달 · 그래프 값은 예측']);
       tools = `<div class="drill-nav" role="group" aria-label="달 이동"><button type="button" data-nav="-1"${idx <= minY * 12 ? ' disabled' : ''}>◀ ${lab(-1)}</button>` +
         `<button type="button" data-nav="1"${idx >= curYr * 12 + 11 ? ' disabled' : ''}>${lab(1)} ▶</button></div>`;
@@ -970,15 +970,15 @@
     const yearCtx = (y, site, focus = []) => y && y <= curYr() ? { kind: 'year', year: y, site, focus } : null;
     // 목표·로드맵: 지난 해 = 그 해 월별 자료 · 올해(연말 예측)·27~30년(전망, 2030 중기 그래프) = 어떻게 계산했는지 팝업
     const rmPick = (kind, c, y, past) => y < curYr() ? past : y <= OUTLOOK.to ? { pop: () => rmYearPop(kind, y) } : null;
-    const ghgYear = (i, e, c) => { const y = yearAt(c, i); return rmPick('ghg', c, y, yearCtx(y, '대구본원')); };
+    const ghgYear = (i, e, c) => { const y = yearAt(c, i); return rmPick('ghg', c, y, yearCtx(y, HEAD_SITE)); };
     const reYear  = (i, e, c) => { const y = yearAt(c, i); return rmPick('re', c, y, yearCtx(y, rmapSite(), ['전력', RE_SELF, RE_BUY])); };
     ['', 'y-'].forEach(P => {
       const s = CHARTS[P] || {};
       const month = (i, e, c) => { const t = dsAt(c, e)?.$type; return { kind: 'month', year: yvYear[P], month: i + 1, sites: viewSites(), focus: t ? [t] : [] }; };
       [s.fuel, s.ghg].forEach(c => on(c, month));
       (s.em || []).forEach((c, k) => on(c, i => ({ kind: 'month', year: yvYear[P], month: i + 1, sites: viewSites(), focus: [ETYPES[k]] })));   // 그 에너지원 줄을 강조
-      on(s.regen, i => ({ kind: 'month', year: yvYear[P], month: i + 1, sites: ['대구본원'], focus: [SAVE_REGEN] }));   // 누르면 그 달 자료
-      on(s.ws, (i, e, c) => ({ kind: 'waste', year: yvYear[P], site: curSite || dsAt(c, e)?.$site || '대구본원' }));   // 누르면 그 거점의 봉투 입력표
+      on(s.regen, i => ({ kind: 'month', year: yvYear[P], month: i + 1, sites: [HEAD_SITE], focus: [SAVE_REGEN] }));   // 누르면 그 달 자료
+      on(s.ws, (i, e, c) => ({ kind: 'waste', year: yvYear[P], site: curSite || dsAt(c, e)?.$site || HEAD_SITE }));   // 누르면 그 거점의 봉투 입력표
     });
     const h = CHARTS.h || {}, o = CHARTS.o || {};
     [h.path, h.path50, o.ghg, o.src].forEach(c => on(c, ghgYear));
@@ -986,7 +986,7 @@
     on(h.energy, (i, e, c) => { const ds = dsAt(c, e) || c.data.datasets.find(d => d.$year === +histYear) || c.data.datasets[c.data.datasets.length - 1];
       const t = $('h-cmp-etype').value;
       return t === WATER || !ds ? null : { kind: 'month', year: ds.$year, month: i + 1, sites: viewSites(), focus: GHG[t] ? [t] : [] }; });
-    on(h.scope, (i, e, c) => yearCtx(yearAt(c, i), dsAt(c, e)?.$site || curSite || '대구본원'));   // 거점별로 쌓았으면 누른 거점
+    on(h.scope, (i, e, c) => yearCtx(yearAt(c, i), dsAt(c, e)?.$site || curSite || HEAD_SITE));   // 거점별로 쌓았으면 누른 거점
     on(h.wrm, (i, e, c) => { const y = yearAt(c, i); return y <= curYr() ? { kind: 'waste', year: y, site: dsAt(c, e)?.$site || rmapSite() } : null; });   // 누른 거점 막대의 봉투 입력표
   }
 

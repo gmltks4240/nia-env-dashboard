@@ -226,7 +226,7 @@
   function renderBaseForm() {
     gbDirty = false;
     const curYr = new Date().getFullYear();
-    const dataYs = energyRecs.filter(r => r.site === '대구본원').map(r => +(r.date || '').slice(0, 4)).filter(y => y > 1990);
+    const dataYs = energyRecs.filter(r => r.site === HEAD_SITE).map(r => +(r.date || '').slice(0, 4)).filter(y => y > 1990);
     const ks = [...Object.keys(ghgBaseY), ...Object.keys(ROADMAP), ...Object.keys(LAW_RATE), ...Object.keys(LAW_TENT)].map(Number);
     gbM = {};
     for (let y = Math.min(...ks, ...dataYs, curYr); y <= Math.max(...ks, curYr + 1); y++) {
@@ -481,8 +481,10 @@
     const now = $('fl-now'); if (!now) return;
     const cf = currentFactors();
     now.innerHTML = EMIT_TYPES.map(t => `<tr><td class="ct-nm">${esc(t)}</td><td>${esc(GHG[t]?.unit || '')}</td><td class="fl-f">${factorStr(cf.energy[t])}</td><td class="fl-src">${esc(GHG[t]?.src || GHG[t]?.desc || '')}</td></tr>`).join('')
-      + `<tr><td class="ct-nm">폐기물 · 대구본원</td><td>ton</td><td class="fl-f">${factorStr(WASTE_EF['대구본원'])}</td><td class="fl-src" rowspan="2">소각·매립 계수: 한국환경산업기술원 환경성적표지 평가계수(탄소발자국) · 처리비율: 2024년 전국 폐기물 발생·처리현황 p.72(대구)·p.86(제주) · 발생량 환산 0.174 kg/L: 환경정보공개시스템 비가정부문 환산기준</td></tr>`
-      + `<tr><td class="ct-nm">폐기물 · 제주글로벌센터</td><td>ton</td><td class="fl-f">${factorStr(WASTE_EF['제주글로벌센터'])}</td></tr>`;
+      // 폐기물은 거점마다 계수가 달라 거점 수만큼 줄이 생긴다 (출처 칸은 첫 줄에서 전부를 덮음)
+      + Object.keys(WASTE_EF).map((st, i, a) => `<tr><td class="ct-nm">폐기물 · ${esc(st)}</td><td>ton</td><td class="fl-f">${factorStr(WASTE_EF[st])}</td>`
+          + (i === 0 ? `<td class="fl-src" rowspan="${a.length}">${esc(CONFIG.wasteEFSource || '')}</td>` : '')
+          + '</tr>').join('');
     $('fl-list').innerHTML = factorLog.length
       ? factorLog.map(e => `<li><b>${esc(e.date)}</b> ${esc(e.note || '')}${e.by ? `<span class="fl-by"> · ${esc(e.by)}</span>` : ''}</li>`).join('')
       : '<li class="fl-empty">아직 기록된 이력이 없어요 — 계수를 개정하면 적용일과 내용을 남겨 두세요.</li>';
@@ -594,7 +596,7 @@
   });
   $('solar-add')?.addEventListener('click', () => {
     const y = new Date().getFullYear() + 1;
-    solarDraft.push({ site: '대구본원', name: '', kw: null, from: `${y}-01` }); solarDirty = true; drawSolarRows();
+    solarDraft.push({ site: HEAD_SITE, name: '', kw: null, from: `${y}-01` }); solarDirty = true; drawSolarRows();
     $('solar-tbody').querySelector('tr:last-child .so-kw')?.focus();
     $('solar-save-info').textContent = '용량과 가동 시작 달을 넣고 저장하세요';
   });
@@ -654,7 +656,7 @@
   }
   function updateRoadmapTargets() {
     const base = $('rm-base').value, tons = Object.fromEntries(TARGET_SITES.waste.map(st => [st, wasteYearTon(base, [st])]));
-    tons.__sum = wasteYearTon(base, TARGET_SITES.waste);   // 목표·로드맵 탭은 세 거점 합산 목표로 판정
+    tons.__sum = wasteYearTon(base, TARGET_SITES.waste);   // 목표·로드맵 탭은 대상 거점 합산 목표로 판정
     $('rm-tbody').querySelectorAll('tr[data-year]').forEach(tr => {
       const inp = tr.querySelector('input'), v = parseFloat(inp.value);
       inp.classList.toggle('has-data', inp.value !== '');
