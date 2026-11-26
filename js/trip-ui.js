@@ -15,7 +15,7 @@
     if (!window.TRIP_REF) throw new Error('출장 산정 기준표가 이 파일에 없어요 · index.html을 최신으로 다시 올려 주세요');
     return tripRef ||= tripBuildRef(window.TRIP_REF, window.TRIP_FARE);
   };
-  let trip = null;   // { name, hash, rows, rail, others, placeMap, placeMeta, results, summary, review, aiNote, dbMissing }
+  let trip = null;   // { name, hash, rows, rail, others, placeMap, placeMeta, results, summary, review, dbMissing }
   const tripInfo = (msg, err) => { const el = $('trip-info'); el.innerHTML = msg; el.classList.toggle('err', !!err); };
   // 장소 사전(AI·사람 확정)을 끝까지 읽음 — 입력·수정 권한이 있을 때만 (장소명·행별 기록은 로그인한 담당자만 읽을 수 있음)
   //  map: 장소 → 지점 목록 · meta: 장소 → { source: 'human'|'ai', confidence, reason } · 표가 아직 없으면(SQL 실행 전) missing
@@ -35,37 +35,9 @@
       return { map, meta, missing: false };
     } catch (e) { console.warn('[출장] 장소 사전을 읽지 못했어요:', e.message); return { map: {}, meta: {}, missing: isMissingTable(e) }; }
   }
-  // 사전에도 없고 내장 규칙으로도 못 푼 장소만 AI 분류 함수로 보냄 (장소명 문자열만 전송) · 실패해도 산정은 계속
-  //  50개씩 나눠, 첫 묶음으로 함수가 살아 있는지 본 뒤 나머지를 3묶음씩 동시에 · 한 묶음이 실패하면 새 묶음을 멈춤
-  //  AI 가 '모름'이라 한 것도 돌려줌(함수가 사전에 남겨 다음에 다시 묻지 않음) → 검토표의 '확인 필요'에 나옴
-  const TRIP_AI_BATCH = 50, TRIP_AI_PAR = 3;
-  async function tripAskAI(raws, onStep) {
-    const got = {}; let note = '', done = 0, next = 0, stop = false;
-    if (!raws.length) return { got, note };
-    if (!session?.access_token || !canEdit()) return { got, note: 'AI 분류는 로그인한 편집자만 쓸 수 있어요' };
-    const batches = [];
-    for (let i = 0; i < raws.length; i += TRIP_AI_BATCH) batches.push(raws.slice(i, i + TRIP_AI_BATCH));
-    const step = async () => {
-      const list = batches[next++];
-      try {
-        const res = await fetchT(`${SB_URL}/functions/v1/classify-places`, { method: 'POST',
-          headers: { apikey: SB_KEY, Authorization: `Bearer ${session.access_token}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ places: list }) }, 120000);
-        if (!res.ok) throw new Error(res.status === 404 ? 'AI 분류 함수가 아직 배포되지 않았어요' : `AI 분류 함수 오류 (${res.status})`);
-        const j = await res.json();
-        (j.results || []).forEach(r => {
-          if (!r || typeof r.raw !== 'string' || !Array.isArray(r.points) || !list.includes(r.raw)) return;
-          const confidence = ['high', 'low', 'unknown'].includes(r.confidence) ? r.confidence : 'low';
-          got[r.raw] = { points: confidence === 'unknown' ? [] : r.points.filter(x => TRIP_POINTS.includes(x) && x !== '기타'), confidence, reason: String(r.reason || '').slice(0, 200) };
-        });
-        done += list.length; onStep?.(Math.min(done, raws.length), raws.length);
-      } catch (e) { stop = true; note ||= e?.name === 'AbortError' ? 'AI 분류 함수가 응답하지 않았어요' : e.message; }
-    };
-    await step();
-    const worker = async () => { while (!stop && next < batches.length) await step(); };
-    if (!stop) await Promise.all(Array.from({ length: TRIP_AI_PAR }, worker));
-    return { got, note };
-  }
+  //  업로드할 때 AI(Claude API)를 불러 새 장소를 자동 분류하는 경로가 있었으나 2026-11-26 지웠다.
+  //  유료 API 라서 쓰지 않기로 했고, 분류는 대화에서 한 번 해 사전(trip_places)에 넣는 방식으로 간다.
+  //  경위·되살리는 법: docs/decisions/002-AI-자동분류-제거.md
   const tripPlacesOf = rows => { const n = new Map(); rows.forEach(r => [r.origin, r.dest, r.via].forEach(t => { if (t) n.set(t, (n.get(t) || 0) + 1); })); return n; };
   const TRIP_CONF = { high: '높음', low: '낮음', unknown: '—' };
   function tripCompute() {
@@ -112,15 +84,8 @@
       let hash = '';
       try { hash = [...new Uint8Array(await crypto.subtle.digest('SHA-256', buf))].map(b => b.toString(16).padStart(2, '0')).join(''); } catch { /* file:// 등 — 지문 없이 진행 */ }
       const pl = await tripLoadPlaces();
-      trip = { name: file.name, hash, rows, rail, others, noYear, placeMap: pl.map, placeMeta: pl.meta, dbMissing: pl.missing, aiNote: '' };
+      trip = { name: file.name, hash, rows, rail, others, noYear, placeMap: pl.map, placeMeta: pl.meta, dbMissing: pl.missing };
       tripCompute();
-      const ask = trip.review.filter(x => x.source === '없음').map(x => x.raw);   // 건수 많은 장소부터
-      if (ask.length) {
-        const ai = await tripAskAI(ask, (a, b) => tripInfo(`새 장소 ${b.toLocaleString('ko-KR')}개 분류 중… (${a.toLocaleString('ko-KR')})`));
-        Object.entries(ai.got).forEach(([raw, g]) => { trip.placeMap[raw] = g.points; trip.placeMeta[raw] = { source: 'ai', confidence: g.confidence, reason: g.reason }; });
-        trip.aiNote = ai.note;
-        if (Object.keys(ai.got).length) tripCompute();
-      }
       tripRender();
     } catch (e) { console.error(e); trip = null; $('trip-out').hidden = true; tripInfo(esc(e.message || '파일을 읽지 못했어요'), true); }
   }
@@ -142,7 +107,6 @@
     const oth = Object.entries(trip.others).sort((a, b) => b[1] - a[1]).map(([m, n]) => `${esc(m)} ${n0(n)}`).join(' · ');
     tripInfo(`${esc(trip.name)} · 철도 ${n0(trip.rail.length)}건 산정` + (oth ? ` · 미산정: ${oth}` : '') +
       (trip.noYear ? `<br>${icn('alert')} 출장시작일을 읽지 못한 철도 ${n0(trip.noYear)}건은 뺐어요` : '') +
-      (trip.aiNote ? `<br>${icn('alert')} ${esc(trip.aiNote)} — 사전에 없는 장소는 내장 규칙으로만 분류했어요` : '') +
       (trip.dbMissing ? `<br>${icn('alert')} 장소 사전 표가 없어요 · 저장하려면 supabase/trip_scope3.sql을 한 번 실행하세요` : ''));
     $('trip-out').hidden = false;
   }

@@ -99,7 +99,7 @@ def run():
         ok(c[3] == "25.0%" and c[4] == "25.0%" and c[5] == "25.0%" and c[6] == "25.0%", f"A·B·C·D 각 25% — {c[3:7]}")
         info = p.text_content("#trip-info")
         ok("항공운임 1" in info, f"철도 외 교통편은 미산정 건수로 — '{info[:80]}'")
-        ok("AI 분류 함수가 아직 배포되지 않았어요" in info, "AI 함수가 없으면 안내하고 계속")
+        ok("AI" not in info, f"AI 안내 문구가 없다 — 자동 호출을 지웠으므로(2026-11-26) '{info[:80]}'")
         rv = review(p)
         ok(len(rv) == 1 and rv[0][0] == "비상임감사집무실" and rv[0][2] == "미분류" and rv[0][3] == "없음", f"확인 필요에 미분류 장소 — {rv}")
         ok(rv and "대구 1건" in rv[0][6] and rv[0][7] == "참고", f"미분류 장소에는 운임이 가리키는 곳을 참고로 — {rv[0][6:] if rv else None}")
@@ -110,7 +110,8 @@ def run():
         review(p, "need")
         d = p.text_content("#trip-dtop")
         ok("70,010" in d and "구간 동대구-서울" in d, "추정(D) 상위 운임 표")
-        ok(mock.calls and mock.calls[0][1] == {"places": ["비상임감사집무실"]}, f"AI 로는 장소명만 보냄 — {mock.calls[:1]}")
+        # 사전에 없는 장소가 있어도 바깥으로 아무것도 보내지 않는다 — 유료 AI 호출을 지운 뒤의 핵심 보장
+        ok(mock.calls == [], f"사전에 없는 장소가 있어도 Edge Function(유료 AI)을 부르지 않는다 — {mock.calls}")
 
         test_name("사람 확정")
         mock.writes.clear()
@@ -177,66 +178,32 @@ def run():
         errs += errs_csv
         br.close()
 
-        # ── 3) AI 응답 있음 · 500 ──
-        test_name("AI 분류")
-        ai = {"results": [{"raw": "비상임감사집무실", "points": ["대구", "달나라"], "confidence": "high", "reason": "NIA 본원"}]}
-        mock = MockRouter(tables={"app_users": USERS}, functions={"classify-places": (200, ai)})
+        # ── 3) 사전의 분류를 그대로 쓴다 (2026-11-26: AI 자동 호출을 지워 사전만 본다) ──
+        #     AI 가 분류한 항목은 source='ai' 로 사전에 들어가 있고, 화면은 그것을 출처 'AI' 로 보여 준다.
+        #     분류는 대화에서 한 번 해 사전에 넣는 방식이다 — docs/decisions/002-AI-자동분류-제거.md
+        test_name("사전의 AI 분류")
+        dic = [dict(raw="비상임감사집무실", points=["대구"], confidence="high", reason="NIA 본원", source="ai")]
+        mock = MockRouter(tables={"app_users": USERS, "trip_places": dic})
         br, ctx, p, errs3 = open_page(pw, mock, init_script=INIT)
         upload(p, FILE)
         c = cells(p)
-        ok(c[3] == "50.0%" and c[4] == "25.0%" and c[5] == "0.0%", f"AI 가 분류하면 C → A — A {c[3]} B {c[4]} C {c[5]}")
-        ok(review(p) == [], "확인 필요 없음 (목록 밖 값 '달나라'는 버림)")
+        ok(c[3] == "50.0%" and c[4] == "25.0%" and c[5] == "0.0%", f"사전이 분류하면 C → A — A {c[3]} B {c[4]} C {c[5]}")
+        ok(review(p) == [], "확인 필요 없음")
         rv = review(p, "ai")
-        ok(len(rv) == 1 and rv[0][2:6] == ["대구", "AI", "높음", "NIA 본원"], f"AI 분류는 출처·확신·이유가 보임 — {rv}")
+        ok(len(rv) == 1 and rv[0][2:6] == ["대구", "AI", "높음", "NIA 본원"], f"사전의 AI 분류는 출처·확신·이유가 보임 — {rv}")
+        ok(mock.calls == [], f"Edge Function 을 부르지 않는다 — {mock.calls}")
         errs += errs3
         br.close()
 
-        mock = MockRouter(tables={"app_users": USERS}, functions={"classify-places": (500, {"error": "x"})})
-        br, ctx, p, errs4 = open_page(pw, mock, init_script=INIT)
-        upload(p, FILE)
-        c = cells(p)
-        ok(c[1] == "4" and "AI 분류 함수 오류 (500)" in p.text_content("#trip-info"), "함수가 실패해도 산정은 계속")
-        errs += errs4
-        br.close()
-
-        # ── 3-1) AI 가 '모름' · 사전의 '모름'은 다시 묻지 않음 ──
-        test_name("AI 모름")
-        unsure = {"results": [{"raw": "비상임감사집무실", "points": [], "confidence": "unknown", "reason": "위치를 알 수 없음"}]}
-        mock = MockRouter(tables={"app_users": USERS}, functions={"classify-places": (200, unsure)})
+        test_name("사전의 모름")
+        known = [dict(raw="비상임감사집무실", points=[], confidence="unknown", reason="위치를 알 수 없음", source="ai")]
+        mock = MockRouter(tables={"app_users": USERS, "trip_places": known})
         br, ctx, p, errs_u = open_page(pw, mock, init_script=INIT)
         upload(p, FILE)
         rv = review(p)
-        ok(len(rv) == 1 and rv[0][2:6] == ["모름", "AI", "—", "위치를 알 수 없음"], f"AI 가 모른다고 한 장소는 확인 필요에 남음 — {rv}")
+        ok(len(rv) == 1 and rv[0][2:6] == ["모름", "AI", "—", "위치를 알 수 없음"], f"사전에 '모름'인 장소는 확인 필요에 남음 — {rv}")
         ok(cells(p)[5] == "25.0%", "모름인 장소의 행은 운임만으로 판정(C)")
         errs += errs_u
-        br.close()
-        known = [dict(raw="비상임감사집무실", points=[], confidence="unknown", reason="위치를 알 수 없음", source="ai")]
-        mock = MockRouter(tables={"app_users": USERS, "trip_places": known}, functions={"classify-places": (200, unsure)})
-        br, ctx, p, errs_u = open_page(pw, mock, init_script=INIT)
-        upload(p, FILE)
-        ok(mock.calls == [], f"사전에 '모름'으로 있는 장소는 AI 에 다시 보내지 않음 — {mock.calls}")
-        ok([r[2] for r in review(p)] == ["모름"], "사전의 모름도 확인 필요에 보임")
-        errs += errs_u
-        br.close()
-
-        # ── 3-2) 여러 묶음 · 한 묶음 실패 ──
-        test_name("AI 묶음")
-        many = json.dumps({"2025": HEAD + [trip(i, 45659, "대구", f"미지{i:03d}", "철도운임", 87000) for i in range(1, 121)]}, ensure_ascii=False)
-        seen = []
-        def classify(body):
-            seen.append(len(body["places"]))
-            if len(seen) == 2:
-                return 500, {"error": "x"}
-            return 200, {"results": [dict(raw=r, points=["서울"], confidence="low", reason="추정") for r in body["places"]]}
-        mock = MockRouter(tables={"app_users": USERS}, functions={"classify-places": classify})
-        br, ctx, p, errs_b = open_page(pw, mock, init_script=INIT)
-        upload(p, many)
-        ok(sorted(seen) == [20, 50, 50], f"50개씩 3묶음 — {seen}")
-        ok("AI 분류 함수 오류 (500)" in p.text_content("#trip-info"), "실패한 묶음은 안내")
-        n_ai = len(review(p, "ai"))
-        ok(n_ai in (50, 70), f"성공한 묶음의 답은 적용 — AI 분류 {n_ai}개")
-        ok(cells(p)[1] == "120", "산정은 전부 계속")
-        errs += errs_b
         br.close()
 
         # ── 3-3) 운임과 다른 분류가 맨 위 ──

@@ -75,7 +75,8 @@ class MockRouter:
     def route(self, req):
         url = req.request.url
 
-        # Supabase Edge Function
+        # Supabase Edge Function — 2026-11-26 이후 앱은 Edge Function 을 부르지 않는다(유료 AI 호출 제거).
+        #  가로채기를 남겨 둔 이유: mock.calls 가 비어 있는지로 '유료 API 를 부르지 않는다'를 테스트가 증명한다
         m = re.search(r"supabase\.co/functions/v1/([a-z-]+)", url)
         if m:
             if req.request.method == "OPTIONS":
