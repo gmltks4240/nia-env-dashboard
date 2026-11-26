@@ -130,8 +130,7 @@ python3 tools/bump_version.py
 
 ### 이미 올라가 있는 것은 어떻게 된 건가
 
-`js/core.js` 의 Supabase URL·`anon` 키, `supabase/solar_2024_2026.sql` 의 실적
-숫자는 **의도적으로 공개 상태로 둔 것**입니다. 근거는
+`js/core.js` 의 Supabase URL·`anon` 키는 **의도적으로 공개 상태로 둔 것**입니다. 근거는
 [`docs/decisions/001-공개-범위.md`](docs/decisions/001-공개-범위.md) 에 있습니다.
 요약하면
 

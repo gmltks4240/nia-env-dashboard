@@ -87,9 +87,6 @@ supabase/waste_multi_size.sql 폐기물 종량제 봉투 규격
 supabase/who_changed.sql      (선택) 변경 이력에 이메일 대신 이름 표시
 ```
 
-`supabase/solar_2024_2026.sql` 은 **실행하지 마세요.** 이 기관의 태양광 실적을
-한 번에 넣기 위한 데이터 입력용 파일이라, 다른 기관에는 남의 숫자가 들어갑니다.
-
 **3. 연결 정보 넣기**
 
 `js/core.js` 위쪽의 Supabase URL과 anon 키를 본인 프로젝트 값으로 바꿉니다.
