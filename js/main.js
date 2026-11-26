@@ -11,6 +11,14 @@
     }
   })();
 
+  /* ── 탭 이름 옆 작은 글씨: 그 탭이 다루는 기간 (올해 26년 · 지난 ~25년 · 전망 ~2050년) ── */
+  (() => {
+    const y = new Date().getFullYear();
+    $('th-dash').textContent = `${String(y).slice(2)}년`;
+    $('th-hist').textContent = `~${String(y - 1).slice(2)}년`;
+    $('th-ol').textContent = `~${OUTLOOK.to}년`;
+  })();
+
   /* ── 탭·서브탭 네비게이션 ─────────────────────────── */
   document.querySelectorAll('.tab-btn').forEach(b => b.addEventListener('click', () => {
     if (!needOk(b)) return;   // 권한 없는 탭 (화면에서도 숨김)
@@ -116,14 +124,14 @@
   });
   // 스크롤하면 바로가기에 지금 구역 표시 · 창 크기가 바뀌면 붙는 막대 높이 다시 재기
   let tocRaf = 0;
-  window.addEventListener('scroll', () => { if (!tocRaf) tocRaf = requestAnimationFrame(() => { tocRaf = 0; histTocSpy(); dashTocSpy(); }); }, { passive: true });
-  window.addEventListener('resize', () => { syncStick(); histTocSpy(); renderDashToc(); });
+  window.addEventListener('scroll', () => { if (!tocRaf) tocRaf = requestAnimationFrame(() => { tocRaf = 0; histTocSpy(); dashTocSpy(); outlookTocSpy(); roadmapTocSpy(); }); }, { passive: true });
+  window.addEventListener('resize', () => { syncStick(); histTocSpy(); renderDashToc(); if ($('tab-outlook').classList.contains('active')) renderOutlookToc(); roadmapTocSpy(); });
   $('h-cmp-etype').addEventListener('change', renderHistory);
   $('h-why-seg').addEventListener('click', e => { const b = e.target.closest('button[data-by]'); if (b && b.dataset.by !== histWhyBy) { histWhyBy = b.dataset.by; renderHistory(); } });
-  $('h-why-list').addEventListener('click', e => {   // 요인 줄 → 그 에너지원(전체 합계면 대구본원부터) 또는 그 거점의 고른 연도 월별 자료
+  $('h-why-list').addEventListener('click', e => {   // 요인 줄 → 그 에너지원(전체 합계면 본사부터) 또는 그 거점의 고른 연도 월별 자료
     const b = e.target.closest('button[data-k]'); if (!b) return;
     const k = b.dataset.k, bySite = !curSite && histWhyBy === 'site';
-    openDrill({ kind: 'year', year: +histYear, site: bySite ? k : (curSite || '대구본원'), focus: bySite ? [] : [k] });
+    openDrill({ kind: 'year', year: +histYear, site: bySite ? k : (curSite || HEAD_SITE), focus: bySite ? [] : [k] });
   });
   $('h-mon-yrs').addEventListener('click', e => {
     const b = e.target.closest('button[data-preset]'); if (!b) return;
@@ -408,9 +416,35 @@
     if (/^k-ev|^k-pue|^k-cloud|^k-water/.test(k)) return [{ k: '입력값', ...S_IN_M }];
     return isCurFc ? [{ k: '지금까지 실적', ...S_IN_E }, S_FC()] : [];
   }
+  // 팝업을 열면 먼저 요약(큰 숫자·한 줄 설명·계산식)만 보이고, 자세한 내역은 모두 접혀 있다.
+  // 표가 네댓 개 한꺼번에 쏟아지면 정작 결론이 안 읽히고, 대부분은 결론만 보고 닫는다.
+  // 더 보고 싶은 사람만 제목 줄을 눌러 펼친다. 구역을 만드는 곳이 파일 네 개에 흩어져 있어
+  // 각자 고치는 대신, 다 그려 놓은 뒤 여기서 한 번에 <details> 로 바꾼다
+  function foldSecs(root) {
+    // 배출계수처럼 긴 칸이 있는 표는 폭을 넘겨 팝업 밖으로 삐져나온다 — 가로로 밀어 볼 수 있게 감싼다
+    root.querySelectorAll('table.calc-tbl').forEach(t => {
+      if (t.parentElement.classList.contains('calc-tw')) return;
+      const w = document.createElement('div'); w.className = 'calc-tw';
+      t.replaceWith(w); w.appendChild(t);
+    });
+    [...root.children].filter(el => el.classList.contains('calc-sec')).forEach(sec => {
+      const h = sec.querySelector(':scope > h4'); if (!h) return;
+      const d = document.createElement('details');
+      d.className = `${sec.className} cfold`;
+      const sm = document.createElement('summary');
+      // '펼치기 / 닫기' 글자는 CSS 로 — 여는 상태에 따라 글자가 바뀐다
+      sm.innerHTML = `${h.innerHTML}<span class="cf-t"></span><i class="cf-ar" aria-hidden="true">›</i>`;
+      h.remove();
+      d.append(sm, ...sec.childNodes);
+      sec.replaceWith(d);
+    });
+  }
   function renderCalc(c, key) {
     const u = c.unit || 'tCO₂eq';
-    $('calc-title').textContent = c.title;
+    // 제목 앞에는 코드가 붙인 아이콘(icn() 이 만든 <svg>)이 올 수 있다. textContent 로 넣으면
+    // 그 태그가 글자 그대로 보이므로, 맨 앞 아이콘만 그대로 두고 나머지는 글자로 넣는다
+    const tt = String(c.title ?? ''), tIc = tt.match(/^(<svg\b[^>]*>[\s\S]*?<\/svg>)\s*([\s\S]*)$/);
+    $('calc-title').innerHTML = tIc ? `${tIc[1]} ${esc(tIc[2])}` : esc(tt);
     $('calc-sub').textContent = [c.sub, c.period, c.site].filter(Boolean).join(' · ');
     // 점수 히어로 (경영평가 계량 카드) · 그 밖에는 기존 큰 숫자 줄
     const q = c.score;
@@ -496,6 +530,7 @@
     // 숫자 출처 · 어디서 보나 (모든 팝업)
     out.push(srcSection(c.src || srcFor(key, c)));
     $('calc-body').innerHTML = out.join('') || (c.value == null ? '' : '<p class="calc-empty">나눠 볼 내역이 없어요</p>');
+    foldSecs($('calc-body'));
     $('calc-note').textContent = c.note || '';
     $('calc-scroll') && ($('calc-scroll').scrollTop = 0);
   }
@@ -749,7 +784,7 @@
     if (c.kind === 'month') {
       const idx = c.year * 12 + c.month - 1, lab = k => { const d = new Date(c.year, c.month - 1 + k, 1); return `${d.getFullYear() === c.year ? '' : `${String(d.getFullYear()).slice(2)}년 `}${d.getMonth() + 1}월`; };
       title = `${c.year}년 ${c.month}월 에너지 사용량`;
-      badges.push(['', c.sites.length > 1 ? '세 거점' : c.sites[0]]);
+      badges.push(['', c.sites.length > 1 ? sitesTxt(c.sites, { sum: false }) : c.sites[0]]);
       if (idx > curYr * 12 + now.getMonth()) badges.push(['b-pred', '아직 오지 않은 달 · 그래프 값은 예측']);
       tools = `<div class="drill-nav" role="group" aria-label="달 이동"><button type="button" data-nav="-1"${idx <= minY * 12 ? ' disabled' : ''}>◀ ${lab(-1)}</button>` +
         `<button type="button" data-nav="1"${idx >= curYr * 12 + 11 ? ' disabled' : ''}>${lab(1)} ▶</button></div>`;
@@ -935,15 +970,15 @@
     const yearCtx = (y, site, focus = []) => y && y <= curYr() ? { kind: 'year', year: y, site, focus } : null;
     // 목표·로드맵: 지난 해 = 그 해 월별 자료 · 올해(연말 예측)·27~30년(전망, 2030 중기 그래프) = 어떻게 계산했는지 팝업
     const rmPick = (kind, c, y, past) => y < curYr() ? past : y <= OUTLOOK.to ? { pop: () => rmYearPop(kind, y) } : null;
-    const ghgYear = (i, e, c) => { const y = yearAt(c, i); return rmPick('ghg', c, y, yearCtx(y, '대구본원')); };
+    const ghgYear = (i, e, c) => { const y = yearAt(c, i); return rmPick('ghg', c, y, yearCtx(y, HEAD_SITE)); };
     const reYear  = (i, e, c) => { const y = yearAt(c, i); return rmPick('re', c, y, yearCtx(y, rmapSite(), ['전력', RE_SELF, RE_BUY])); };
     ['', 'y-'].forEach(P => {
       const s = CHARTS[P] || {};
       const month = (i, e, c) => { const t = dsAt(c, e)?.$type; return { kind: 'month', year: yvYear[P], month: i + 1, sites: viewSites(), focus: t ? [t] : [] }; };
       [s.fuel, s.ghg].forEach(c => on(c, month));
       (s.em || []).forEach((c, k) => on(c, i => ({ kind: 'month', year: yvYear[P], month: i + 1, sites: viewSites(), focus: [ETYPES[k]] })));   // 그 에너지원 줄을 강조
-      on(s.regen, i => ({ kind: 'month', year: yvYear[P], month: i + 1, sites: ['대구본원'], focus: [SAVE_REGEN] }));   // 누르면 그 달 자료
-      on(s.ws, (i, e, c) => ({ kind: 'waste', year: yvYear[P], site: curSite || dsAt(c, e)?.$site || '대구본원' }));   // 누르면 그 거점의 봉투 입력표
+      on(s.regen, i => ({ kind: 'month', year: yvYear[P], month: i + 1, sites: [HEAD_SITE], focus: [SAVE_REGEN] }));   // 누르면 그 달 자료
+      on(s.ws, (i, e, c) => ({ kind: 'waste', year: yvYear[P], site: curSite || dsAt(c, e)?.$site || HEAD_SITE }));   // 누르면 그 거점의 봉투 입력표
     });
     const h = CHARTS.h || {}, o = CHARTS.o || {};
     [h.path, h.path50, o.ghg, o.src].forEach(c => on(c, ghgYear));
@@ -951,7 +986,7 @@
     on(h.energy, (i, e, c) => { const ds = dsAt(c, e) || c.data.datasets.find(d => d.$year === +histYear) || c.data.datasets[c.data.datasets.length - 1];
       const t = $('h-cmp-etype').value;
       return t === WATER || !ds ? null : { kind: 'month', year: ds.$year, month: i + 1, sites: viewSites(), focus: GHG[t] ? [t] : [] }; });
-    on(h.scope, (i, e, c) => yearCtx(yearAt(c, i), dsAt(c, e)?.$site || curSite || '대구본원'));   // 거점별로 쌓았으면 누른 거점
+    on(h.scope, (i, e, c) => yearCtx(yearAt(c, i), dsAt(c, e)?.$site || curSite || HEAD_SITE));   // 거점별로 쌓았으면 누른 거점
     on(h.wrm, (i, e, c) => { const y = yearAt(c, i); return y <= curYr() ? { kind: 'waste', year: y, site: dsAt(c, e)?.$site || rmapSite() } : null; });   // 누른 거점 막대의 봉투 입력표
   }
 
@@ -1287,7 +1322,7 @@
       b.title = min ? '이 화면 설명 펼치기' : '설명을 한 줄로 접기 (모든 탭 같이)';
     });
   };
-  document.querySelectorAll('.welcome-banner, .tab-banner').forEach(bn => {
+  document.querySelectorAll('.welcome-banner, .tab-banner, .intro-host').forEach(bn => {
     const b = document.createElement('button');
     b.type = 'button'; b.className = 'intro-x';
     b.addEventListener('click', () => {
@@ -1297,9 +1332,8 @@
     });
     bn.append(b);
   });
-  // 처음 여는 휴대폰(좁은 화면)은 접은 채로 시작 — 첫 화면에 숫자가 보이게 · 한 번 펼치거나 접으면 그 선택을 기억
-  const narrow = () => matchMedia('(max-width:640px)').matches;
-  let introMin = narrow();
+  // 처음 열면 설명을 접은 채로 시작 — 첫 화면에 숫자부터 보이게 · 한 번 펼치거나 접으면 그 선택을 기억
+  let introMin = true;
   try { const v = localStorage.getItem(INTRO_KEY); if (v === 'min' || v === 'full') introMin = v === 'min'; } catch { /* 저장소를 못 쓰면 화면 폭으로 */ }
   setIntro(introMin);
 

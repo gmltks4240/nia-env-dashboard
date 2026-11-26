@@ -1,41 +1,119 @@
 # NIA 환경경영 대시보드 — 작업 규칙
 
+이 저장소에서 작업하는 모든 Claude 세션이 따른다.
+
+3명이 함께 개발하며 **개발 과정 자체가 평가 대상**인 팀 프로젝트다.
+"무엇을 만들었는가" 만큼 "어떻게 고민했는가" 가 깃허브에 남아야 한다.
+
 ## 사용자와 일하는 방식
 
-- **한국어로, 짧게** 답한다. 300자 이내 요청이 잦다. 사용자는 비개발자다.
-- **작업이 끝나면 항상 마지막에 정리를 붙인다** (2026-11-21 사용자 규칙):
+- **한국어로, 짧게** 답한다. 사용자는 비개발자다. 용어를 쓰면 한 번 풀어 준다
+- **작업이 끝나면 마지막에 정리를 붙인다**
   - **한 일** — 무엇을 고쳤는지
   - **결과** — 실제 수치·테스트 결과. 추측이 아니라 확인한 값
   - **지금 위치** — 어느 작업이 끝났고 다음이 무엇인지
-- 근거를 묶어서 쓰면 이해하지 못한다. 장소마다 "무엇을 보고 판단했는지"와 "실제 출장 기록·교통비"를 함께 보여 준다.
-- **완료된 것과 가정한 것을 구분해 말한다.** 자기소개서용 정리에서 여러 번 문제가 됐다.
-- 중간 상태를 자주 보고하면 어느 것이 최신인지 헷갈린다. 작업이 끝날 때 보고한다.
-- 내부 자료의 건수를 외부 문서에 쓰는 것은 사용자가 확인해야 한다.
+- **완료된 것과 가정한 것을 구분해 말한다**
+- 중간 상태를 자주 보고하면 어느 것이 최신인지 헷갈린다. 작업이 끝날 때 보고한다
+- 근거를 묶어서 쓰지 않는다. 무엇을 보고 판단했는지를 건건이 보여 준다
+- 내부 자료의 건수를 외부 문서에 쓰는 것은 사용자가 확인해야 한다
+
+## 기록이 남게 일한다
+
+**커밋 메시지에 '왜' 를 쓴다.** 무엇을 바꿨는지는 diff 를 보면 안다.
+diff 가 말해주지 않는 것 — **어떤 문제가 있었고 왜 이 방법을 골랐는지** 를 쓴다.
+
+```
+나쁨:  outlook.js 수정
+좋음:  전망 탭 — 실적 없는 달을 추세에서 뺌
+
+       12월 실적이 아직 안 들어온 상태에서 0 으로 잡혀 연말 추정이 급락했다.
+       빈 달을 0 이 아니라 '없음' 으로 다루도록 바꿈.
+       최근 3개월 가중을 쓰는 방법도 봤지만 연초에 불안정해서 보류.
+```
+
+제목 한 줄(한국어, 50자 내외) → 빈 줄 → 본문. 본문에 **해보고 안 된 방법도 적는다.**
+되돌린 시도는 실패가 아니라 과정의 증거다.
+
+- **커밋을 자주 끊는다.** 의미 있는 단위마다. 하루치를 하나로 몰지 않는다
+- **되돌린 커밋을 지우지 않는다.** `--amend` 나 강제 푸시로 과정을 덮지 않는다
+- **긴 고민은 `docs/decisions/NNN-제목.md` 로 남긴다** — 무엇을 정했나 / 그때 상황 /
+  고려한 선택지 / 고른 이유 / 감수하는 것. 날짜와 근거를 함께.
+  같은 결정이 뒤집힌 적이 있어(60,900원) 경위를 적어 두지 않으면 또 뒤집힌다
+- **PR 본문을 성의 있게 쓴다.** 특히 '왜' 와 '리뷰어가 봐줬으면 하는 곳'
+- **대화창에만 있고 저장소에 없는 고민은 없는 것과 같다.**
+  설계 논의는 `docs/decisions/` 나 PR 본문으로, 아이디어는 이슈로,
+  회의는 `docs/meetings/YYYY-MM-DD.md` 로 옮긴다
 
 ## 이 저장소
 
-- `index.html`(화면 뼈대) + `css/app.css` + `js/*.js` 로 나뉘어 있다. 불러오는 순서가 중요하고,
-  `index.html` 에 적힌 순서(`core` → … → `main`)대로 돈다. 최상위 `const`·`let`·`function` 은 모든 파일이 함께 쓴다.
-  **새 js·css 파일을 만들면 `index.html` 에 `<script>`·`<link>` 를 넣고 `python tools/bump_version.py` 를 돌린다**(`?v=` 해시).
-- Scope 3 출장은 파일 3개다. `js/manage.js` 뒤, `js/main.js` 앞에서 이 순서로 불러온다:
-  - `js/trip-data.js` — 운임·거리·판정 기준표 등 생성된 데이터. **사람이 고치지 않는다**(도구가 덮어쓴다)
-  - `js/trip-engine.js` — 산정·분류 엔진(순수 함수). 화면·DB 를 건드리지 않는다
-  - `js/trip-ui.js` — 화면(올리기·검토표·저장)
-- **원본 장소명을 커밋하지 않는다.** 장소 사전은 Supabase(비공개). `js/trip-data.js` 의 블록에는 도시·금액·구간·설명만 넣는다.
-- 출장 산정 엔진은 `js/trip-engine.js` 전체(`/* @trip-start */ … /* @trip-end */`)다.
-  `tests/test_trip_rail.py` 와 `tools/build_trip_seen.py` 가 이 파일을 그대로 읽어 브라우저에 넣고 돌린다.
-- `js/trip-data.js` 의 생성 블록은 직접 고치지 않는다: `@trip-ref`(`tools/build_trip_ref.py`) ·
-  `@trip-fare`(`build_trip_fares.py`) · `@trip-seen`(`build_trip_seen.py`). `@trip-labels` 는 직접 추가한다.
-  도구에 넘기는 대상 파일은 이제 `index.html` 이 아니라 `js/trip-data.js` 다.
+- 빌드 도구 없음. 파일을 고치고 새로고침하면 바로 반영된다
+- `index.html`(화면 뼈대) + `css/app.css` + `js/*.js`. **불러오는 순서가 중요하다** —
+  `index.html` 에 적힌 순서(`core` → `ui` → `charts` → `dashboard` → `home` →
+  `outlook` → `input` → `manage` → `main`)대로 돌고, 최상위 `const`·`let`·`function` 을
+  모든 파일이 함께 쓴다. `main.js` 는 반드시 마지막
+- **새 js·css 파일을 만들면** `index.html` 에 `<script>`·`<link>` 를 넣고
+  `python3 tools/bump_version.py` 를 돌린다
+- **css 나 js 를 고쳤으면 `python3 tools/bump_version.py`.**
+  안 하면 사용자 브라우저가 캐시된 옛 파일을 쓴다. `test_design_system` 이 잡아준다
+- 색은 CSS 토큰(`--chart-*` 등)에서만 정한다. JS 에 색 리터럴을 쓰지 않는다
+- 간격은 2px 격자를 따른다
+
+### Scope 3 출장 (파일 3개)
+
+`js/manage.js` 뒤, `js/main.js` 앞에서 이 순서로 불러온다. 역할이 달라 합치면 깨진다.
+
+- `js/trip-data.js` — 운임·거리 기준표 등 **생성된 데이터**(94KB). 사람이 고치지 않는다.
+  블록별 생성 도구: `@trip-ref`(`tools/build_trip_ref.py`) · `@trip-fare`(`build_trip_fares.py`) ·
+  `@trip-seen`(`build_trip_seen.py`). `@trip-labels` 만 손으로 추가한다.
+  **도구에 넘기는 대상 파일은 `js/trip-data.js`** 다(한때 `index.html` 이었다)
+- `js/trip-engine.js` — 산정·분류 엔진(순수 함수). 화면·DB 를 건드리지 않는다.
+  `tests/test_trip_rail.py` 와 `tools/*_trip.py` 가 **이 파일을 통째로 읽어** 브라우저에 넣고 돌린다
+- `js/trip-ui.js` — 화면(올리기·검토표·저장)
+
+분석 도구: `tools/eval_trip.py`(재산정·등급 집계) · `verify_trip.py`(A 등급 검증 3종) ·
+`sample_trip.py`(승차권 대조 표본). 출력 CSV 에는 **원본 장소명이 들어가므로 커밋하지 않는다.**
+
+인수인계는 `docs/HANDOFF-trip-scope3.md` — 출장 작업은 이것부터 읽는다.
 
 ## 테스트
 
-- 실행: `python tests/run_all.py`
-- `pip install playwright==1.63.0` — **다른 버전은 미리 설치된 브라우저를 못 찾는다. `playwright install` 금지.**
+```bash
+python3 tests/run_all.py
+```
+
+- **playwright 버전은 CI 와 같은 `1.65.1`** — `.github/workflows/tests.yml` 이 쓰는 버전이다.
+  (한때 `1.63.0` 으로 적힌 문서가 있었다. CI 가 올라가면서 어긋난 것이므로 1.65.1 이 맞다)
+- 세션 시작 훅(`.claude/hooks/session-start.sh`)이 알아서 깔아 준다. 직접 할 때는
+  `pip install playwright==1.65.1`
+- 브라우저를 내려받지 못하는 환경에서는 훅이 컨테이너에 미리 있는 빌드로 이어 준다.
+  `playwright install` 이 실패해도 테스트는 돈다
 - 엑셀 읽기: `pip install xlrd openpyxl`
 
-## 문서
+## 자동으로 도는 것들
 
-- 설계서·계획서는 `docs/superpowers/{specs,plans}/` 에 둔다.
-- 인수인계는 `docs/HANDOFF-trip-scope3.md`. 세션이 바뀌면 이것부터 읽는다.
-- 결정은 **근거와 날짜를 함께** 남긴다. 같은 결정이 뒤집힌 적이 있어(60,900원) 경위를 적어 두지 않으면 또 뒤집힌다.
+| 언제 | 무엇 |
+|---|---|
+| 세션 시작 | `.claude/hooks/session-start.sh` — origin 최신 받아오기, 테스트 준비 |
+| `git push` 직전 | `.claude/hooks/pre-push-check.sh` — 다른 브랜치와 같은 파일을 건드리는지 검사. 겹치면 멈추고 알려 준다 |
+| 매주 월요일 | `.github/workflows/journal.yml` — 주간 개발 일지를 만들어 PR 로 올림 (`docs/activity/`) |
+| PR·main 푸시 | `.github/workflows/tests.yml` — 테스트 10종 |
+
+푸시 전 검사가 멈춰 세우면, **사용자에게 무엇이 겹치는지 알리고 어떻게 할지 확인한 뒤** 진행한다.
+확인이 끝나 그대로 밀기로 했다면 `PREPUSH_OK=1 git push ...` 로 민다. 확인 없이 먼저 붙이지 않는다.
+
+## 공개 저장소다
+
+인터넷 누구나 본다. 다음을 커밋에 넣지 않는다.
+
+- `service_role` 키 등 관리자 권한 자격증명
+  (anon 키는 설계상 공개 전제라 예외 — `docs/decisions/001-공개-범위.md`)
+- 원본 장소명 등 내부 자료, 담당자 개인정보
+- 비밀번호, 접속 정보
+
+## 브랜치
+
+`main` 에 직접 푸시하지 않는다. 브랜치를 만들어 PR 로 올린다.
+이름은 `feat/이름-주제`, `fix/`, `docs/`, `refactor/`. 자세한 것은 `CONTRIBUTING.md`.
+
+(저장소 소유자 계정은 Repository admin bypass 로 직접 푸시할 수 있게 열려 있다 —
+사용자가 그렇게 결정했다. 그 경우에도 푸시 전 겹침 검사는 그대로 돈다.)

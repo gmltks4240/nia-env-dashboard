@@ -1,18 +1,30 @@
 /* js/dashboard.js (4/9) — 올해 현황 · 실적 조회 — 거점 선택 · 한 해 화면(renderYearView) · 거점별 사용량 · 자원·기타 지표 · 입력 현황판 · 예측 근거
    한 덩어리였던 js/app.js 를 순서 그대로 나눈 것. 파일들은 index.html 에 적힌 순서(core → … → main)로 불러오고,
    최상위 const·let·function 은 모든 파일이 함께 쓴다. 새 파일을 만들면 index.html 에도 넣을 것. */
-  /* ── 거점 선택 (올해 현황·실적 조회가 같이 씀) — 기본은 모든 목표를 적용하는 대구본원 ── */
-  let curSite = '대구본원';
-  const SITE_INFO = {
-    '대구본원':       { role: '감축 목표 관리', tone: 'goal',
-                        desc: '온실가스 감축(기준배출량 대비 자체·법적 목표)·RE100·폐기물 감축 목표를 모두 적용하는 거점이에요. 목표 대비 실적을 함께 보여드려요.' },
-    '서울사무소':     { role: '폐기물 목표', tone: 'part',
-                        desc: '폐기물 감축 목표(세 거점 합산)에 포함되는 거점이에요. 온실가스·RE100 목표는 적용하지 않아 에너지 사용량과 배출 추이를 모니터링해요.' },
-    '제주글로벌센터': { role: 'RE100·폐기물 목표', tone: 'part',
-                        desc: 'RE100(대구본원과 합산)·폐기물(세 거점 합산) 감축 목표에 포함되는 거점이에요. 온실가스 감축 목표는 대구본원에만 적용돼 여기서는 배출 추이를 봐요.' },
-    '':               { role: '3개 거점 합계', tone: '',
-                        desc: '세 거점의 사용량·배출량을 합친 화면이에요. 목표는 대상 거점끼리 모아 보여 줘요 — 온실가스 = 대구본원 · RE100 = 대구+제주 합산 · 폐기물 = 세 거점 합산.' },
-  };
+  /* ── 거점 선택 (올해 현황·실적 조회가 같이 씀) — 기본은 목표를 가장 많이 적용하는 거점 ── */
+  let curSite = HEAD_SITE;
+  /* 거점 소개는 js/config.js 의 targetSites 에서 자동으로 만든다 (기관마다 거점 수·목표가 다르므로) */
+  const TGT_NAMES = { ghg: '온실가스', re: 'RE100', wt: '폐기물' };
+  const SITE_INFO = (() => {
+    const of = si => {
+      const has = { ghg: TARGET_SITES.ghg.includes(si), re: TARGET_SITES.re.includes(si), wt: TARGET_SITES.waste.includes(si) };
+      const on = Object.keys(TGT_NAMES).filter(k => has[k]), off = Object.keys(TGT_NAMES).filter(k => !has[k]);
+      if (!on.length) return { role: '모니터링', tone: '', desc: '적용하는 감축 목표가 없어요 · 사용량 추이만 봐요' };
+      const all = on.length === 3;
+      const with_ = k => k === 'ghg' ? TARGET_SITES.ghg : k === 're' ? TARGET_SITES.re : TARGET_SITES.waste;
+      return {
+        role: all ? '감축 목표 관리' : `${on.map(k => TGT_NAMES[k]).join('·')} 목표`,
+        tone: all ? 'goal' : 'part',
+        desc: all ? '온실가스·RE100·폐기물 목표를 모두 적용하는 거점이에요'
+                  : `${on.map(k => `${TGT_NAMES[k]}(${sitesTxt(with_(k))})`).join(' · ')} 적용`
+                    + (off.length ? ` · ${off.map(k => TGT_NAMES[k]).join('·')}는 추이만 봐요` : ''),
+      };
+    };
+    const out = Object.fromEntries(SITES.map(si => [si, of(si)]));
+    out[''] = { role: `${SITES.length}개 거점 합계`, tone: '',
+                desc: `${SITES.length}개 거점을 합친 화면 · 목표는 대상 거점끼리 모아 봐요` };
+    return out;
+  })();
   const ITEM_NAMES = [['전력', '전력'], ['도시가스', '도시가스'], ['지역난방', '지역난방'], ['휘발유', '휘발유'], ['경유', '경유'],
                       [RE_SELF, '태양광(자가발전)'], [RE_BUY, '재생에너지 구매'], [SAVE_REGEN, '승강기 회생제동']];
   // 관리 항목: 최근 3개년에 입력된 자료가 있는 항목
@@ -31,11 +43,14 @@
     // 적용 목표 칩 (data-k = 목표 종류) — 올해 현황·그 해 자세히는 목표 카드를 그린 뒤 '✓ 여유 · ✗ 부족' 판정 칩으로 바꿈 (siteVerdicts)
     const tags = [TARGET_SITES.ghg.includes(si) && ['ghg', '온실가스 감축'], TARGET_SITES.re.includes(si) && ['re', `RE100 ${rg != null ? `${yrShort(cy)} ${rg}%` : '이행'}`],
                   TARGET_SITES.waste.includes(si) && ['wt', '폐기물 감축']].filter(Boolean);
-    if (!si) tags.push(['ghg', '온실가스 감축 (대구본원)'], ['re', `RE100 (대구+제주 합산)`], ['wt', '폐기물 감축 (세 거점 합산)']);
+    if (!si) tags.push(['ghg', `온실가스 감축 (${sitesTxt(TARGET_SITES.ghg)})`], ['re', `RE100 (${sitesTxt(TARGET_SITES.re)})`], ['wt', `폐기물 감축 (${sitesTxt(TARGET_SITES.waste)})`]);
     $(id).innerHTML = `<div class="si-head"><b class="si-name">${si || '전체 합계'}</b><span class="si-role ${info.tone}">${info.role}</span></div>` +
-      `<p class="si-desc">${info.desc}</p><div class="si-meta"><span class="si-k si-tk">적용 목표</span>` +
-      (tags.length ? tags.map(([k, t]) => `<span class="si-tag" data-k="${k}">${t}</span>`).join('') : '<span class="si-none">없음</span>') +
-      `<span class="si-items"><span class="si-k">관리 항목</span><span>${items.length ? items.map(esc).join(' · ') : '<span class="si-none">입력된 자료 없음</span>'}</span></span></div>`;
+      `<div class="si-meta"><span class="si-k si-tk">적용 목표</span>` +
+      (tags.length ? tags.map(([k, t]) => `<span class="si-tag" data-k="${k}">${t}</span>`).join('') : '<span class="si-none">없음</span>') + '</div>' +
+      `<p class="si-desc">${info.desc}` +
+      `<span class="si-items"><span class="si-k">관리 항목</span><span${items.length > 3 ? ` title="${esc(items.join(' · '))}"` : ''}>` +
+      (items.length ? items.slice(0, 3).map(esc).join(' · ') + (items.length > 3 ? ` 외 ${items.length - 3}개` : '')
+                    : '<span class="si-none">입력된 자료 없음</span>') + '</span></span></p>';
   }
   function setSite(si) {
     curSite = si;
@@ -57,7 +72,7 @@
     $$(`k-tgt-${key}`).textContent = fq(tgt.target);
     $$(`k-tgt-${key}-rate`).textContent = `(${fmt(tgt.rate, 1)}% 감축)`;
     if (!(act > 0)) {
-      setBar(P, `${key}-act`, 0, '—'); setBar(P, `${key}-pred`, 0, '—'); sub.textContent = '대구본원 데이터 없음'; return null;
+      setBar(P, `${key}-act`, 0, '—'); setBar(P, `${key}-pred`, 0, '—'); sub.textContent = `${HEAD_SITE} 데이터 없음`; return null;
     }
     const a = act / tgt.target * 100;
     setBar(P, `${key}-act`, a, `${fmt(a, 1)}%(${fq(act)}t)`, a > 100 ? 'var(--red)' : 'var(--green)');
@@ -88,8 +103,8 @@
     $('hdr-updated').textContent = allTs.length ? '최근 업데이트: ' + fmtTs(allTs[0]) : '';
     // 오늘 날짜 대신 '실적이 몇 월까지 + 남은 달은 예측' · 최근 업데이트 (휴대폰은 머리 오른쪽이 숨겨져 여기서 봄)
     const thr = dataThrough(curYr, si ? [si] : SITES), upd = allTs.length ? new Date(allTs[0]) : null;
-    $('cur-year-label').textContent = `${curYr}년 현황 · ` + (thr.max ? `실적 ${thr.txt}${thr.max < 12 ? ' + 예측' : ''}` : '아직 입력 전 · 예측') +
-      (upd ? ` · ${upd.getMonth() + 1}.${upd.getDate()} 업데이트` : '');
+    $('cur-year-label').innerHTML = (thr.max ? `실적 ${esc(thr.txt)}${thr.max < 12 ? ' + 예측' : ''}` : '아직 입력 전 · 예측') +
+      (upd ? `<span class="chip-upd"> · ${upd.getMonth() + 1}.${upd.getDate()} 업데이트</span>` : '');
     $('cur-year-label').title = `${today.toLocaleDateString('ko-KR')} 기준 · ` + (thr.max ? `거점마다 입력된 마지막 달: ${Object.entries(thr.by).map(([s, m]) => `${s} ${m ? `${m}월` : '없음'}`).join(' · ')} · 남은 달·빈 칸은 기상연동 예측` : '입력된 실적이 없어요');
     renderYearView('', curYr, si);
     renderDashToc();
@@ -151,7 +166,7 @@
     const vdict = {};   // 목표마다 판정 { st: ok|no, txt } — 거점 설명의 판정 칩에 씀
     const reNote = 'RE100 = (자가발전 + 구매) ÷ 총 전력 · 폐기물 = 종량제 봉투 기준';
     $$('tgt-note').innerHTML = !isCur ? `${yS} 실적 기준 · ${T.ghg ? '온실가스 = Scope 1+2' : reNote}`
-      : T.ghg ? '온실가스 = Scope 1+2 · 예측 = 기상연동 예측(직전 2개년 같은 달 평균 + 추세 보정 + 냉난방도일 보정) · <a href="#sec-basis" class="hd-link">근거 보기 ↓</a>'
+      : T.ghg ? '온실가스 = Scope 1+2 · 예측 = 기상연동 예측 · <a href="#sec-basis" class="hd-link">근거 보기 ↓</a>'
       : reNote;
     const ey = energyRecs.filter(r => r.date?.startsWith(yr) && inView(r));
     const wy = wasteRecs.filter(r  => r.date?.startsWith(yr) && inView(r));
@@ -326,7 +341,7 @@
        무엇이 합쳐져 이 값이 됐는지: 에너지원별(사용량 × 배출계수) · 거점별 · 월별 · 경고 이유 */
     const CALC = calcStore[P] = {};
     const periodTxt = isCur ? `${yS} 올해 누적 (1월~이번 달)` : `${yS} 연간`;
-    const siteTxt = si || '세 거점 합계';
+    const siteTxt = si || `${SITES.length}개 거점 합계`;
     const { typeRows, siteRows, monthRows } = calcRows(ey, si);
     const calc = (id, o) => { CALC[id] = { period: periodTxt, site: siteTxt, unit: 'tCO₂eq', ...o }; };
 
@@ -423,7 +438,7 @@
         k2.hidden = !k2.innerHTML;
       };
       if (reAll > 0 && cons > 0) {
-        const re100 = reAll / cons * 100, reEq = `${si ? '' : '대구+제주 · '}(자가 ${fq(rSelf)} + 구매 ${fq(rBuy)}) ÷ 총 ${fq(cons)} kWh`;
+        const re100 = reAll / cons * 100, reEq = `${si ? '' : sitesTxt(TARGET_SITES.re, { sum: false }) + ' · '}(자가 ${fq(rSelf)} + 구매 ${fq(rBuy)}) ÷ 총 ${fq(cons)} kWh`;
         // 올해 연말 예측 — 전력·자가발전은 남은 달을 예측, 구매분은 입력된 양 그대로 (rePredParts와 같은 셈)
         let pp = null;
         if (isCur && !si) pp = rePredParts(curYr, TARGET_SITES.re);   // 전체 합계: 대구·제주를 각각 예측해 합산
@@ -497,7 +512,7 @@
     // ④ 온실가스 감축 목표 대비 실적 + 감축 로드맵 — 대구본원을 고를 때만 (Scope 1+2)
     if (T.ghg) {
       const totalDgb = dgbOf(yr);
-      const dataMonths = new Set(energyRecs.filter(r => r.date?.startsWith(yr) && r.site === '대구본원' && isEmit(r.type)).map(r => r.date.slice(5, 7))).size;
+      const dataMonths = new Set(energyRecs.filter(r => r.date?.startsWith(yr) && r.site === HEAD_SITE && isEmit(r.type)).map(r => r.date.slice(5, 7))).size;
       const annualEst = !isCur ? null : fc?.annualPred ?? (dataMonths > 0 ? totalDgb * 12 / dataMonths : 0);
       const rm = ROADMAP[year], lr = LAW_RATE[year], b = baseOf(year);
       const vOwn = renderTargetCard(P, 'own', rm ? { target: rm.target, rate: ownRate(year) } : null, totalDgb, annualEst, `자체 로드맵 목표 없음 (${yearSpan(ROADMAP)})`, isCur);
@@ -507,7 +522,7 @@
       if (gv) vdict.ghg = gv;
       $$('k-tgt-base').textContent = b ? fq(b) : '—';
       $$('k-tgt-base-yr').textContent = `${yS} 적용값 (해마다 조정)`;
-      $$('k-tgt-base-sub').textContent = isCur || !(totalDgb > 0) || !b ? '대구본원 기준'
+      $$('k-tgt-base-sub').textContent = isCur || !(totalDgb > 0) || !b ? `${HEAD_SITE} 기준`
         : `${yS} 실적 ${fq(totalDgb)}t · 기준 대비 ${totalDgb <= b ? '▼' : '▲'}${fmt(Math.abs(b - totalDgb) / b * 100, 1)}%`;
       // 목표를 넘었으면 빨강 — 목표 카드에 · 거점이 대구본원(목표 적용 거점)이면 총 온실가스 카드에도
       setOver('k-tgt-own', vOwn?.over, `자체 배출목표 초과 · ${vOwn?.msg || ''}`);
@@ -567,7 +582,7 @@
         rows: [], sites: siteRows(r => r.type === SAVE_REGEN, r => r.amount), months: monthRows(r => r.type === SAVE_REGEN, r => r.amount),
         alert: null, note: `그만큼 한전 전기를 덜 써서 회피 배출량 ${fq(calcGHG('전력', regen))} tCO₂eq (참고값 · 배출량에서 빼지는 않아요)` });
       $$('k-regen').textContent = fq(regen);
-      $$('k-regen-sub').textContent = `${si ? '' : '대구본원 · '}${months}개월 ${isCur ? '누적' : '합계'}` + (ry == null ? '' : ` · ${isCur ? '전년 동기' : '전년'} 대비 ${arrow(ry.v)}${fmt(Math.abs(ry.v), 1)}%`) +
+      $$('k-regen-sub').textContent = `${si ? '' : HEAD_SITE + ' · '}${months}개월 ${isCur ? '누적' : '합계'}` + (ry == null ? '' : ` · ${isCur ? '전년 동기' : '전년'} 대비 ${arrow(ry.v)}${fmt(Math.abs(ry.v), 1)}%`) +
         ` · 회피 ${fq(calcGHG('전력', regen))} tCO₂eq` + (elecKwh > 0 ? ` · 전력의 ${fmt(regen / elecKwh * 100, 2)}%` : '');
     } else {
       calc('k-regen', { title: '승강기 회생제동 발전량', sub: '내려가는 승강기가 만든 전기', value: null, unit: 'kWh', rows: [], sites: [], months: [], alert: null, note: '' });
@@ -583,7 +598,7 @@
     if (v2) renderEnvKpis(P, si, year, isCur);
 
     // 빈 칸 정리 (자원·기타 · 사용량) · 경고 표시 읽는 법
-    tidyEnv(P); tidyUsage(P, ey); alLegend(P);
+    tidyEnv(P); tidyUsage(P, ey);
     // 자료가 없어 '해당 없음·추후 예정'인 카드는 눌러도 보여 줄 게 없으니 키보드 차례에서도 뺌
     document.querySelectorAll(`#${P ? 'y-yv' : 'yv'} .kpi-click`).forEach(c =>
       c.setAttribute('tabindex', c.classList.contains('kpi-placeholder') ? '-1' : '0'));
@@ -609,7 +624,7 @@
     const pct = s => tot > 0 && g[s] != null ? g[s] / tot * 100 : null;
     // ① 온실가스 비중 막대 (거점 색 · 칸 사이 2px)
     $(P + 'sb-share').innerHTML = !(tot > 0) ? '' :
-      `<div class="sb-share-hd"><span>온실가스 (Scope 1+2) 거점별 비중</span><span class="sb-tot">세 거점 합계 <b>${fq(tot)}</b> tCO₂eq</span></div>` +
+      `<div class="sb-share-hd"><span>온실가스 (Scope 1+2) 거점별 비중</span><span class="sb-tot">${SITES.length}개 거점 합계 <b>${fq(tot)}</b> tCO₂eq</span></div>` +
       `<div class="sb-bar" role="img" aria-label="${esc(SITES.map(s => `${s} ${pct(s) == null ? '자료 없음' : `${fmt(pct(s), 1)}%`}`).join(', '))}">` +
       SITES.filter(s => g[s] > 0).map(s => `<i style="flex:${g[s]} 0 0;background:${SITE_COL[s]}" title="${esc(`${s} ${fq(g[s])} tCO₂eq (${fmt(pct(s), 1)}%)`)}"></i>`).join('') + '</div>' +
       `<div class="sb-leg">${SITES.map(s => `<span><i class="sb-dot" style="background:${SITE_COL[s]}"></i>${s} <b>${pct(s) == null ? '—' : `${fmt(pct(s), 1)}%`}</b></span>`).join('')}</div>`;
@@ -622,7 +637,7 @@
       const n = months(s), sub = isCur ? (n ? `${n}개월 입력` : '입력 없음') : !n ? '자료 없음' : n < 12 ? `${n}개월` : '';
       return `<th><button type="button" class="sb-btn sb-site" data-site="${esc(s)}" title="${esc(`${s} ${yS} 월별 자료 보기`)}"><span><i class="sb-dot" style="background:${SITE_COL[s]}"></i>` +
         `<span class="nm-l">${s}</span><span class="nm-s">${SITE_SHORT[s]}</span></span>${sub ? `<small>${sub}</small>` : ''}</button></th>`;
-    }).join('') + '<th class="sb-sumh"><span class="nm-l">세 거점 합계</span><span class="nm-s">합계</span></th></tr></thead>';
+    }).join('') + `<th class="sb-sumh"><span class="nm-l">${SITES.length}개 거점 합계</span><span class="nm-s">합계</span></th></tr></thead>`;
     const ghgRow = '<tr class="sb-ghg"><td class="sb-nm">온실가스<small>Scope 1+2 · tCO₂eq</small></td>' +
       SITES.map(s => `<td>${btn(s, null, g[s] == null ? '—' : fq(g[s]), yoyPill(g[s] == null ? null : yoy(r => r.site === s && isEmit(r.type))),
         `${s} ${yS} 온실가스 ${g[s] == null ? '자료 없음' : `${fq(g[s])} tCO₂eq`} · 누르면 월별 자료`)}</td>`).join('') +
@@ -685,7 +700,7 @@
       .filter(y => /^\d{4}$/.test(y) && (isCur ? y <= yr : y === yr)).sort().reverse();
     const ev = evYears.map(y => ({ y, s: evStat(y, sites) })).find(o => o.s);
     const evCalc = o => { (calcStore[P] ||= {})['k-ev'] = { title: icn('battery') + ' 친환경차 전환율', sub: '업무용 차량 중 친환경차 비율',
-      period: `${yrShort(yr)}`, site: si || '세 거점 합계', unit: '%', rows: [], sites: [], months: [], ...o }; };
+      period: `${yrShort(yr)}`, site: si || `${SITES.length}개 거점 합계`, unit: '%', rows: [], sites: [], months: [], ...o }; };
     $$('k-ev-bar').innerHTML = '';
     if (evNA) { $$('k-ev').textContent = '-'; $$('k-ev-sub').textContent = '해당 없음';
       evCalc({ value: null, empty: '이 거점은 해당 없는 항목이에요' }); }
@@ -715,7 +730,7 @@
     };
     (calcStore[P] ||= {})['k-water'] = {
       title: icn('drop') + ' 용수 사용량', sub: '상수도', value: waterNA || !cur.length ? null : curSum, unit: '㎥',
-      period: isCur ? `${yrShort(yr)} 올해 누적 (1월~이번 달)` : `${yrShort(yr)} 연간`, site: si || '세 거점 합계',
+      period: isCur ? `${yrShort(yr)} 올해 누적 (1월~이번 달)` : `${yrShort(yr)} 연간`, site: si || `${SITES.length}개 거점 합계`,
       rows: [], sites: si ? [] : wBy(k => k, r => r.site).map(x => ({ k: x.k, ghg: x.v, col: x.col })),
       months: wBy(k => k, r => r.period.slice(5)).map(x => ({ m: +x.k, v: x.v })),
       alert: null, note: waterNA ? '이 거점은 해당 없는 항목이에요' : '달마다 입력한 상수도 사용량을 더한 값이에요',
@@ -751,9 +766,9 @@
       oCalc(valId, { ...mk(s, y), value: s[key], period: `${yrShort(y)}${isCur && y !== yr ? ' (최근 입력값)' : ''}`,
         facts: [...(mk(s, y).facts || []), ...(p != null ? [{ k: `${yrShort(+y - 1)} 값`, v: fmtV(p) }] : [])] });
     };
-    // PUE: 낮을수록 좋음 · 고른 거점 (전체 합계 = 대구본원 + 서울사무소 · 제주는 전산실이 없어 해당 없음)
+    // PUE: 낮을수록 좋음 · 고른 거점 (전체 합계 = config 의 pue 거점 합 · 전산실이 없는 곳은 해당 없음)
     $$('k-pue').closest('.kpi-card').classList.toggle('kpi-placeholder', !pueSites.length);
-    if (!pueSites.length) { $$('k-pue').textContent = '해당 없음'; $$('k-pue-sub').textContent = '전산실 PUE는 대구본원·서울사무소'; }
+    if (!pueSites.length) { $$('k-pue').textContent = '해당 없음'; $$('k-pue-sub').textContent = `전산실 PUE는 ${PUE_SITES.join('·') || '해당 거점 없음'}`; }
     else show('pue', 'k-pue', 'k-pue-sub', v => fmt(v, 2), s => `총 ${fq(s.t)} ÷ IT ${fq(s.it)} kWh`,
       (v, p) => `전년 ${fmt(p, 2)} ${v < p ? '▼' : v > p ? '▲' : '→'}${fmt(Math.abs(v - p), 2)}`,
       s => ({ title: icn('monitor') + ' PUE (전력효율지수)', sub: '데이터센터가 쓴 전기 중 IT 장비 몫', unit: '배',
@@ -761,7 +776,7 @@
         formula: !s ? null : { parts: [{ k: '데이터센터 총 전력', v: s.t, u: 'kWh' }, { k: 'IT 장비 전력', v: s.it, u: 'kWh', op: '÷' }],
           result: { k: 'PUE', v: s.pue, u: '배' } },
         facts: !s ? [] : [{ k: '냉방·조명 등 IT 외 전력', v: s.t - s.it, u: 'kWh' }],
-        note: '1에 가까울수록 효율적이에요 (1.0 = 모든 전기를 IT 장비가 씀) · 전산실이 있는 대구본원·서울사무소만 해당' }));
+        note: `1에 가까울수록 효율적이에요 (1.0 = 모든 전기를 IT 장비가 씀) · 전산실이 있는 ${PUE_SITES.join('·')}만 해당` }));
     // 클라우드 전환률: 높을수록 좋음
     show('cloud', 'k-cloud', 'k-cloud-sub', v => fmt(v, 1), s => `${fmt(s.done, 0)}/${fmt(s.all, 0)}개 전환`,
       (v, p) => `전년 ${v > p ? '▲' : v < p ? '▼' : '→'}${fmt(Math.abs(v - p), 1)}%p`,
@@ -989,7 +1004,7 @@
     $$('ce-title').textContent = asTable ? '월별 에너지원별 사용량 · 온실가스 환산 (표)' : '월별 에너지원별 사용량';
     const tap = canEdit() ? '그 달 자료를 보고 바로 고칠 수 있어요' : '그 달 자료를 거점·에너지원별로 볼 수 있어요';
     $$('ce-note').textContent = asTable ? `칸을 누르면 ${tap}`
-      : `막대에 마우스를 올리면 사용량·온실가스 환산값(tCO₂eq)·전년 같은 달을 함께 보여 줘요 · 누르면 ${tap}`;
+      : `막대를 누르면 ${tap}`;
     $$('ce-tbl-wrap').hidden = !asTable;
     $$('ce-legend').hidden = !asTable;
     $$('ce-grid').hidden = asTable; $$('ce-key').hidden = asTable;
@@ -1125,7 +1140,7 @@
     $$('ce-grid').hidden = !shown; $$('ce-empty').hidden = !!shown; $$('ce-key').hidden = !shown;
     $$('ce-card').classList.toggle('is-empty', !shown);
     $$('ce-key').innerHTML = `<span><i class="k-a"></i>${yS} 실적</span>` + (anyPred ? '<span><i class="k-p"></i>예측 (아직 입력 안 된 거점·달)</span>' : '') +
-      (anyPrev ? `<span><i class="k-q"></i>${pS} 같은 달</span>` : '') + '<span>· 에너지원마다 단위가 달라 그래프를 나눴어요</span>';
+      (anyPrev ? `<span><i class="k-q"></i>${pS} 같은 달</span>` : '') + '<span class="k-why">· 에너지원마다 단위가 달라 그래프를 나눴어요</span>';
   }
 
   // 막대 숫자를 붙일 칸: 가장 큰 칸 + 마지막 실적 칸 (막대마다 숫자를 다 쓰면 읽기 어려움 · 나머지는 마우스를 올리면)
@@ -1207,7 +1222,7 @@
   }
   // 월평균기온: 학습연도(점선) vs 올해(주황 굵은 선) + 올해 냉난방도일 누계 vs 평년
   function renderWxChart() {
-    const site = $('bs-site').value || '대구본원', w = wxBySite?.[site], curYr = new Date().getFullYear(), yr = String(curYr);
+    const site = $('bs-site').value || HEAD_SITE, w = wxBySite?.[site], curYr = new Date().getFullYear(), yr = String(curYr);
     const train = trainYearsFor(curYr), years = [...train, yr], cols = yearColors(Math.max(train.length, 1));
     $('bs-chart-title').textContent = `월평균기온 (℃) · ${site}`;
     $('bs-dd-note').textContent = '';
@@ -1299,7 +1314,7 @@
     };
   }
   const re100Of = s => { const c = (s.elec ?? 0) + (s.reSelf ?? 0), r = (s.reSelf ?? 0) + (s.reBuy ?? 0); return (c > 0 && r > 0) ? r / c * 100 : null; };
-  const dgbOf = y => sumBy(energyRecs.filter(r => r.date?.startsWith(y) && r.site === '대구본원' && isEmit(r.type)), r => r.ghg);
+  const dgbOf = y => sumBy(energyRecs.filter(r => r.date?.startsWith(y) && r.site === HEAD_SITE && isEmit(r.type)), r => r.ghg);
   const divN = (v, k) => v == null ? null : v / k;
   let histExports = {}; // CSV 내보내기용: compare = 연도별 비교 표, site = 거점별 표
 

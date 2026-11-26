@@ -34,9 +34,18 @@
        0  바닥        --bg
        1  놓인 카드   --surface + 1px --border + --shadow      (얇은 그림자 + 윗선 빛)
        2  떠 있는 것  --surface + --shadow-md                  (모달·팝오버·토스트·스낵바·hover 들림)
-       인셋 채움(입력칸·표 머리·설명 블록)은 --surface2 — 층이 아니라 '파인 면' */
+       인셋 채움(입력칸·표 머리·설명 블록)은 --surface2 — 층이 아니라 '파인 면'
+       3  팝업       --pop + --shadow-pop
+     팝업이 카드(--surface)와 같은 색이면 뒤 화면 위에 떠 있는 것으로 보이지 않아,
+     어디를 닫아야 원래 화면인지 알기 어렵다. 그래서 팝업은 같은 남색 가족 안에서
+     한 단 더 밝은 면을 쓰고, 뒤 화면은 더 눌러(.78) 둘 사이를 벌린다.
+     흰 바탕도 해 봤지만 어두운 화면 한가운데 흰 종이가 튀어서 쓰지 않았다.
+     .modal-overlay 안에서 --surface·--surface2·--border 를 이 값으로 덮으므로(토큰은 상속된다)
+     팝업 속 표·설명 블록도 같이 한 단씩 올라간다 — 팝업용 규칙을 따로 쓸 필요가 없다 */
+  --pop:#2C3C59; --pop2:#394A6B; --pop-line:#48597C; --pop-line2:#5D7098;
   --shadow:inset 0 1px 0 rgba(255,255,255,.04), 0 1px 2px rgba(0,0,0,.35);
   --shadow-md:inset 0 1px 0 rgba(255,255,255,.06), 0 2px 6px rgba(0,0,0,.3), 0 12px 32px -8px rgba(0,0,0,.6);
+  --shadow-pop:inset 0 1px 0 rgba(255,255,255,.1), 0 24px 64px -12px rgba(0,0,0,.8);
   /* ── 모션 ──
      곡선은 ease-out 한 가지만 쓴다: 시작이 가장 빨라서 누르거나 올린 순간 바로 반응하는 느낌이 나고,
      끝에서 부드럽게 멎는다. (브라우저 기본값 ease 는 시작도 느려서 뭉개지는 느낌)
@@ -129,16 +138,21 @@ header{background:var(--surface);color:var(--text);padding:0 20px;border-bottom:
 
 /* ── 탭 네비 ─────────────────────────────────────────── */
 .tab-nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 20px;position:sticky;top:0;z-index:10}
-.tab-nav-inner{max-width:1240px;margin:0 auto;display:flex;flex-wrap:wrap;align-items:center;gap:4px}
-.tab-row{display:flex;gap:4px;min-width:0;max-width:100%;overflow-x:auto;scrollbar-width:none}
+.tab-nav-inner{max-width:1240px;margin:0 auto;display:flex;flex-wrap:nowrap;align-items:center;gap:4px}   /* 탭 줄과 거점 선택을 한 줄로 (좁으면 탭 줄이 옆으로 밀림) */
+.tab-row{display:flex;flex:1 1 auto;gap:4px;min-width:0;max-width:100%;overflow-x:auto;scrollbar-width:none}
 .tab-row::-webkit-scrollbar{display:none}
 .tab-row .tab-btn{flex:none}
-.nav-site{margin-left:auto;display:flex;align-items:center;gap:8px;padding:6px 0}
+.nav-site{flex:none;margin-left:auto;padding-left:12px;display:flex;align-items:center;gap:8px;padding:6px 0 6px 12px}
 .nav-site-lbl{font-size:12px;font-weight:500;color:var(--muted);white-space:nowrap}
-.nav-site .site-seg button{padding:4px 12px;font-size:12px}
-.tab-btn{padding:14px 18px;font-size:14px;font-weight:500;color:var(--muted);border-bottom:2px solid transparent;transition:var(--t-ui);white-space:nowrap;display:flex;align-items:center;gap:6px}
+/* 거점 단추는 짧은 이름으로 (고른 거점의 전체 이름은 바로 아래 거점 상자에 나온다) — 탭 줄과 한 줄에 들어가게 */
+.nav-site .site-seg button{padding:4px 10px;font-size:12px;font-size:0}
+.nav-site .site-seg button::after{content:attr(data-short);font-size:12px}
+.tab-btn{padding:14px 10px;font-size:14px;font-weight:500;color:var(--muted);border-bottom:2px solid transparent;transition:var(--t-ui);white-space:nowrap;display:flex;align-items:center;gap:6px}
 .tab-btn:hover{color:var(--text)}
 .tab-btn.active{color:var(--text);border-bottom-color:var(--accent);font-weight:600}   /* 신호는 밑줄 하나로 */
+.tab-hint{font-family:var(--fdata);font-size:12px;font-weight:500;color:var(--muted);opacity:.8;letter-spacing:.2px}   /* 탭 이름 옆: 그 탭이 다루는 기간 */
+.tab-btn.active .tab-hint{color:var(--text2);opacity:1}
+@media(max-width:1120px){.tab-hint{display:none}}   /* 자리가 좁으면 탭 이름만 — 탭 줄과 거점 선택이 한 줄에 들어가게 */
 .tab-badge{background:var(--accent);color:var(--bg);border-radius:10px;font-size:11px;font-weight:500;padding:1px 8px;min-width:22px;text-align:center;line-height:1.6}
 .tab-btn:not(.active) .tab-badge{background:var(--border2);color:var(--text2)}
 
@@ -359,7 +373,8 @@ button.sb-btn:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
 .olpv .cs-go{margin-left:auto}
 @media(max-width:767px){.ol-tbl.main-tbl{min-width:440px}.ol-tbl .ol-t{display:block;margin:0 0 4px}}
 /* 📈 전망 탭 — 한눈에 보기 카드 · 만약에 · 그래프 · 표 (주요 연도만 → 모든 연도) · 셈 방법 */
-#tab-outlook .fold-sec{margin-bottom:28px;scroll-margin-top:64px}   /* 위에 붙는 탭 줄 아래로 */
+#tab-outlook .fold-sec,#tab-outlook .kpi-section{scroll-margin-top:var(--o-stick,110px)}   /* 위에 붙는 탭 줄·바로가기 막대 아래로 */
+#tab-outlook .fold-sec{margin-bottom:28px}
 #tab-outlook .fold-sec:not([open]){margin-bottom:14px}
 #o-sum-sec{margin-bottom:24px}
 .o-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
@@ -533,6 +548,8 @@ table.main-tbl.rmg-tbl tbody tr[data-year] td:first-child,table.main-tbl.rmg-tbl
 .det-hd .rmg-long:not([hidden])+.btn-export{margin-left:0}
 /* 올해 현황 · 실적 조회 */
 .year-chip{font-size:13px;font-weight:600;color:var(--text);background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:4px 12px}
+.chip-upd{display:none}   /* 업데이트 날짜는 머리 오른쪽 '최근 업데이트'에 — 그게 숨는 휴대폰에서만 칩에 붙인다 */
+@media(max-width:767px){.chip-upd{display:inline;font-weight:500;color:var(--muted)}}
 .kpi-row{display:flex;align-items:baseline;gap:4px;white-space:nowrap}
 .kpi-row .kpi-value{font-size:20px}
 .kpi-u{font-size:11px;color:var(--muted)}
@@ -648,9 +665,12 @@ button.st:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
 .site-seg button:hover{color:var(--accent)}
 .site-seg button[aria-pressed="true"]{background:var(--accent);color:var(--bg)}
 .site-seg button:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
-.site-info{display:grid;grid-template-columns:minmax(150px,auto) minmax(0,1fr);gap:6px 18px;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;margin:-8px 0 20px}
-.si-head{display:flex;flex-direction:column;align-items:flex-start;gap:4px;grid-row:span 2}
+/* 고른 거점 줄 — 상자가 아니라 한 줄: 거점 이름 · 역할 · 목표 판정 칩 (설명·관리 항목은 펼쳤을 때 둘째 줄) */
+.site-info{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;background:none;border:0;padding:0 2px 14px;margin:-4px 0 18px;border-bottom:1px solid var(--border)}
+.si-head{display:flex;flex-direction:row;align-items:center;gap:8px}
 .si-name{font-size:16px;font-weight:600;color:var(--text)}
+.si-desc{flex:1 1 100%;order:3;display:flex;flex-wrap:wrap;align-items:center;gap:4px 14px;margin:0}
+.si-meta{margin-left:auto}
 .si-role{font-size:11px;font-weight:500;border-radius:10px;padding:1px 8px;border:1px solid var(--border);color:var(--muted)}
 .si-role.goal{color:var(--text2)}
 .si-role.part{color:#2DD4BF;border-color:rgba(45,212,191,.45);background:rgba(45,212,191,.08)}
@@ -660,7 +680,7 @@ button.st:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
 .si-k:not(:first-child){margin-left:10px}
 .si-tag{font-weight:600;border-radius:10px;padding:0 8px;background:var(--surface2);border:1px solid var(--border);color:var(--text)}
 .si-none{color:var(--muted)}
-@media(max-width:767px){.site-seg{display:grid;grid-template-columns:1fr 1fr;width:100%;border-radius:12px}.site-seg button{border-radius:12px}.site-info{grid-template-columns:1fr}.si-head{grid-row:auto;flex-direction:row;align-items:center}.si-k:not(:first-child){margin-left:0}}
+@media(max-width:767px){.site-seg{display:grid;grid-template-columns:1fr 1fr;width:100%;border-radius:12px}.site-seg button{border-radius:12px}.si-meta{margin-left:0}.si-k:not(:first-child){margin-left:0}}
 /* 접어 두는 구역 (에너지 절감 · 자원·기타 · 사용량 상세 · 예측 근거) */
 .fold-sec>summary{list-style:none;cursor:pointer;display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 6px}
 .fold-sec>summary::-webkit-details-marker{display:none}
@@ -760,6 +780,8 @@ table.main-tbl.gs-tbl tr:hover td:first-child{background:var(--surface2)}
 @media(max-width:767px){.gs-tbl td:first-child small{display:none}.gs-tbl td.gs-gap{text-align:left}}
 #rmap-status-sec{margin-bottom:32px}
 .rmap-bar{display:flex;align-items:center;flex-wrap:wrap;gap:8px 12px;margin-bottom:12px}
+.r-toc{flex:1 1 320px;min-width:0}
+#rmap-status-sec,#h-rm-card,#h-rerm-card,#h-wrm-card,#rmap-ghg-details,#rmap-wt-details{scroll-margin-top:var(--r-stick,56px)}
 .rmap-lbl{font-size:12px;font-weight:500;color:var(--text2)}
 #rmap-wt-details{margin-top:4px}
 #tab-roadmap .rm-card{margin-bottom:20px}
@@ -854,6 +876,11 @@ table.main-tbl.gs-tbl tr:hover td:first-child{background:var(--surface2)}
 #tab-dashboard .fold-sec,#site-breakdown{scroll-margin-top:var(--d-stick,110px)}
 .d-toc{flex:1 1 360px;min-width:0}
 .dash-bar{padding-top:8px;padding-bottom:8px}
+/* 탭 줄 바로 아래 한 줄 설명 (예전 환영 배너 자리) — 설명을 접으면 숨고, 막대의 '설명 ▾'로 다시 펼침 */
+.tab-desc{margin:0 0 12px;font-size:13px;color:var(--muted);line-height:1.6}
+.intro-host{margin-left:auto;display:inline-flex}
+.o-bar{margin-bottom:20px}
+.o-toc{flex:1 1 420px;min-width:0}
 .dash-bar .filter-mascot{width:28px;height:28px}
 /* 성과 카드 · 지표 추이 카드: 고른 연도 값 → 전년 대비 → 목표 상태 → 연도별 미니 막대 */
 .sum-grid{display:grid;grid-template-columns:repeat(var(--cols,3),minmax(0,1fr));gap:12px;margin-bottom:12px}
@@ -1058,7 +1085,8 @@ table.main-tbl.gs-tbl tr:hover td:first-child{background:var(--surface2)}
 @media(max-width:1023px){.sum-grid{grid-template-columns:repeat(auto-fill,minmax(210px,1fr))}}
 @media(max-width:767px){.fold-hd .hd-note{margin-left:0}.hd-sel,.det-hd .hd-seg{margin-left:0}
   .hist-bar{position:static;margin:0 0 16px;padding:0 0 10px}
-  .nav-site{flex-basis:100%;margin-left:0;padding:0 0 8px}
+  .tab-nav-inner{flex-wrap:wrap}
+  .nav-site{flex:1 1 100%;flex-basis:100%;margin-left:0;padding:0 0 8px}
   .nav-site .site-seg{display:grid;grid-template-columns:repeat(4,1fr);flex:1;width:auto;border-radius:16px}
   .nav-site .site-seg button{padding:4px 4px;border-radius:12px;font-size:0}
   .nav-site .site-seg button::after{content:attr(data-short);font-size:12px}
@@ -1252,14 +1280,24 @@ table.main-tbl tr:hover td{background:var(--surface2)}
 .btn-pag.active{background:var(--sel-bg);color:var(--text);border-color:var(--border2)}
 
 /* ── 모달 ────────────────────────────────────────────── */
-.modal-overlay{position:fixed;inset:0;background:rgba(8,12,22,.6);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px}
-.modal-box{background:var(--surface);border-radius:var(--radius);padding:24px;width:100%;max-width:520px;box-shadow:var(--shadow-md);max-height:90vh;overflow-y:auto}
-.modal-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
-.modal-hdr h3{font-size:16px;font-weight:600}
-.btn-x{font-size:20px;color:var(--muted);width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:6px}
-.btn-x:hover{background:var(--surface2)}
-.modal-foot{display:flex;gap:10px;margin-top:16px;justify-content:flex-end}
-.btn-cancel{background:var(--surface2);border:1px solid var(--border);color:var(--text2);border-radius:8px;padding:8px 20px;font-size:13px;font-weight:600}
+/* 뒤 화면은 더 눌러 덮고(블러·어둠), 팝업 안쪽은 한 단 밝은 --pop 계열로 바꾼다.
+   토큰을 여기서 덮어 두면 팝업 속 모든 표·설명 블록·테두리가 함께 따라 올라간다 */
+.modal-overlay{--surface:var(--pop);--surface2:var(--pop2);--border:var(--pop-line);--border2:var(--pop-line2);
+  /* 바탕이 밝아진 만큼 작은 회색 글씨가 묻힌다 — 팝업 안에서만 한 단 밝게 (4.5:1 넘김) */
+  --muted:#A6B3C6;
+  /* 색을 따로 안 정한 글자는 body 에서 물려받는다 — 팝업 토큰을 바꿔도 따라오도록 여기서 한 번 정해 둔다 */
+  color:var(--text);
+  position:fixed;inset:0;background:rgba(2,6,16,.78);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal-box{background:var(--pop);border:1px solid var(--pop-line);border-radius:16px;padding:24px;width:100%;max-width:520px;box-shadow:var(--shadow-pop);max-height:90vh;overflow-y:auto}
+/* 팝업이 열려 있는 동안 뒤 화면 잠금 — 안을 넘기다 끝에 닿으면 뒤가 따라 움직였다 */
+body.modal-open{overflow:hidden}
+.modal-hdr{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px}
+.modal-hdr h3{font-size:18px;font-weight:600;line-height:1.35}
+.btn-x{font-size:20px;color:var(--muted);width:40px;height:40px;margin:-4px -8px -4px 0;display:flex;align-items:center;justify-content:center;border-radius:12px;flex:none}
+.btn-x:hover{background:var(--surface2);color:var(--text)}
+.modal-foot{display:flex;gap:10px;margin-top:20px;justify-content:flex-end}
+.modal-foot>.btn-cancel,.modal-foot>.btn-primary{min-height:44px;border-radius:12px}
+.btn-cancel{background:var(--surface2);border:1px solid var(--border);color:var(--text2);border-radius:12px;padding:8px 20px;font-size:14px;font-weight:600}
 .fgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .fg{display:flex;flex-direction:column;gap:4px}
 .fg.full{grid-column:1/-1}
@@ -1550,27 +1588,27 @@ table.main-tbl tr:hover td{background:var(--surface2)}
 .calc-top{flex:none;padding:18px 24px 14px;border-bottom:1px solid var(--border);background:var(--surface)}
 .calc-hdr{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
 .calc-hdr h3{font-size:18px;font-weight:600;color:var(--text);line-height:1.25}
-.calc-hdr .calc-sub{margin-top:4px;font-size:12px;color:var(--muted)}
+.calc-hdr .calc-sub{margin-top:6px;font-size:13px;color:var(--muted)}
 .calc-hdr .btn-x{flex:none;margin:-4px -6px 0 0}
 .calc-scroll{flex:1 1 auto;overflow-y:auto;padding:16px 24px 18px}
 /* 큰 숫자 줄 */
 .calc-sum{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 14px;margin-bottom:12px}
 .calc-sum.calc-sum-q{display:block;margin-bottom:0}
-.calc-sum .cs-v{display:flex;align-items:baseline;gap:8px;font-family:var(--fdata);font-size:32px;font-weight:600;line-height:1.1;color:var(--text);font-variant-numeric:tabular-nums}
+.calc-sum .cs-v{display:flex;align-items:baseline;gap:8px;font-family:var(--fdata);font-size:40px;font-weight:600;line-height:1.1;color:var(--text);font-variant-numeric:tabular-nums}
 .calc-sum .cs-v small{font-size:.58em;font-weight:600}
 .calc-sum .cs-u{font-family:var(--font);font-size:14px;font-weight:600;color:var(--muted)}
 .calc-sum .cs-amt{font-size:13px;color:var(--text2)}
 .calc-sum .ds-none{font-size:16px}
 /* 점수 히어로 (경영평가 계량 카드) — 받은 점수 / 만점 + 판정 + 막대 */
-.cscore{margin-bottom:16px;padding:16px 18px 14px;border:1px solid var(--border2);border-radius:12px;
+.cscore{margin-bottom:16px;padding:20px 20px 18px;border:1px solid var(--border2);border-radius:12px;
   background:linear-gradient(180deg,var(--surface2) 0%,var(--surface) 100%);position:relative;overflow:hidden}
 .cscore.ok{border-color:color-mix(in srgb,var(--green) 55%,var(--border))}
 .cscore.no{border-color:color-mix(in srgb,var(--red) 55%,var(--border))}
 .cscore .cq-top{display:flex;align-items:baseline;flex-wrap:wrap;justify-content:space-between;gap:6px 14px}
-.cscore .cq-v{display:flex;align-items:baseline;gap:6px;font-family:var(--fdata);font-size:32px;font-weight:600;
+.cscore .cq-v{display:flex;align-items:baseline;gap:6px;font-family:var(--fdata);font-size:40px;font-weight:600;
   line-height:1.05;color:var(--text);font-variant-numeric:tabular-nums}
 .cscore .cq-v small{font-size:.4em;font-weight:600;color:var(--muted);font-family:var(--font)}
-.cscore .cq-r{display:inline-flex;align-items:center;gap:4px;padding:4px 12px;border-radius:999px;font-size:12px;font-weight:500}
+.cscore .cq-r{display:inline-flex;align-items:center;gap:4px;padding:6px 12px;border-radius:999px;font-size:13px;font-weight:500}
 .cscore.ok .cq-r{background:var(--good-bg);color:var(--green)}
 .cscore.no .cq-r{background:rgba(185,28,28,.12);color:var(--red)}
 .cscore.na .cq-r{background:var(--surface2);color:var(--muted)}
@@ -1578,7 +1616,7 @@ table.main-tbl tr:hover td{background:var(--surface2)}
 .cscore .cq-bar i{display:block;height:100%;border-radius:4px;background:var(--border2);min-width:3px}
 .cscore.ok .cq-bar i{background:var(--green)}
 .cscore.no .cq-bar i{background:var(--red)}
-.cscore .cq-sub{margin-top:8px;font-size:12px;line-height:1.6;color:var(--text2)}
+.cscore .cq-sub{margin-top:12px;font-size:14px;line-height:1.75;color:var(--text2)}
 .cscore .cq-sub b{font-family:var(--fdata);font-variant-numeric:tabular-nums;color:var(--text)}
 /* 구간 계단 (평정점 구간처럼 '어느 칸에 들었나') */
 .csteps{display:flex;gap:8px;flex-wrap:wrap}
@@ -1641,11 +1679,11 @@ table.main-tbl tr:hover td{background:var(--surface2)}
 .cfc-how>span{flex:1 1 auto}
 /* 숫자 출처 · 어디서 보나 */
 .csrc{list-style:none;display:flex;flex-direction:column}
-.csrc li{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:2px 12px;padding:8px 0;border-bottom:1px solid var(--border)}
+.csrc li{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:2px 12px;padding:10px 0;border-bottom:1px solid var(--border)}
 .csrc li:last-child{border-bottom:none}
 .csrc .cs-k{font-size:13px;font-weight:600;color:var(--text)}
 .csrc .cs-k b{margin-left:6px;font-family:var(--fdata);font-weight:600;font-variant-numeric:tabular-nums}
-.csrc .cs-f{grid-column:1;font-size:11px;color:var(--muted)}
+.csrc .cs-f{grid-column:1;font-size:12px;color:var(--muted);line-height:1.6}
 .csrc .cs-f i{font-style:normal;display:inline-block;margin-right:4px;padding:0 6px;border-radius:4px;font-size:10px;font-weight:500}
 .csrc .cs-f i.in{background:rgba(5,150,105,.13);color:var(--green)}
 .csrc .cs-f i.set{background:rgba(217,119,6,.13);color:var(--amber)}
@@ -1689,11 +1727,32 @@ table.main-tbl tr:hover td{background:var(--surface2)}
 .calc-sec:last-child{margin-bottom:0}
 .calc-sec>h4{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:8px;font-size:12px;font-weight:500;color:var(--muted);letter-spacing:.3px}
 .calc-sec>h4 em{font-style:normal;font-weight:500;font-size:11px}
+/* ── 접히는 구역 ──────────────────────────────────────
+   표를 다 펼쳐 놓으면 길이만 길고 무엇이 결론인지 안 보인다. 제목 줄을 눌러 펼친다.
+   제목은 접혀 있을 때도 읽히라고 --muted 가 아니라 본문 색 */
+details.calc-sec{margin-bottom:10px;border:1px solid var(--border);border-radius:12px;background:color-mix(in srgb,var(--surface2) 50%,transparent)}
+details.calc-sec>summary{display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;list-style:none;
+  font-size:13px;font-weight:600;color:var(--text);border-radius:12px;transition:background var(--dur-1) var(--ease-out)}
+details.calc-sec>summary::-webkit-details-marker{display:none}
+details.calc-sec>summary:hover{background:var(--surface2)}
+details.calc-sec>summary>span:first-child{margin-right:auto}
+details.calc-sec>summary em{font-style:normal;font-weight:500;font-size:12px;color:var(--muted);text-align:right}
+/* 무엇을 눌러야 더 보이는지 화살표만으로는 모른다 — 글자로 적는다 */
+details.calc-sec>summary .cf-t{flex:none;font-size:12px;font-weight:500;color:var(--accent)}
+details.calc-sec>summary .cf-t::after{content:'펼치기'}
+details.calc-sec[open]>summary .cf-t::after{content:'닫기'}
+details.calc-sec>summary .cf-ar{flex:none;font-style:normal;font-size:16px;color:var(--accent);line-height:1;
+  transition:transform var(--dur-2) var(--ease-out)}
+details.calc-sec[open]>summary .cf-ar{transform:rotate(90deg)}
+details.calc-sec[open]>summary{border-bottom:1px solid var(--border);border-radius:12px 12px 0 0}
+details.calc-sec>:not(summary){margin-left:14px;margin-right:14px}
+details.calc-sec>:last-child{margin-bottom:14px}
+details.calc-sec>summary+*{margin-top:12px}
 .calc-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:16px 24px}
 /* 항목별 표: 사용량 × 계수 = 값 */
 .calc-tbl{width:100%;border-collapse:collapse;font-size:13px}
-.calc-tbl th,.calc-tbl td{padding:8px 8px;border-bottom:1px solid var(--border);text-align:right;vertical-align:middle}
-.calc-tbl th{font-size:11px;font-weight:500;color:var(--muted);border-bottom:1px solid var(--border2);white-space:nowrap}
+.calc-tbl th,.calc-tbl td{padding:10px 8px;border-bottom:1px solid var(--border);text-align:right;vertical-align:middle}
+.calc-tbl th{font-size:12px;font-weight:500;color:var(--muted);border-bottom:1px solid var(--border2);white-space:nowrap}
 .calc-tbl th:first-child,.calc-tbl td:first-child{text-align:left;padding-left:0}
 .calc-tbl td:last-child,.calc-tbl th:last-child{padding-right:0}
 .calc-tbl tbody tr:last-child td{border-bottom:none}
@@ -1732,7 +1791,7 @@ table.main-tbl tr:hover td{background:var(--surface2)}
 .cm-col .cm-m{font-size:10px;line-height:1.2;color:var(--muted);font-family:var(--fdata)}
 .cm-col.cm-max .cm-b{background:var(--green)}
 .cm-note{margin-top:6px;font-size:11px;color:var(--muted);text-align:right}
-.calc-note{margin-top:14px;padding-top:12px;border-top:1px solid var(--border);font-size:12px;line-height:1.65;color:var(--muted)}
+.calc-note{margin-top:16px;padding-top:14px;border-top:1px solid var(--border);font-size:13px;line-height:1.7;color:var(--muted)}
 .calc-note:empty{display:none}
 .calc-empty{padding:14px 0;font-size:14px;color:var(--muted);text-align:center}
 .calc-foot{flex:none;display:flex;justify-content:flex-end;padding:12px 24px;border-top:1px solid var(--border);background:var(--surface2)}
@@ -1742,9 +1801,16 @@ table.main-tbl tr:hover td{background:var(--surface2)}
   .calc-scroll{padding:14px 16px 16px}
   .calc-foot{padding:10px 16px}
   .calc-hdr h3{font-size:16px}
-  .calc-sum .cs-v{font-size:28px}
+  .calc-sum .cs-v{font-size:32px}
+  .cscore{padding:16px}
+  .cscore .cq-v{font-size:32px}
+  details.calc-sec>summary{padding:12px;gap:8px}
+  /* 좁은 화면에서는 제목 + 펼치기만 — 단위는 펼치면 표 머리에 다시 나온다 */
+  details.calc-sec>summary em{display:none}
+  details.calc-sec>:not(summary){margin-left:12px;margin-right:12px}
+  details.calc-sec>:last-child{margin-bottom:12px}
   .calc-grid{grid-template-columns:minmax(0,1fr)}
-  .calc-tbl th,.calc-tbl td{padding:8px 4px;font-size:12px}
+  .calc-tbl th,.calc-tbl td{padding:10px 4px;font-size:12px}
   .calc-tbl .ct-eq{display:none}
   .calc-tbl .ct-share{width:62px}
   .ct-sbar .sb{width:24px}
@@ -1841,6 +1907,7 @@ body:has(#tab-home.active){--h-ink:#0F172A;--h-panel:#1E293B;--h-panel-2:#273549
 body:has(#tab-home.active) .tab-nav{background:var(--h-panel);border-bottom-color:var(--h-line)}
 body:has(#tab-home.active) .tab-btn{color:var(--h-muted)}
 body:has(#tab-home.active) .tab-btn.active{color:var(--h-paper);border-bottom-color:var(--h-accent)}
+body:has(#tab-home.active) .tab-hint{color:var(--h-muted)}
 #tab-home{color:var(--h-paper)}
 
 /* 1단 — 무슨 시스템인가. 카드를 두르지 않고 바탕 위에 그대로 둔다. */
@@ -2088,8 +2155,13 @@ body.intro-min :is(.welcome-banner,.tab-banner){padding:6px 10px 6px 14px;gap:10
 body.intro-min :is(.wb-mascot,.tab-mascot){width:26px;height:26px;object-fit:contain}
 body.intro-min .welcome-banner .wb-text h2,body.intro-min .tab-banner strong{font-size:13px;margin:0}
 body.intro-min .welcome-banner .wb-text p,body.intro-min .tab-banner span{display:none}
-body.intro-min .site-info .si-desc{display:none}   /* 거점 설명 문장도 (적용 목표·관리 항목 줄은 그대로) */
-body.intro-min .site-info .si-head{grid-row:auto}
+/* 설명을 접으면: 거점 설명 문장 · 관리 항목 목록 · 카드 막대 범례 · 그래프 안내 줄까지 함께 접는다
+   (늘 필요한 것 = 숫자·단위·구역 제목 · 궁금할 때 보는 것 = 설명. '설명 ▾'로 언제든 다시 펼침) */
+body.intro-min .site-info .si-desc{display:none}
+body.intro-min .tab-desc{display:none}
+body.intro-min .site-info .si-items{display:none}
+body.intro-min .sec-unit .mb-legend{display:none}
+body.intro-min :is(#tab-dashboard,#tab-history) :is(.chart-note,.sec-note,.k-why){display:none}
 @media(max-width:640px){   /* 좁은 화면: [접기]는 오른쪽 위 구석에 — 설명 글이 좁아지지 않게 */
   body:not(.intro-min) :is(.welcome-banner,.tab-banner){position:relative}
   body:not(.intro-min) .intro-x{position:absolute;top:8px;right:8px;padding:2px 8px;font-size:11px}
@@ -2183,11 +2255,6 @@ body.intro-min .site-info .si-head{grid-row:auto}
 @keyframes cardFlash{0%,35%{box-shadow:0 0 0 3px var(--accent)}100%{box-shadow:var(--shadow)}}
 @media(prefers-reduced-motion:reduce){.kpi-card.flash{animation:none;outline:3px solid var(--focus)}}
 /* 경고 표시 읽는 법 · 카드 안 이유 한 줄 */
-.al-legend{display:flex;flex-wrap:wrap;align-items:center;gap:4px 14px;margin:-4px 0 12px;padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface);font-size:12px;line-height:1.6;color:var(--text2)}
-.al-legend b{color:var(--muted);font-weight:600}
-.al-legend>span{white-space:nowrap}
-.al-legend .al-up{color:var(--amber);font-weight:600}
-.al-legend .al-over{display:inline-block;padding:0 6px;border:1.5px solid rgba(185,28,28,.75);border-radius:4px;color:var(--red);font-weight:600}
 .kpi-why{margin-top:4px;font-size:11px;font-weight:500;line-height:1.45;word-break:keep-all;overflow-wrap:anywhere}
 .kpi-why.up{color:var(--amber)}.kpi-why.chk{color:var(--muted)}.kpi-why.over{color:var(--red)}
 /* 가로 카드(사용량): 늘 두 줄 — 이유 한 줄이 있으면 이름 아래(왼쪽 둘째 줄) · 값과 사용량은 오른쪽 두 줄 그대로 */
@@ -2308,7 +2375,7 @@ body.intro-min .site-info .si-head{grid-row:auto}
   .kpi-click::after{content:'›';top:6px;right:9px;font-size:16px;font-weight:600}   /* 좁은 화면은 '›'만 */
   .kpi-click:not(.kpi-h)>.kpi-label{padding-right:16px}
   .dash-bar>img{display:none}
-  body.intro-min .site-info .si-items{display:none}   /* 설명을 접으면 관리 항목 목록도 */
+
   .ebar{width:36px;margin-right:6px}
   .kpi-h .kpi-label{flex:0 1 auto!important;white-space:normal;word-break:keep-all;line-height:1.3}   /* 좁으면 이름이 두 줄로 — 값은 줄지 않게 */
   .kpi-h .kv{min-width:auto}
@@ -2359,6 +2426,22 @@ body.intro-min .site-info .si-head{grid-row:auto}
 @keyframes fade-in{from{opacity:0}to{opacity:1}}
 .modal-overlay{animation:fade-in var(--dur-1) var(--ease-out) both}
 .modal-box{animation:modal-in var(--dur-2) var(--ease-out) both}
+/* ── 좁은 화면: 가운데 상자 대신 아래에서 올라오는 시트 ──
+   한 손으로 드는 화면에서 팝업이 가운데 떠 있으면 닫기 단추가 제일 먼 위쪽 구석에 간다.
+   아래에 붙이면 엄지가 닿는 곳에 단추가 오고, 위 모서리만 둥근 모양이 '아래에서 올라왔다'를 말해 준다 */
+@keyframes sheet-up{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+@media(max-width:640px){
+  .modal-overlay{align-items:flex-end;padding:0}
+  .modal-box{max-width:none;max-height:92vh;border-radius:16px 16px 0 0;border-bottom:none;animation:sheet-up var(--dur-2) var(--ease-out) both}
+  /* 잡아 내리는 손잡이 — 쓸어내려 닫는 시트라는 신호 (지금은 모양만) */
+  .modal-box::before{content:'';flex:none;display:block;width:40px;height:4px;margin:0 auto 12px;border-radius:999px;background:var(--pop-line2)}
+  .calc-box::before{margin:10px auto 0}
+  /* 아이폰 홈바에 단추가 가리지 않게 */
+  .modal-box:not(.calc-box){padding-bottom:calc(24px + env(safe-area-inset-bottom,0px))}
+  .calc-foot{padding-bottom:calc(12px + env(safe-area-inset-bottom,0px))}
+  .modal-foot{gap:8px}
+  .modal-foot>.btn-cancel,.modal-foot>.btn-primary,.calc-foot>.btn-cancel{flex:1 1 0;min-height:48px;padding:8px 12px;border-radius:12px}
+}
 /* 안쪽 카드: 전망 탭 카드도 같은 규칙 (채움으로 구분) */
 .o-card{background:var(--surface2);border-color:transparent}
 /* 날짜 메타는 정보이지 단추가 아니다 — 알약 테두리 대신 글자로 */
@@ -2367,3 +2450,203 @@ body.intro-min .site-info .si-head{grid-row:auto}
 table.main-tbl tbody tr:hover>td,.sb-tbl tbody tr:hover>td{background:rgba(255,255,255,.03)}
 /* 탭 줄: 더 있으면 오른쪽 가장자리를 흐린다 (JS 가 data-more 를 켬) */
 .tab-row[data-more]{-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 36px),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 36px),transparent)}
+/* ══ 📈 전망 탭 — 토스처럼 읽히게 ══════════════════════════════
+   · 구획마다 큰 둥근 카드 하나 (테두리 대신 면의 밝기로 나눔)
+   · 제목은 크게, 설명은 그 아래 한 줄 회색으로 — 한 줄에 다 몰지 않는다
+   · 안쪽 블록(결론·카드·지도·만약에·표)은 테두리를 빼고 평평하게
+   · 숫자가 주인공: 카드 값 28px, 결론은 '판정 한 줄'을 제목처럼 */
+#tab-outlook .kpi-section,#tab-outlook .fold-sec{background:var(--surface);border-radius:16px;padding:24px 24px 20px;margin-bottom:16px;box-shadow:var(--shadow)}
+#tab-outlook .fold-sec:not([open]){margin-bottom:12px;padding-bottom:24px}
+#o-sum-sec{margin-bottom:16px}
+/* 구획 제목: 20px · 설명은 다음 줄 */
+#tab-outlook .kpi-section-hd,#tab-outlook .fold-sec>summary.kpi-section-hd{display:flex;align-items:center;flex-wrap:wrap;gap:6px 8px;font-size:20px;font-weight:600;color:var(--text);line-height:1.4;padding:0;margin:0 0 20px;border:0;text-transform:none;letter-spacing:-.01em}
+#tab-outlook .fold-sec:not([open])>summary.kpi-section-hd{margin-bottom:0}
+#tab-outlook .kpi-section-hd>.ic{width:22px;height:22px;padding:4px;box-sizing:content-box;border-radius:10px;background:var(--surface2);color:var(--accent)}
+#tab-outlook .kpi-section-hd .hd-note{order:3;flex-basis:100%;margin:0;font-size:13px;font-weight:400;line-height:1.6;color:var(--muted);letter-spacing:0}
+#tab-outlook .kpi-section-hd .tgt-site{font-size:12px;letter-spacing:0;border:0;border-radius:999px;padding:2px 10px}
+#tab-outlook .fold-sec>summary.kpi-section-hd::after{order:2;border:0;background:var(--surface2);border-radius:999px;padding:6px 14px;font-size:12px;color:var(--text2)}
+#tab-outlook .fold-sec>summary.kpi-section-hd:hover{color:var(--text)}
+#tab-outlook .fold-sec>summary.kpi-section-hd:hover::after{color:var(--accent);background:var(--sel-bg)}
+#tab-outlook .o-hd-btns{order:2}
+#tab-outlook .o-hd-btns .btn-export{border:0;background:var(--surface2);border-radius:999px;padding:6px 14px;font-size:12px;font-weight:500}
+#tab-outlook .o-hd-btns .btn-export:hover{background:var(--sel-bg);color:var(--accent)}
+
+/* 결론 — 목록 한 줄 = 아이콘 동그라미 · (라벨 / 판정 / 설명) · › */
+#tab-outlook .o-verdict{border:0;background:none;margin:0 -12px 20px;border-radius:0}
+#tab-outlook .o-verdict li{display:grid;grid-template-columns:44px minmax(0,1fr) auto;align-items:center;gap:0 14px;padding:14px 12px;border-radius:12px;color:var(--text2)}
+#tab-outlook .o-verdict li+li{border-top:0}
+#tab-outlook .o-verdict li:hover{background:var(--surface2)}
+#tab-outlook .ov-ic{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;font-size:20px}
+#tab-outlook li.ok .ov-ic{background:var(--good-bg);color:var(--green)}
+#tab-outlook li.no .ov-ic{background:var(--bad-bg);color:var(--red)}
+#tab-outlook li.warn .ov-ic{background:color-mix(in srgb,var(--amber) 16%,transparent);color:var(--amber)}
+#tab-outlook .ov-m{display:flex;flex-direction:column;min-width:0}
+#tab-outlook .o-verdict .ov-k{font-size:13px;font-weight:500;color:var(--muted)}
+#tab-outlook .o-verdict .ov-b{padding:0;background:none !important;border-radius:0;font-size:16px;font-weight:600;line-height:1.5;white-space:normal;word-break:keep-all}
+#tab-outlook .o-verdict li.ok .ov-b{color:var(--green)}
+#tab-outlook .o-verdict li.no .ov-b{color:var(--red)}
+#tab-outlook .o-verdict li.warn .ov-b{color:var(--amber)}
+#tab-outlook .o-verdict .ov-t{margin-top:2px;font-size:13px;line-height:1.6;color:var(--text2);word-break:keep-all}
+#tab-outlook .ov-go{font-size:20px;line-height:1;color:var(--muted);transition:transform var(--dur-2) var(--ease-out),color var(--dur-1) var(--ease-out)}
+#tab-outlook .o-verdict li:hover .ov-go{color:var(--text2);transform:translateX(2px)}
+
+/* 숫자 카드 — 왼쪽 색띠 대신, 값 아래 판정 알약 */
+#tab-outlook .o-cards{grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+#tab-outlook .o-card{background:var(--surface2);border:0;border-left:0;border-radius:16px;padding:20px;box-shadow:none;display:flex;flex-direction:column;align-items:flex-start}
+#tab-outlook .o-card[role="button"]:hover{border:0;box-shadow:var(--shadow-md);background:color-mix(in srgb,var(--surface2) 88%,var(--text))}
+#tab-outlook .o-card .gs-k{font-size:13px;font-weight:500;color:var(--muted);justify-content:flex-start;gap:6px}
+#tab-outlook .o-card .gs-v{font-size:28px;font-weight:600;line-height:1.25;letter-spacing:-.02em;margin:8px 0 10px}
+#tab-outlook .o-card .gs-v small{font-size:13px;letter-spacing:0}
+#tab-outlook .o-card .gs-r{margin:0 0 10px;padding:4px 10px;border-radius:8px;font-size:12px;font-weight:600;line-height:1.5}
+#tab-outlook .o-card.ok .gs-r{background:var(--good-bg)}
+#tab-outlook .o-card.no .gs-r{background:var(--bad-bg)}
+#tab-outlook .o-card.na .gs-r{background:var(--surface)}
+#tab-outlook .o-card .gs-t{font-size:13px;line-height:1.6;color:var(--text2)}
+#tab-outlook .o-card .gs-t b{color:var(--text)}
+#tab-outlook .o-card .o-scl{margin-top:6px;font-size:13px}
+#tab-outlook .o-card .o-cs{align-self:stretch;margin-top:auto;padding-top:12px;border-top:0;font-size:12px;color:var(--muted)}
+#tab-outlook .o-card .o-cs::before{content:'';display:block;height:1px;margin:2px 0 12px;background:var(--border)}
+#tab-outlook .o-card .o-cs b{color:var(--text2)}
+
+/* 목표별 전망 지도 · 읽는 법 */
+#tab-outlook .o-map{margin-top:20px;padding:18px 20px;border:0;border-radius:16px;background:var(--surface2);gap:6px}
+#tab-outlook .om-hd .om-k{font-size:14px;font-weight:600}
+#tab-outlook .om-k{font-size:13px}
+#tab-outlook .om-c{height:22px;border-radius:6px;background:color-mix(in srgb,var(--surface) 70%,transparent)}
+#tab-outlook .om-s{font-size:13px}
+#tab-outlook .om-c.ok{background:color-mix(in srgb,var(--green) 55%,transparent)}
+#tab-outlook .om-c.no{background:color-mix(in srgb,var(--red) 58%,transparent)}
+#tab-outlook .om-c.tent.ok{background:color-mix(in srgb,var(--green) 20%,transparent)}
+#tab-outlook .om-c.tent.no{background:color-mix(in srgb,var(--red) 20%,transparent)}
+#tab-outlook .o-wi-scope:empty{display:none}
+#tab-outlook .o-legend{margin-top:14px;gap:6px 16px;font-size:12px}
+#tab-outlook .o-legend b{font-weight:600}
+
+/* 만약에 — 줄마다 라벨 · 입력 (선 없이 간격으로) */
+#tab-outlook .o-wi{gap:0;padding:0;border:0;background:none}
+#tab-outlook .o-wi-f{grid-template-columns:160px minmax(0,1fr);padding:14px 0;gap:8px 16px}
+#tab-outlook .o-wi-f+.o-wi-f{border-top:1px solid color-mix(in srgb,var(--border) 60%,transparent)}
+#tab-outlook .o-wi-k{display:flex;align-items:center;gap:8px;font-size:14px}
+#tab-outlook .o-wi-k .ic{color:var(--vio)}
+#tab-outlook .o-wi-in{gap:8px 10px;font-size:14px}
+#tab-outlook .o-wi-in input,#tab-outlook .o-wi-in select{height:40px;padding:0 12px;border:1px solid transparent;border-radius:10px;background:var(--surface2);font-size:14px;transition:var(--t-ui)}
+#tab-outlook .o-wi-in input{width:128px}
+#tab-outlook .o-wi-in input:hover,#tab-outlook .o-wi-in select:hover{border-color:var(--border2)}
+#tab-outlook .o-wi-in input:focus,#tab-outlook .o-wi-in select:focus{border-color:var(--vio);outline:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--vio) 22%,transparent)}
+#tab-outlook .o-wi-in small{font-size:12px}
+#tab-outlook .o-wi-scope{border:0;border-radius:999px;padding:2px 10px;font-size:12px}
+#tab-outlook .o-fit{border:0;border-radius:12px;padding:8px 14px;font-size:13px}
+#tab-outlook button.o-fit:hover{background:color-mix(in srgb,var(--vio) 14%,var(--surface2))}
+#tab-outlook .o-fit.done{border:1px dashed var(--green)}
+#tab-outlook .o-fit.hard{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--amber) 55%,transparent)}
+#tab-outlook .o-wi-btns{padding-top:14px}
+#tab-outlook #wi-reset{height:36px;padding:0 16px;border:0;border-radius:10px;font-size:13px}
+#tab-outlook .o-wi-st{font-size:13px}
+#tab-outlook .o-wi-out{margin-top:16px}
+
+/* 그래프 · 표 — 카드 안에서는 테두리 없이 */
+#tab-outlook .o-chart{border:0;background:none;box-shadow:none;padding:0;margin-bottom:16px}
+#tab-outlook .table-wrap{border:0;box-shadow:none;background:none;border-radius:0}
+#tab-outlook table.main-tbl th{background:none;font-size:12px;font-weight:500;color:var(--muted);padding:10px 12px;border-bottom:1px solid var(--border)}
+#tab-outlook table.main-tbl td{padding:14px 12px;font-size:14px;border-bottom:1px solid color-mix(in srgb,var(--border) 45%,transparent)}
+#tab-outlook table.main-tbl tbody tr:last-child>td{border-bottom:0}
+#tab-outlook table.main-tbl tbody tr[data-rmpop]{cursor:pointer}
+#tab-outlook .ol-tbl tr.ol-end td{background:color-mix(in srgb,var(--accent) 7%,transparent)}
+#tab-outlook .ol-v{padding:2px 10px;border-radius:999px;font-size:12px}
+#tab-outlook .o-all{display:block;width:100%;height:44px;margin-top:12px;border:0;border-radius:12px;background:var(--surface2);font-size:13px;font-weight:500;color:var(--text2)}
+#tab-outlook .o-all:hover{background:var(--sel-bg);color:var(--accent)}
+#tab-outlook .olpv{border:0;border-radius:12px;padding:12px 16px;margin-bottom:16px;font-size:13px}
+#tab-outlook .ol-src{margin-top:16px;border:0;border-radius:16px;background:var(--surface2)}
+#tab-outlook .ol-src>summary{padding:16px 18px}
+#tab-outlook .ol-src>summary span{font-size:14px}
+#tab-outlook .ol-src>summary em{font-size:12px}
+#tab-outlook .ol-src-body{padding:0 18px 18px}
+#tab-outlook .ol-src table.main-tbl td{padding:12px}
+#tab-outlook .o-foot{margin-top:12px;font-size:12px}
+#tab-outlook .o-how{gap:12px;padding:0;border:0;background:none;font-size:13px}
+#tab-outlook .o-how li{grid-template-columns:24px 112px minmax(0,1fr);gap:0 10px}
+
+@media(max-width:640px){
+  #tab-outlook .kpi-section,#tab-outlook .fold-sec{padding:20px 16px 16px;border-radius:16px}
+  #tab-outlook .fold-sec:not([open]){padding-bottom:20px}
+  #tab-outlook .kpi-section-hd,#tab-outlook .fold-sec>summary.kpi-section-hd{font-size:18px;margin-bottom:16px}
+  #tab-outlook .o-verdict{margin:0 -8px 16px}
+  #tab-outlook .o-verdict li{grid-template-columns:40px minmax(0,1fr) auto;gap:0 12px;padding:12px 8px}
+  #tab-outlook .ov-ic{width:40px;height:40px;font-size:18px}
+  #tab-outlook .o-cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  #tab-outlook .o-card{padding:16px 14px}
+  #tab-outlook .o-card .gs-v{font-size:24px}
+  #tab-outlook .o-map{padding:14px 12px}
+  #tab-outlook .o-wi-f{grid-template-columns:1fr}
+  #tab-outlook .o-how li{grid-template-columns:24px minmax(0,1fr)}
+  #tab-outlook table.main-tbl td{padding:12px 8px;font-size:13px}
+  #tab-outlook table.main-tbl th{padding:10px 8px}
+}
+/* ── 전망 탭: 처음 보는 사람용 길잡이 ── */
+#tab-outlook .o-q{order:-1;flex-basis:100%;font-size:12px;font-weight:500;color:var(--accent);letter-spacing:0}
+#o-wi-sec .o-q{color:var(--vio)}
+/* 질문 바로가기 — 한 줄짜리 알약 (자리를 적게 차지하게) */
+#tab-outlook .o-guide{padding:16px 18px 14px}
+#tab-outlook .o-guide>summary.kpi-section-hd{font-size:16px;margin-bottom:10px;gap:4px 8px}
+#tab-outlook .o-guide>summary.kpi-section-hd .hd-note{font-size:12px}
+#tab-outlook .o-guide>summary.kpi-section-hd::after{padding:4px 10px;font-size:11px}
+#tab-outlook .o-qs{display:flex;flex-wrap:wrap;gap:6px}
+#tab-outlook .o-qb{display:inline-flex;align-items:center;gap:6px;padding:6px 12px 6px 6px;border-radius:999px;background:var(--surface2);text-align:left;color:var(--text2)}
+#tab-outlook .o-qb:hover{background:var(--sel-bg);color:var(--text)}
+#tab-outlook .o-qb:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+#tab-outlook .o-qi{display:grid;place-items:center;width:24px;height:24px;border-radius:8px;background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent);font-size:13px}
+#tab-outlook .o-qb.vio .o-qi{background:color-mix(in srgb,var(--vio) 16%,transparent);color:var(--vio)}
+#tab-outlook .o-qb b{font-size:13px;font-weight:500;line-height:1.4;word-break:keep-all}
+#tab-outlook .o-qb small{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+/* 용어 풀이 */
+#tab-outlook .o-terms{margin-top:10px;border-radius:12px;background:var(--surface2)}
+#tab-outlook .o-terms>summary{padding:10px 14px;font-size:12px;color:var(--text2);cursor:pointer;list-style:none}
+#tab-outlook .o-terms>summary::-webkit-details-marker{display:none}
+#tab-outlook .o-terms>summary::after{content:' ▾';color:var(--muted)}
+#tab-outlook .o-terms[open]>summary::after{content:' ▴'}
+#tab-outlook .o-terms>summary b{color:var(--accent)}
+#tab-outlook .o-terms dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 24px;padding:2px 14px 14px}
+#tab-outlook .o-terms dt{font-size:12px;font-weight:600;color:var(--text)}
+#tab-outlook .o-terms dd{font-size:12px;line-height:1.55;color:var(--muted);word-break:keep-all}
+/* 결론 한 줄 */
+#tab-outlook .o-lead{margin-bottom:24px;padding:20px 22px;border-radius:16px;background:var(--surface2)}
+#tab-outlook .o-lead.ok{background:color-mix(in srgb,var(--green) 10%,var(--surface2))}
+#tab-outlook .o-lead.no{background:color-mix(in srgb,var(--red) 10%,var(--surface2))}
+#tab-outlook .o-lead.warn{background:color-mix(in srgb,var(--amber) 10%,var(--surface2))}
+#tab-outlook .o-lead .ol-h{font-size:20px;font-weight:600;line-height:1.45;color:var(--text);word-break:keep-all}
+#tab-outlook .o-lead.ok .ol-h b{color:var(--green)}
+#tab-outlook .o-lead.no .ol-h b{color:var(--red)}
+#tab-outlook .o-lead.warn .ol-h b{color:var(--amber)}
+#tab-outlook .o-lead .ol-s{margin-top:6px;font-size:14px;color:var(--text2);word-break:keep-all}
+#tab-outlook .o-lead .ol-s b{color:var(--text)}
+#tab-outlook .ol-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
+#tab-outlook .ol-chips span{padding:4px 12px;border-radius:999px;font-size:12px;font-weight:600;background:var(--surface)}
+#tab-outlook .ol-chips .ok{color:var(--green)}#tab-outlook .ol-chips .no{color:var(--red)}#tab-outlook .ol-chips .warn{color:var(--amber)}
+/* 한눈에 보기 안 소제목 */
+#tab-outlook .o-sub{display:flex;align-items:baseline;flex-wrap:wrap;gap:2px 8px;margin:0 0 10px;font-size:16px;font-weight:600;color:var(--text)}
+#tab-outlook .o-sub small{font-size:12px;font-weight:400;color:var(--muted)}
+#tab-outlook .o-cards+.o-sub{margin-top:28px}
+#tab-outlook .o-sub+.o-map{margin-top:0}
+#tab-outlook .o-sub:has(+[hidden]){display:none}
+@media(max-width:640px){
+  #tab-outlook .o-guide{padding:14px 14px 12px}
+  #tab-outlook .o-guide>summary.kpi-section-hd{font-size:14px;margin-bottom:8px}
+  #tab-outlook .o-qb{padding:6px 10px 6px 6px}
+  #tab-outlook .o-qb b{font-size:12px}
+  #tab-outlook .o-terms dl{grid-template-columns:1fr}
+  #tab-outlook .o-lead{padding:16px}
+  #tab-outlook .o-lead .ol-h{font-size:18px}
+}
+
+/* 데모 안내 띠 — 설정(js/config.js)을 바꾸지 않은 채 다른 곳에서 띄웠을 때만 보임 */
+#demo-note{display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  padding:10px 20px;font-size:13px;line-height:1.6;
+  background:var(--surface2);color:var(--text2);
+  border-bottom:1px solid var(--border);box-shadow:inset 0 2px 0 var(--warn)}
+#demo-note[hidden]{display:none}
+#demo-note .ic{color:var(--warn);flex:none}
+#demo-note b{color:var(--text);font-weight:600}
+#demo-note code{font-size:12px;padding:1px 5px;border-radius:4px;
+  background:var(--surface);border:1px solid var(--border);color:var(--text2)}
+#demo-note a{margin-left:auto;color:var(--accent);font-weight:500;white-space:nowrap}
+@media (max-width:640px){#demo-note{padding:10px 16px}#demo-note a{margin-left:0}}
