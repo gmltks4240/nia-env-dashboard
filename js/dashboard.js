@@ -5,13 +5,13 @@
   let curSite = '대구본원';
   const SITE_INFO = {
     '대구본원':       { role: '감축 목표 관리', tone: 'goal',
-                        desc: '온실가스 감축(기준배출량 대비 자체·법적 목표)·RE100·폐기물 감축 목표를 모두 적용하는 거점이에요. 목표 대비 실적을 함께 보여드려요.' },
+                        desc: '온실가스·RE100·폐기물 목표를 모두 적용하는 거점이에요' },
     '서울사무소':     { role: '폐기물 목표', tone: 'part',
-                        desc: '폐기물 감축 목표(세 거점 합산)에 포함되는 거점이에요. 온실가스·RE100 목표는 적용하지 않아 에너지 사용량과 배출 추이를 모니터링해요.' },
+                        desc: '폐기물 목표(세 거점 합산)만 적용 · 온실가스·RE100은 추이만 봐요' },
     '제주글로벌센터': { role: 'RE100·폐기물 목표', tone: 'part',
-                        desc: 'RE100(대구본원과 합산)·폐기물(세 거점 합산) 감축 목표에 포함되는 거점이에요. 온실가스 감축 목표는 대구본원에만 적용돼 여기서는 배출 추이를 봐요.' },
+                        desc: 'RE100(대구와 합산)·폐기물 목표 적용 · 온실가스는 추이만 봐요' },
     '':               { role: '3개 거점 합계', tone: '',
-                        desc: '세 거점의 사용량·배출량을 합친 화면이에요. 목표는 대상 거점끼리 모아 보여 줘요 — 온실가스 = 대구본원 · RE100 = 대구+제주 합산 · 폐기물 = 세 거점 합산.' },
+                        desc: '세 거점을 합친 화면 · 목표는 대상 거점끼리 모아 봐요' },
   };
   const ITEM_NAMES = [['전력', '전력'], ['도시가스', '도시가스'], ['지역난방', '지역난방'], ['휘발유', '휘발유'], ['경유', '경유'],
                       [RE_SELF, '태양광(자가발전)'], [RE_BUY, '재생에너지 구매'], [SAVE_REGEN, '승강기 회생제동']];
@@ -33,9 +33,12 @@
                   TARGET_SITES.waste.includes(si) && ['wt', '폐기물 감축']].filter(Boolean);
     if (!si) tags.push(['ghg', '온실가스 감축 (대구본원)'], ['re', `RE100 (대구+제주 합산)`], ['wt', '폐기물 감축 (세 거점 합산)']);
     $(id).innerHTML = `<div class="si-head"><b class="si-name">${si || '전체 합계'}</b><span class="si-role ${info.tone}">${info.role}</span></div>` +
-      `<p class="si-desc">${info.desc}</p><div class="si-meta"><span class="si-k si-tk">적용 목표</span>` +
-      (tags.length ? tags.map(([k, t]) => `<span class="si-tag" data-k="${k}">${t}</span>`).join('') : '<span class="si-none">없음</span>') +
-      `<span class="si-items"><span class="si-k">관리 항목</span><span>${items.length ? items.map(esc).join(' · ') : '<span class="si-none">입력된 자료 없음</span>'}</span></span></div>`;
+      `<div class="si-meta"><span class="si-k si-tk">적용 목표</span>` +
+      (tags.length ? tags.map(([k, t]) => `<span class="si-tag" data-k="${k}">${t}</span>`).join('') : '<span class="si-none">없음</span>') + '</div>' +
+      `<p class="si-desc">${info.desc}` +
+      `<span class="si-items"><span class="si-k">관리 항목</span><span${items.length > 3 ? ` title="${esc(items.join(' · '))}"` : ''}>` +
+      (items.length ? items.slice(0, 3).map(esc).join(' · ') + (items.length > 3 ? ` 외 ${items.length - 3}개` : '')
+                    : '<span class="si-none">입력된 자료 없음</span>') + '</span></span></p>';
   }
   function setSite(si) {
     curSite = si;
@@ -88,8 +91,8 @@
     $('hdr-updated').textContent = allTs.length ? '최근 업데이트: ' + fmtTs(allTs[0]) : '';
     // 오늘 날짜 대신 '실적이 몇 월까지 + 남은 달은 예측' · 최근 업데이트 (휴대폰은 머리 오른쪽이 숨겨져 여기서 봄)
     const thr = dataThrough(curYr, si ? [si] : SITES), upd = allTs.length ? new Date(allTs[0]) : null;
-    $('cur-year-label').textContent = `${curYr}년 현황 · ` + (thr.max ? `실적 ${thr.txt}${thr.max < 12 ? ' + 예측' : ''}` : '아직 입력 전 · 예측') +
-      (upd ? ` · ${upd.getMonth() + 1}.${upd.getDate()} 업데이트` : '');
+    $('cur-year-label').innerHTML = (thr.max ? `실적 ${esc(thr.txt)}${thr.max < 12 ? ' + 예측' : ''}` : '아직 입력 전 · 예측') +
+      (upd ? `<span class="chip-upd"> · ${upd.getMonth() + 1}.${upd.getDate()} 업데이트</span>` : '');
     $('cur-year-label').title = `${today.toLocaleDateString('ko-KR')} 기준 · ` + (thr.max ? `거점마다 입력된 마지막 달: ${Object.entries(thr.by).map(([s, m]) => `${s} ${m ? `${m}월` : '없음'}`).join(' · ')} · 남은 달·빈 칸은 기상연동 예측` : '입력된 실적이 없어요');
     renderYearView('', curYr, si);
     renderDashToc();
@@ -580,7 +583,7 @@
     if (v2) renderEnvKpis(P, si, year, isCur);
 
     // 빈 칸 정리 (자원·기타 · 사용량) · 경고 표시 읽는 법
-    tidyEnv(P); tidyUsage(P, ey); alLegend(P);
+    tidyEnv(P); tidyUsage(P, ey);
     // 자료가 없어 '해당 없음·추후 예정'인 카드는 눌러도 보여 줄 게 없으니 키보드 차례에서도 뺌
     document.querySelectorAll(`#${P ? 'y-yv' : 'yv'} .kpi-click`).forEach(c =>
       c.setAttribute('tabindex', c.classList.contains('kpi-placeholder') ? '-1' : '0'));

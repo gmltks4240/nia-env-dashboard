@@ -447,7 +447,7 @@
       tg.replaceWith(b);
     });
     const lb = box.querySelector('.si-tk');
-    if (lb && Object.keys(vd).length) lb.textContent = isCur ? `적용 목표 · ${yrShort(year)} 연말 전망` : `적용 목표 · ${yrShort(year)} 실적`;
+    if (lb && Object.keys(vd).length) lb.textContent = isCur ? `${yrShort(year)} 연말 전망` : `${yrShort(year)} 실적`;
   }
   document.addEventListener('click', e => {
     const b = e.target.closest('.si-v[data-to]'); if (!b) return;
@@ -493,16 +493,6 @@
       `<span class="pk-bar" role="img" aria-label="${esc(`온실가스 배출 구성: ${parts.map(x => `${x.t} ${pc(x)}%`).join(', ')}`)}">` +
       parts.map(x => `<i style="flex:${x.g} 0 0;background:${typeCol(x.t)}" title="${esc(`${x.t} ${fq(x.g)} tCO₂eq (${fmt(x.g / tot * 100, 1)}%)`)}"></i>`).join('') + '</span>' +
       `<span class="pk-t">${parts.slice(0, 3).map(x => `${x.t} ${pc(x)}%`).join(' · ')}</span>`;
-  }
-  // 경고 표시 읽는 법 (카드에 표시가 하나라도 있을 때만) — ⚠ 늘어남 · 🔍 입력 확인(입력 권한) · 빨간 테두리 = 목표 초과
-  function alLegend(P) {
-    const root = $(P ? 'y-yv' : 'yv'), el = $(P + 'al-legend'); if (!root || !el) return;
-    const up = !!root.querySelector('.kpi-alert'), chk = !!root.querySelector('.kpi-check'), over = !!root.querySelector('.kpi-card.alert-over:not([hidden])');
-    el.hidden = !(up || chk || over);
-    const cur = !P;   // 그 해 자세히(지난 연도)는 '넘었음', 올해는 '넘을 전망'
-    el.innerHTML = '<b>표시 읽는 법</b>' + (up ? '<span><span class="al-up">⚠</span> 전년·평년보다 늘어남</span>' : '') +
-      (chk ? `<span data-need="edit">${icn('search')} 입력 실수 의심</span>` : '') + (over ? `<span><span class="al-over">빨간 테두리</span> 목표 초과${cur ? ' 전망' : ''}</span>` : '') +
-      '<span>카드를 누르면 이유·계산 근거</span>';
   }
   const yearSpan = o => { const k = Object.keys(o); return `${k[0].slice(2)}~${k[k.length - 1].slice(2)}년`; };
   const tgtOf = (y, kind) => kind === 'own' ? (ROADMAP[y]?.target ?? null)
