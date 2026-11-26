@@ -70,8 +70,10 @@ diff 가 말해주지 않는 것 — **어떤 문제가 있었고 왜 이 방법
   `tests/test_trip_rail.py` 와 `tools/*_trip.py` 가 **이 파일을 통째로 읽어** 브라우저에 넣고 돌린다
 - `js/trip-ui.js` — 화면(올리기·검토표·저장)
 
-분석 도구: `tools/eval_trip.py`(재산정·등급 집계) · `verify_trip.py`(A 등급 검증 3종) ·
-`sample_trip.py`(승차권 대조 표본). 출력 CSV 에는 **원본 장소명이 들어가므로 커밋하지 않는다.**
+분석 도구는 `tools/trip.py` 하나다 — `eval`(재산정·등급 집계) · `verify`(A 등급 검증 3종) ·
+`sample`(승차권 대조 표본). 예: `python3 tools/trip.py eval <관내출장.xls>`
+출력 CSV 에는 **원본 장소명·파일첨부 ID 가 들어가므로 커밋하지 않는다.**
+장소 분류는 **사전(`trip_places`) 기반**이고 AI 자동 호출은 없다 — `docs/decisions/002-AI-자동분류-제거.md`
 
 인수인계는 `docs/HANDOFF-trip-scope3.md` — 출장 작업은 이것부터 읽는다.
 
