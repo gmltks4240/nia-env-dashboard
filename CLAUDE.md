@@ -78,7 +78,7 @@ python3 tests/run_all.py
 |---|---|
 | 세션 시작 | `.claude/hooks/session-start.sh` — origin 최신 받아오기, 테스트 준비 |
 | `git push` 직전 | `.claude/hooks/pre-push-check.sh` — 다른 브랜치와 같은 파일을 건드리는지 검사. 겹치면 멈추고 알려 준다 |
-| 매주 월요일 | `.github/workflows/journal.yml` — 주간 개발 일지를 `docs/activity/` 에 자동 커밋 |
+| 매주 월요일 | `.github/workflows/journal.yml` — 주간 개발 일지를 만들어 PR 로 올림 (`docs/activity/`) |
 | PR·main 푸시 | `.github/workflows/tests.yml` — 테스트 10종 |
 
 푸시 전 검사가 멈춰 세우면, **사용자에게 무엇이 겹치는지 알리고 어떻게 할지 확인한 뒤** 진행한다.
